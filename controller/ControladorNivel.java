@@ -1,4 +1,4 @@
-package controller;
+
 
 import com.badlogic.gdx.InputAdapter;
 import model.Minijuego;

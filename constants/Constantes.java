@@ -1,5 +1,6 @@
 package constants;
 
+
 public class Constantes {
     public static final int ANCHO_VENTANA = 800;
     public static final int ALTO_VENTANA = 600;
