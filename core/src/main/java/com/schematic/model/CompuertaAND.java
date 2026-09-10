@@ -1,52 +1,39 @@
-package model;
+package com.schematic.model;
 
-public class CompuertaAND extends Componente {
-
-    private boolean entradaA;
-    private boolean entradaB;
+public class CompuertaAND extends CompuertaLogica {
 
     public CompuertaAND(String identificador, float posicionX, float posicionY, boolean entradaA, boolean entradaB) {
-        super(identificador, posicionX, posicionY);
-        this.entradaA = entradaA;
-        this.entradaB = entradaB;
-        this.evaluarEstado();
+        super(identificador, posicionX, posicionY, entradaA, entradaB);
     }
 
-
-    public boolean evaluarEstado() {
-        boolean resultado = entradaA && entradaB;
-        if (resultado) {
-            this.estadoActual = "EXITO";
-        } else {
-            this.estadoActual = "NEUTRO";
-        }
-        return resultado;
+    public CompuertaAND(String identificador, float posicionX, float posicionY) {
+        this(identificador, posicionX, posicionY, false, false);
     }
 
-    public boolean isEntradaA() {
-        return entradaA;
+    @Override
+    public boolean calcularSalida() {
+        return entradaA && entradaB;
     }
 
-    public void setEntradaA(boolean entradaA) {
-        this.entradaA = entradaA;
-        this.evaluarEstado();
-    }
-
-    public boolean isEntradaB() {
-        return entradaB;
-    }
-
-    public void setEntradaB(boolean entradaB) {
-        this.entradaB = entradaB;
-        this.evaluarEstado();
-    }
-    
+    @Override
     public String toString() {
         return "CompuertaAND{" +
                 "identificador='" + identificador + '\'' +
                 ", entradaA=" + entradaA +
                 ", entradaB=" + entradaB +
+                ", salida=" + salida +
                 ", estadoActual='" + estadoActual + '\'' +
                 '}';
     }
 }
+
+/*
+Que hay ahorita:
+Una compuerta logica que revisa dos entradas y solo se activa con exito si ambas estan encendidas al mismo tiempo.
+
+Que falta:
+Conectar sus entradas y su salida con los cables cuando hagamos el sistema de conexion.
+
+Recomendaciones:
+Sirve como ejemplo perfecto para cuando quieras crear la compuerta OR u otras compuertas parecidas.
+*/

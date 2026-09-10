@@ -1,4 +1,4 @@
-package model;
+package com.schematic.model;
 
 public abstract class Componente {
 
@@ -53,6 +53,7 @@ public abstract class Componente {
         this.estadoActual = estadoActual;
     }
 
+    @Override
     public String toString() {
         return "Componente{" +
                 "identificador='" + identificador + '\'' +
@@ -62,3 +63,14 @@ public abstract class Componente {
                 '}';
     }
 }
+
+/*
+Que hay ahorita:
+Es la plantilla base para todas las piezas del circuito. Guarda su nombre, su posicion en pantalla y su estado actual como neutro, exito o error.
+
+Que falta:
+Definirle los puntos o patitas donde se conectaran los cables y sus medidas finales.
+
+Recomendaciones:
+Todas las piezas nuevas que inventes deben heredar de aqui para que el juego las reconozca automaticamente.
+*/
