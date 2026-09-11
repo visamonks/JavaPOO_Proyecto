@@ -4,7 +4,6 @@ import com.badlogic.gdx.math.Vector2;
 
 public class Terminal {
 
-    public Terminal() {
     private String identificador;
     private Componente componentePadre;
     private float offsetX;
@@ -12,6 +11,16 @@ public class Terminal {
     private boolean esEntrada;
     private boolean valorLogico;
     private Cable cableConectado;
+
+    public Terminal() {
+        this.identificador = "TERM_DEF";
+        this.componentePadre = null;
+        this.offsetX = 0f;
+        this.offsetY = 0f;
+        this.esEntrada = true;
+        this.valorLogico = false;
+        this.cableConectado = null;
+    }
 
     public Terminal(String identificador, Componente componentePadre, float offsetX, float offsetY, boolean esEntrada) {
         this.identificador = identificador;
@@ -23,6 +32,7 @@ public class Terminal {
         this.cableConectado = null;
     }
 
+  
     public Vector2 getPosicionAbsoluta() {
         if (componentePadre == null) {
             return new Vector2(offsetX, offsetY);
@@ -34,12 +44,25 @@ public class Terminal {
         return cableConectado != null;
     }
 
+    public void desconectarCable() {
+        this.cableConectado = null;
+    }
+
+   
     public String getIdentificador() {
         return identificador;
     }
 
+    public void setIdentificador(String identificador) {
+        this.identificador = identificador;
+    }
+
     public Componente getComponentePadre() {
         return componentePadre;
+    }
+
+    public void setComponentePadre(Componente componentePadre) {
+        this.componentePadre = componentePadre;
     }
 
     public float getOffsetX() {
@@ -62,6 +85,10 @@ public class Terminal {
         return esEntrada;
     }
 
+    public void setEsEntrada(boolean esEntrada) {
+        this.esEntrada = esEntrada;
+    }
+
     public boolean getValorLogico() {
         return valorLogico;
     }
@@ -80,24 +107,11 @@ public class Terminal {
 
     @Override
     public String toString() {
-        return "Terminal{}";
         return "Terminal{" +
                 "id='" + identificador + '\'' +
                 ", tipo=" + (esEntrada ? "ENTRADA" : "SALIDA") +
                 ", valor=" + valorLogico +
+                ", conectado=" + estaConectado() +
                 '}';
     }
-}
-
-/*
- que llevamos
-  Esta clase sirve para representar las patitas o pines de conexión que tendrá
-  cada componente (como la entrada y la salida de una compuerta o los dos lados
-  de un foco). De momento la dejamos creada como estructura base.
- 
- que falta
-  Le agregaremos las coordenadas exactas de cada patita dentro del dibujo de la
-  pieza, si es una entrada o salida, y el valor de energía que tiene en ese
-  momento para poder unirla con un cable.
-
- */
+}   

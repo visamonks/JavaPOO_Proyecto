@@ -1,20 +1,51 @@
 package com.schematic.model;
 
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public abstract class Componente {
 
     protected String identificador;
     protected float posicionX;
     protected float posicionY;
+    protected float ancho;
+    protected float alto;
     protected String estadoActual;
 
-    public Componente(String identificador, float posicionX, float posicionY) {
+    protected final List<Point> puntosConexion;
+
+    public Componente(String identificador, float posicionX, float posicionY, float ancho, float alto) {
         this.identificador = identificador;
         this.posicionX = posicionX;
         this.posicionY = posicionY;
+        this.ancho = ancho;
+        this.alto = alto;
         this.estadoActual = "NEUTRO";
+        this.puntosConexion = new ArrayList<>();
     }
 
     public abstract boolean evaluarEstado();
+
+    public void agregarPuntoConexion(int offsetX, int offsetY) {
+        this.puntosConexion.add(new Point(offsetX, offsetY));
+    }
+
+    public List<Point> getPuntosConexion() {
+        return Collections.unmodifiableList(puntosConexion);
+    }
+
+    
+    public Point getPosicionAbsolutaPunto(int indice) {
+        if (indice >= 0 && indice < puntosConexion.size()) {
+            Point p = puntosConexion.get(indice);
+            return new Point((int) (posicionX + p.x), (int) (posicionY + p.y));
+        }
+        return null;
+    }
+
+    // getters y setters
 
     public void actualizarPosicion(float nuevaPosicionX, float nuevaPosicionY) {
         this.posicionX = nuevaPosicionX;
@@ -45,6 +76,22 @@ public abstract class Componente {
         this.posicionY = posicionY;
     }
 
+    public float getAncho() {
+        return ancho;
+    }
+
+    public void setAncho(float ancho) {
+        this.ancho = ancho;
+    }
+
+    public float getAlto() {
+        return alto;
+    }
+
+    public void setAlto(float alto) {
+        this.alto = alto;
+    }
+
     public String getEstadoActual() {
         return estadoActual;
     }
@@ -57,20 +104,12 @@ public abstract class Componente {
     public String toString() {
         return "Componente{" +
                 "identificador='" + identificador + '\'' +
-                ", posicionX=" + posicionX +
-                ", posicionY=" + posicionY +
-                ", estadoActual='" + estadoActual + '\'' +
+                ", x=" + posicionX +
+                ", y=" + posicionY +
+                ", ancho=" + ancho +
+                ", alto=" + alto +
+                ", estado='" + estadoActual + '\'' +
+                ", patitas=" + puntosConexion.size() +
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Es la plantilla base para todas las piezas del circuito. Guarda su nombre, su posicion en pantalla y su estado actual como neutro, exito o error.
-
-Que falta:
-Definirle los puntos o patitas donde se conectaran los cables y sus medidas finales.
-
-Recomendaciones:
-Todas las piezas nuevas que inventes deben heredar de aqui para que el juego las reconozca automaticamente.
-*/

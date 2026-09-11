@@ -9,7 +9,7 @@ public class Resistencia extends Componente {
 
     public Resistencia(String identificador, float posicionX, float posicionY, int valorOhmios, int valorRequerido) {
         super(identificador, posicionX, posicionY);
-        this.valorOhmios = valorOhmios;
+        this.valorOhmios = Math.max(1, valorOhmios);
         this.valorRequerido = valorRequerido;
         this.ancho = 60f;
         this.alto = 40f;
@@ -26,6 +26,7 @@ public class Resistencia extends Componente {
     @Override
     public boolean evaluarEstado() {
         boolean pasoCorriente = terminalEntrada != null && terminalEntrada.getValorLogico();
+        
         if (valorOhmios == valorRequerido) {
             this.estadoActual = "EXITO";
             if (terminalSalida != null) {
@@ -46,7 +47,7 @@ public class Resistencia extends Componente {
     }
 
     public void setValorOhmios(int valorOhmios) {
-        this.valorOhmios = valorOhmios;
+        this.valorOhmios = Math.max(1, valorOhmios);
         this.evaluarEstado();
     }
 
@@ -59,6 +60,10 @@ public class Resistencia extends Componente {
         this.evaluarEstado();
     }
 
+    public String getTextoEtiqueta() {
+        return valorOhmios + " Ω";
+    }
+
     @Override
     public String toString() {
         return "Resistencia{" +
@@ -69,15 +74,3 @@ public class Resistencia extends Componente {
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Una resistencia que compara sus ohmios con el valor que pide el nivel para saber si esta bien o mal.
-
-Que falta:
-Permitir que el jugador le cambie el valor con una ventanita y que limite el paso de energia.
-
-Recomendaciones:
-Conviene mostrar el valor del componente con texto cerca de la pieza para que el jugador sepa cuanto vale, así no dibujo mas.
-*/
-
