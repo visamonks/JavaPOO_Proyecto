@@ -27,6 +27,7 @@ public class Switch extends Componente {
         if (terminalSalida != null) {
             terminalSalida.setValorLogico(cerrado);
         }
+        
         if (cerrado) {
             this.estadoActual = "EXITO";
             return true;
@@ -58,4 +59,3 @@ public class Switch extends Componente {
                 '}';
     }
 }
-
