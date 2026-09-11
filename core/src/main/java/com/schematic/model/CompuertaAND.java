@@ -3,7 +3,15 @@ package com.schematic.model;
 public class CompuertaAND extends CompuertaLogica {
 
     public CompuertaAND(String identificador, float posicionX, float posicionY, boolean entradaA, boolean entradaB) {
+       
         super(identificador, posicionX, posicionY, entradaA, entradaB);
+
+        
+        this.agregarPuntoConexion(0, 15);
+    
+        this.agregarPuntoConexion(0, 35);
+    
+        this.agregarPuntoConexion(60, 25);
     }
 
     public CompuertaAND(String identificador, float posicionX, float posicionY) {
@@ -12,7 +20,8 @@ public class CompuertaAND extends CompuertaLogica {
 
     @Override
     public boolean calcularSalida() {
-        return entradaA && entradaB;
+        this.salida = entradaA && entradaB;
+        return this.salida;
     }
 
     @Override
@@ -26,14 +35,3 @@ public class CompuertaAND extends CompuertaLogica {
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Una compuerta logica que revisa dos entradas y solo se activa con exito si ambas estan encendidas al mismo tiempo.
-
-Que falta:
-Conectar sus entradas y su salida con los cables cuando hagamos el sistema de conexion.
-
-Recomendaciones:
-Sirve como ejemplo perfecto para cuando quieras crear la compuerta OR u otras compuertas parecidas.
-*/

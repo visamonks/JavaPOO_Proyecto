@@ -7,10 +7,15 @@ public abstract class CompuertaLogica extends Componente {
     protected boolean salida;
 
     public CompuertaLogica(String identificador, float posicionX, float posicionY, boolean entradaA, boolean entradaB) {
-        super(identificador, posicionX, posicionY);
+       
+        super(identificador, posicionX, posicionY, 60.0f, 40.0f);
         this.entradaA = entradaA;
         this.entradaB = entradaB;
         this.evaluarEstado();
+    }
+
+    public CompuertaLogica(String identificador, float posicionX, float posicionY) {
+        this(identificador, posicionX, posicionY, false, false);
     }
 
     public void setEntradas(boolean entradaA, boolean entradaB) {
@@ -32,6 +37,7 @@ public abstract class CompuertaLogica extends Componente {
         return salida;
     }
 
+    // getters y setters
     public boolean isEntradaA() {
         return entradaA;
     }
@@ -65,12 +71,3 @@ public abstract class CompuertaLogica extends Componente {
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Plantilla intermedia para cualquier compuerta que recibe dos valores logicos y calcula un resultado.
-
-Que falta:
-Conectar sus dos entradas y su salida a cables cuando implementemos el cableado en la segunda semana.
-
-*/
