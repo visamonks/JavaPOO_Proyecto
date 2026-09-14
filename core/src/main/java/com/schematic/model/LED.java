@@ -53,7 +53,7 @@ public class LED extends Componente {
         }
     }
 
-    // getters y setters
+    
 
     public boolean isPolaridadCorrecta() {
         return polaridadCorrecta;

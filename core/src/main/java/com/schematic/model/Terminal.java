@@ -114,4 +114,4 @@ public class Terminal {
                 ", conectado=" + estaConectado() +
                 '}';
     }
-}   
+}
