@@ -37,7 +37,7 @@ public abstract class CompuertaLogica extends Componente {
         return salida;
     }
 
-    // getters y setters
+    
     public boolean isEntradaA() {
         return entradaA;
     }

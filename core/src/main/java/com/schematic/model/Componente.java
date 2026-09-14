@@ -15,6 +15,7 @@ public abstract class Componente {
     protected String estadoActual;
 
     protected final List<Point> puntosConexion;
+    protected final List<Terminal> terminales;
 
     public Componente(String identificador, float posicionX, float posicionY, float ancho, float alto) {
         this.identificador = identificador;
@@ -24,6 +25,11 @@ public abstract class Componente {
         this.alto = alto;
         this.estadoActual = "NEUTRO";
         this.puntosConexion = new ArrayList<>();
+        this.terminales = new ArrayList<>();
+    }
+
+    public Componente(String identificador, float posicionX, float posicionY) {
+        this(identificador, posicionX, posicionY, 60.0f, 40.0f);
     }
 
     public abstract boolean evaluarEstado();
@@ -36,7 +42,10 @@ public abstract class Componente {
         return Collections.unmodifiableList(puntosConexion);
     }
 
-    
+    public List<Terminal> getTerminales() {
+        return terminales;
+    }
+
     public Point getPosicionAbsolutaPunto(int indice) {
         if (indice >= 0 && indice < puntosConexion.size()) {
             Point p = puntosConexion.get(indice);
@@ -44,8 +53,6 @@ public abstract class Componente {
         }
         return null;
     }
-
-    // getters y setters
 
     public void actualizarPosicion(float nuevaPosicionX, float nuevaPosicionY) {
         this.posicionX = nuevaPosicionX;
@@ -110,6 +117,7 @@ public abstract class Componente {
                 ", alto=" + alto +
                 ", estado='" + estadoActual + '\'' +
                 ", patitas=" + puntosConexion.size() +
+                ", terminales=" + terminales.size() +
                 '}';
     }
 }

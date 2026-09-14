@@ -137,14 +137,3 @@ public class ControladorNivel extends InputAdapter {
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Detecta cuando haces clic con el raton sobre una pieza, te deja arrastrarla por la pantalla y al soltarla la ajusta solita a la cuadricula. Si le das clic a un switch lo prende o apaga.
-
-Que falta:
-Poder sacar piezas desde la barra lateral y hacer que al dar clic en las esquinas de una pieza se dibuje el cable doblando en 90 grados.
-
-Recomendaciones:
-Manten aqui solo la interaccion del raton y no metas calculos pesados del juego para que el movimiento se sienta suave.
-*/

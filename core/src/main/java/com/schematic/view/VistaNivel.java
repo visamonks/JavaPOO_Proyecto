@@ -219,14 +219,3 @@ public class VistaNivel extends ScreenAdapter {
         return mapaTexturas;
     }
 }
-
-/*
-Que hay ahorita:
-Dibuja en pantalla grande de 1920x1080 la cuadricula, los componentes con sus nombres y la barra de tiempo arriba. Conecta el raton con el controlador.
-
-Que falta:
-Dibujar la cinta lateral de piezas, los cables doblados a 90 grados y los graficos finales de cada componente.
-
-Recomendaciones:
-Usa formas simples con ShapeRenderer mientras pruebas mecanicas antes de preocuparte por dibujos o texturas pesadas.
-*/
