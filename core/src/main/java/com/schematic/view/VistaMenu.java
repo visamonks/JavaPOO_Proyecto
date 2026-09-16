@@ -203,11 +203,7 @@ public class VistaMenu extends ScreenAdapter {
     private void iniciarNivelJuego() {
         if (juego != null) {
             Minijuego minijuego = new Minijuego(45.0f);
-            minijuego.agregarComponente(new Switch("SW_1", 240f, 480f, false));
-            minijuego.agregarComponente(new CompuertaAND("AND_1", 600f, 480f, false, false));
-            minijuego.agregarComponente(new Resistencia("R_1", 960f, 480f, 220, 220));
-            minijuego.agregarComponente(new LED("LED_1", 1320f, 480f, true));
-            juego.setScreen(new VistaNivel(minijuego));
+            juego.setScreen(new VistaNivel(minijuego, juego));
         }
     }
 

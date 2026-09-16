@@ -11,12 +11,12 @@ public class Minijuego {
     private float tiempoRestante;
     private boolean completado;
     private boolean ganado;
+    private String mensajeEstado;
     private List<Componente> componentes;
-    private List<Componente> componentesCinta;
     private List<Cable> cables;
 
     public Minijuego(float tiempoInicial) {
-        this(1, "Reto: ¡Conecta el circuito y enciende el LED!", tiempoInicial);
+        this(1, "NIVEL 1: CIRCUITO BÁSICO DC", tiempoInicial);
     }
 
     public Minijuego(int numeroNivel, String tituloReto, float tiempoLimite) {
@@ -26,76 +26,49 @@ public class Minijuego {
         this.tiempoRestante = tiempoLimite;
         this.completado = false;
         this.ganado = false;
+        this.mensajeEstado = "Objetivo: Conecta la fuente, la resistencia y el LED para encenderlo.";
         this.componentes = new ArrayList<>();
-        this.componentesCinta = new ArrayList<>();
         this.cables = new ArrayList<>();
 
-        inicializarComponentesCinta();
+        inicializarNivel1();
     }
 
-    public void inicializarComponentesCinta() {
-        componentesCinta.clear();
-     
-        componentesCinta.add(new Switch("SW_1", 0, 0, true));
-        componentesCinta.add(new CompuertaAND("AND_1", 0, 0, false, false));
-        componentesCinta.add(new Resistencia("R_1", 0, 0, 220, 220));
-        componentesCinta.add(new LED("LED_1", 0, 0, true));
+    public void inicializarNivel1() {
+        this.componentes.clear();
+        this.cables.clear();
+        this.completado = false;
+        this.ganado = false;
+        this.mensajeEstado = "Objetivo: Conecta la fuente, la resistencia y el LED para encenderlo.";
+
+        FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 100f, 380f);
+        Resistencia resistencia = new Resistencia("R_1", 600f, 440f, 220, 220);
+        LED led = new LED("LED_1", 1150f, 380f, true);
+
+        this.componentes.add(fuente);
+        this.componentes.add(resistencia);
+        this.componentes.add(led);
     }
 
     public void actualizar(float deltaTiempo) {
-        if (completado) {
+        if (completado && ganado) {
             return;
         }
 
         tiempoRestante -= deltaTiempo;
-
-        for (int iter = 0; iter < 2; iter++) {
-            for (Cable c : cables) {
-                c.propagarSenal();
-            }
-            for (Componente comp : componentes) {
-                comp.evaluarEstado();
-            }
-        }
-
-        if (evaluarCircuitoCompleto()) {
-            this.ganado = true;
-            this.completado = true;
-        } else if (tiempoRestante <= 0) {
-            this.tiempoRestante = 0;
-            this.ganado = false;
-            this.completado = true;
-        }
+        evaluarCircuito();
     }
 
     public void agregarComponente(Componente componente) {
         if (componente != null && !componentes.contains(componente)) {
             this.componentes.add(componente);
-            this.componentesCinta.remove(componente);
+            evaluarCircuito();
         }
-    }
-
-    public void eliminarComponente(Componente componente) {
-        if (componente == null) return;
-        
-        
-        List<Cable> cablesAEliminar = new ArrayList<>();
-        for (Cable cable : cables) {
-            if ((cable.getTerminalOrigen() != null && cable.getTerminalOrigen().getComponentePadre() == componente) ||
-                (cable.getTerminalDestino() != null && cable.getTerminalDestino().getComponentePadre() == componente)) {
-                cablesAEliminar.add(cable);
-            }
-        }
-        for (Cable cable : cablesAEliminar) {
-            eliminarCable(cable);
-        }
-        this.componentes.remove(componente);
     }
 
     public void agregarCable(Cable cable) {
         if (cable != null && !cables.contains(cable)) {
             this.cables.add(cable);
-            cable.propagarSenal();
+            evaluarCircuito();
         }
     }
 
@@ -103,68 +76,171 @@ public class Minijuego {
         if (cable != null) {
             cable.desconectar();
             this.cables.remove(cable);
+            evaluarCircuito();
         }
     }
 
-    public boolean evaluarCircuitoCompleto() {
-        if (componentes.isEmpty()) {
+    private Cable buscarCableConTerminal(Terminal t) {
+        if (t == null) return null;
+        for (Cable c : cables) {
+            if (c.conectaTerminal(t)) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    public boolean evaluarCircuito() {
+        FuenteAlimentacion fuente = null;
+        LED led = null;
+        Resistencia res = null;
+
+        for (Componente c : componentes) {
+            if (c instanceof FuenteAlimentacion) fuente = (FuenteAlimentacion) c;
+            else if (c instanceof LED) led = (LED) c;
+            else if (c instanceof Resistencia) res = (Resistencia) c;
+        }
+
+        for (Componente c : componentes) {
+            for (Terminal t : c.getTerminales()) {
+                t.setValorLogico(false);
+            }
+        }
+        for (Cable c : cables) {
+            c.setTieneEnergia(false);
+        }
+
+        if (fuente == null || led == null || res == null) {
             return false;
         }
 
-        boolean hayLED = false;
-        for (Componente comp : componentes) {
-            if (comp instanceof LED) {
-                hayLED = true;
-                if ("EXITO".equals(comp.getEstadoActual())) {
-                    return true;
-                }
+        fuente.getTerminalPositivo().setValorLogico(fuente.estaEncendida());
+
+        for (Cable c : cables) {
+            if (c.conectaTerminal(fuente.getTerminalPositivo()) && c.conectaTerminal(fuente.getTerminalNegativo())) {
+                fuente.setEstadoActual("ERROR");
+                c.setTieneEnergia(true);
+                mensajeEstado = "¡CORTOCIRCUITO DIRECTO! Desconecta el cable entre (+) y (-).";
+                return false;
             }
         }
 
-        if (!hayLED) {
-            for (Componente comp : componentes) {
-                if (!"EXITO".equals(comp.getEstadoActual())) {
+        Cable cablePos = buscarCableConTerminal(fuente.getTerminalPositivo());
+        if (cablePos == null) {
+            fuente.setEstadoActual("NEUTRO");
+            led.setQuemado(false);
+            led.setEstadoActual("NEUTRO");
+            res.setQuemada(false);
+            res.setEstadoActual("NEUTRO");
+            mensajeEstado = "Objetivo: Conecta la fuente, la resistencia y el LED para encenderlo.";
+            this.ganado = false;
+            this.completado = false;
+            return false;
+        }
+
+        cablePos.setTieneEnergia(true);
+        Terminal destinoPos = cablePos.getOtroTerminal(fuente.getTerminalPositivo());
+        destinoPos.setValorLogico(true);
+
+        if (destinoPos == led.getTerminalAnodo()) {
+            Cable cableCat = buscarCableConTerminal(led.getTerminalCatodo());
+            if (cableCat != null) {
+                Terminal destinoCat = cableCat.getOtroTerminal(led.getTerminalCatodo());
+
+                if (destinoCat == fuente.getTerminalNegativo()) {
+                    led.setQuemado(true);
+                    led.setEstadoActual("ERROR");
+                    fuente.setEstadoActual("ERROR");
+                    cableCat.setTieneEnergia(true);
+                    fuente.getTerminalNegativo().setValorLogico(true);
+                    mensajeEstado = "¡EL LED SE HA QUEMADO! Conectaste a tierra sin resistencia limitadora.";
                     return false;
+                } else if (destinoCat == res.getTerminalEntrada() || destinoCat == res.getTerminalSalida()) {
+                    Terminal salidaRes = (destinoCat == res.getTerminalEntrada()) ? res.getTerminalSalida() : res.getTerminalEntrada();
+                    cableCat.setTieneEnergia(true);
+                    destinoCat.setValorLogico(true);
+                    salidaRes.setValorLogico(true);
+
+                    Cable cableRet = buscarCableConTerminal(salidaRes);
+                    if (cableRet != null && cableRet.conectaTerminal(fuente.getTerminalNegativo())) {
+                        cableRet.setTieneEnergia(true);
+                        fuente.getTerminalNegativo().setValorLogico(true);
+
+                        led.setQuemado(false);
+                        led.setEstadoActual("EXITO");
+                        res.setQuemada(false);
+                        res.setEstadoActual("EXITO");
+                        fuente.setEstadoActual("EXITO");
+                        mensajeEstado = "¡CIRCUITO COMPLETO! El LED está encendido con éxito.";
+                        this.ganado = true;
+                        this.completado = true;
+                        return true;
+                    }
                 }
             }
-            return true;
+        } else if (destinoPos == res.getTerminalEntrada() || destinoPos == res.getTerminalSalida()) {
+            Terminal salidaRes = (destinoPos == res.getTerminalEntrada()) ? res.getTerminalSalida() : res.getTerminalEntrada();
+            destinoPos.setValorLogico(true);
+            salidaRes.setValorLogico(true);
+
+            Cable cableSalida = buscarCableConTerminal(salidaRes);
+            if (cableSalida != null) {
+                Terminal destinoSalida = cableSalida.getOtroTerminal(salidaRes);
+                if (destinoSalida == led.getTerminalAnodo()) {
+                    cableSalida.setTieneEnergia(true);
+                    led.getTerminalAnodo().setValorLogico(true);
+
+                    Cable cableRet = buscarCableConTerminal(led.getTerminalCatodo());
+                    if (cableRet != null && cableRet.conectaTerminal(fuente.getTerminalNegativo())) {
+                        cableRet.setTieneEnergia(true);
+                        fuente.getTerminalNegativo().setValorLogico(true);
+
+                        led.setQuemado(false);
+                        led.setEstadoActual("EXITO");
+                        res.setQuemada(false);
+                        res.setEstadoActual("EXITO");
+                        fuente.setEstadoActual("EXITO");
+                        mensajeEstado = "¡CIRCUITO COMPLETO! El LED está encendido con éxito.";
+                        this.ganado = true;
+                        this.completado = true;
+                        return true;
+                    }
+                }
+            }
         }
 
         return false;
     }
-    
-    public int getNumeroNivel() { return numeroNivel; }
-    public void setNumeroNivel(int numeroNivel) { this.numeroNivel = numeroNivel; }
 
-    public String getTituloReto() { return tituloReto; }
-    public void setTituloReto(String tituloReto) { this.tituloReto = tituloReto; }
+    public List<Componente> getComponentes() {
+        return componentes;
+    }
 
-    public float getTiempoLimite() { return tiempoLimite; }
-    public void setTiempoLimite(float tiempoLimite) { this.tiempoLimite = tiempoLimite; }
+    public List<Cable> getCables() {
+        return cables;
+    }
 
-    public float getTiempoRestante() { return tiempoRestante; }
-    public void setTiempoRestante(float tiempoRestante) { this.tiempoRestante = tiempoRestante; }
+    public boolean estaGanado() {
+        return ganado;
+    }
 
-    public boolean isCompletado() { return completado; }
-    public void setCompletado(boolean completado) { this.completado = completado; }
+    public boolean isCompletado() {
+        return completado;
+    }
 
-    public boolean isGanado() { return ganado; }
-    public void setGanado(boolean ganado) { this.ganado = ganado; }
+    public String getMensajeEstado() {
+        return mensajeEstado;
+    }
 
-    public List<Componente> getComponentes() { return componentes; }
-    public List<Componente> getComponentesCinta() { return componentesCinta; }
-    public List<Cable> getCables() { return cables; }
+    public float getTiempoRestante() {
+        return tiempoRestante;
+    }
 
-    @Override
-    public String toString() {
-        return "Minijuego{" +
-                "numeroNivel=" + numeroNivel +
-                ", tituloReto='" + tituloReto + '\'' +
-                ", tiempoLimite=" + tiempoLimite +
-                ", tiempoRestante=" + tiempoRestante +
-                ", completado=" + completado +
-                ", ganado=" + ganado +
-                ", componentes=" + componentes +
-                '}';
+    public int getNumeroNivel() {
+        return numeroNivel;
+    }
+
+    public String getTituloReto() {
+        return tituloReto;
     }
 }

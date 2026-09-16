@@ -40,6 +40,17 @@ public class Cable {
         }
     }
 
+    public boolean conectaTerminal(Terminal t) {
+        if (t == null) return false;
+        return t == terminalOrigen || t == terminalDestino;
+    }
+
+    public Terminal getOtroTerminal(Terminal t) {
+        if (t == terminalOrigen) return terminalDestino;
+        if (t == terminalDestino) return terminalOrigen;
+        return null;
+    }
+
     public void desconectar() {
         if (terminalOrigen != null) {
             terminalOrigen.desconectarCable();
