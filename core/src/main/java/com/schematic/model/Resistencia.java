@@ -6,38 +6,47 @@ public class Resistencia extends Componente {
     private int valorRequerido;
     private Terminal terminalEntrada;
     private Terminal terminalSalida;
+    private boolean quemada;
 
     public Resistencia(String identificador, float posicionX, float posicionY, int valorOhmios, int valorRequerido) {
-        super(identificador, posicionX, posicionY);
+        super(identificador, posicionX, posicionY, 360.0f, 230.0f);
         this.valorOhmios = Math.max(1, valorOhmios);
         this.valorRequerido = valorRequerido;
-        this.ancho = 60f;
-        this.alto = 40f;
+        this.quemada = false;
 
-        this.terminalEntrada = new Terminal(identificador + "_IN", this, 0f, alto / 2f, true);
-        this.terminalSalida = new Terminal(identificador + "_OUT", this, ancho, alto / 2f, false);
+        this.terminalEntrada = new Terminal(identificador + "_ENTRADA", this, 48f, 115f, true);
+        this.terminalSalida = new Terminal(identificador + "_SALIDA", this, 312f, 115f, false);
 
         this.terminales.add(terminalEntrada);
         this.terminales.add(terminalSalida);
 
+        this.agregarPuntoConexion(48, 115);
+        this.agregarPuntoConexion(312, 115);
+
         this.evaluarEstado();
+    }
+
+    public Resistencia(String identificador, float posicionX, float posicionY) {
+        this(identificador, posicionX, posicionY, 220, 220);
     }
 
     @Override
     public boolean evaluarEstado() {
-        boolean pasoCorriente = terminalEntrada != null && terminalEntrada.getValorLogico();
-        
-        if (valorOhmios == valorRequerido) {
+        if (quemada) {
+            this.estadoActual = "ERROR";
+            return false;
+        }
+
+        boolean senalIn = terminalEntrada != null && terminalEntrada.getValorLogico();
+        boolean senalOut = terminalSalida != null && terminalSalida.getValorLogico();
+
+        if (senalIn || senalOut) {
+            if (terminalEntrada != null) terminalEntrada.setValorLogico(true);
+            if (terminalSalida != null) terminalSalida.setValorLogico(true);
             this.estadoActual = "EXITO";
-            if (terminalSalida != null) {
-                terminalSalida.setValorLogico(pasoCorriente);
-            }
             return true;
         } else {
-            this.estadoActual = "ERROR";
-            if (terminalSalida != null) {
-                terminalSalida.setValorLogico(false);
-            }
+            this.estadoActual = "NEUTRO";
             return false;
         }
     }
@@ -60,6 +69,29 @@ public class Resistencia extends Componente {
         this.evaluarEstado();
     }
 
+    public boolean estaQuemada() {
+        return quemada;
+    }
+
+    public boolean isQuemada() {
+        return quemada;
+    }
+
+    public void setQuemada(boolean quemada) {
+        this.quemada = quemada;
+        if (quemada) {
+            this.estadoActual = "ERROR";
+        }
+    }
+
+    public Terminal getTerminalEntrada() {
+        return terminalEntrada;
+    }
+
+    public Terminal getTerminalSalida() {
+        return terminalSalida;
+    }
+
     public String getTextoEtiqueta() {
         return valorOhmios + " Ω";
     }
@@ -70,6 +102,7 @@ public class Resistencia extends Componente {
                 "identificador='" + identificador + '\'' +
                 ", valorOhmios=" + valorOhmios +
                 ", valorRequerido=" + valorRequerido +
+                ", quemada=" + quemada +
                 ", estadoActual='" + estadoActual + '\'' +
                 '}';
     }

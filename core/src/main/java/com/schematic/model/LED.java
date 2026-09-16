@@ -5,19 +5,21 @@ public class LED extends Componente {
     private boolean polaridadCorrecta;
     private Terminal terminalAnodo;
     private Terminal terminalCatodo;
+    private boolean quemado;
 
     public LED(String identificador, float posicionX, float posicionY, boolean polaridadCorrecta) {
-        
-        super(identificador, posicionX, posicionY, 50.0f, 50.0f);
+        super(identificador, posicionX, posicionY, 320.0f, 320.0f);
         this.polaridadCorrecta = polaridadCorrecta;
+        this.quemado = false;
 
-      
-        this.terminalAnodo = new Terminal(identificador + "_ANODO", this, 0f, alto / 2f, true);
-        this.terminalCatodo = new Terminal(identificador + "_CATODO", this, ancho, alto / 2f, false);
+        this.terminalAnodo = new Terminal(identificador + "_ANODO", this, 143f, 105f, true);
+        this.terminalCatodo = new Terminal(identificador + "_CATODO", this, 172f, 105f, false);
 
-        
-        this.agregarPuntoConexion(0, (int) (alto / 2f));     
-        this.agregarPuntoConexion((int) ancho, (int) (alto / 2f)); 
+        this.terminales.add(terminalAnodo);
+        this.terminales.add(terminalCatodo);
+
+        this.agregarPuntoConexion(143, 105);
+        this.agregarPuntoConexion(172, 105);
 
         this.evaluarEstado();
     }
@@ -28,24 +30,32 @@ public class LED extends Componente {
 
     @Override
     public boolean evaluarEstado() {
+        if (quemado) {
+            this.estadoActual = "ERROR";
+            if (terminalCatodo != null) {
+                terminalCatodo.setValorLogico(false);
+            }
+            return false;
+        }
+
         boolean recibeEnergia = terminalAnodo != null && terminalAnodo.getValorLogico();
 
         if (recibeEnergia) {
             if (polaridadCorrecta) {
-                this.estadoActual = "EXITO"; 
+                this.estadoActual = "EXITO";
                 if (terminalCatodo != null) {
-                    terminalCatodo.setValorLogico(true); 
+                    terminalCatodo.setValorLogico(true);
                 }
                 return true;
             } else {
-                this.estadoActual = "ERROR";   
+                this.estadoActual = "ERROR";
                 if (terminalCatodo != null) {
                     terminalCatodo.setValorLogico(false);
                 }
                 return false;
             }
         } else {
-            this.estadoActual = "NEUTRO"; 
+            this.estadoActual = "NEUTRO";
             if (terminalCatodo != null) {
                 terminalCatodo.setValorLogico(false);
             }
@@ -53,7 +63,9 @@ public class LED extends Componente {
         }
     }
 
-    
+    public boolean tienePolaridadCorrecta() {
+        return polaridadCorrecta;
+    }
 
     public boolean isPolaridadCorrecta() {
         return polaridadCorrecta;
@@ -62,6 +74,21 @@ public class LED extends Componente {
     public void setPolaridadCorrecta(boolean polaridadCorrecta) {
         this.polaridadCorrecta = polaridadCorrecta;
         this.evaluarEstado();
+    }
+
+    public boolean estaQuemado() {
+        return quemado;
+    }
+
+    public boolean isQuemado() {
+        return quemado;
+    }
+
+    public void setQuemado(boolean quemado) {
+        this.quemado = quemado;
+        if (quemado) {
+            this.estadoActual = "ERROR";
+        }
     }
 
     public Terminal getTerminalAnodo() {
@@ -77,6 +104,7 @@ public class LED extends Componente {
         return "LED{" +
                 "identificador='" + identificador + '\'' +
                 ", polaridadCorrecta=" + polaridadCorrecta +
+                ", quemado=" + quemado +
                 ", estadoActual='" + estadoActual + '\'' +
                 '}';
     }
