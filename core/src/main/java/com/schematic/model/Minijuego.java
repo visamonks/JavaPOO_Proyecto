@@ -24,7 +24,6 @@ public class Minijuego {
         this.tituloReto = tituloReto;
         this.tiempoLimite = tiempoLimite;
         this.tiempoRestante = tiempoLimite;
-        this.tiempoRestante = tiempoInicial;
         this.completado = false;
         this.ganado = false;
         this.componentes = new ArrayList<>();
@@ -36,7 +35,6 @@ public class Minijuego {
 
     public void inicializarComponentesCinta() {
         componentesCinta.clear();
-        // Suministro de piezas para la cinta transportadora:
         componentesCinta.add(new Switch("SW_1", 0, 0, true));
         componentesCinta.add(new CompuertaAND("AND_1", 0, 0, false, false));
         componentesCinta.add(new Resistencia("R_1", 0, 0, 220, 220));
@@ -50,7 +48,6 @@ public class Minijuego {
 
         tiempoRestante -= deltaTiempo;
 
-        // Propagación de señal eléctrica por todos los cables
         for (int iter = 0; iter < 2; iter++) {
             for (Cable c : cables) {
                 c.propagarSenal();
@@ -60,22 +57,18 @@ public class Minijuego {
             }
         }
 
-        // Evaluar si se cumplió el objetivo del nivel
         if (evaluarCircuitoCompleto()) {
             this.ganado = true;
             this.completado = true;
         } else if (tiempoRestante <= 0) {
-        if (tiempoRestante <= 0) {
             tiempoRestante = 0;
             this.completado = true;
             this.ganado = false;
-            completado = true;
         }
     }
 
     public void agregarComponente(Componente componente) {
         if (componente != null && !componentes.contains(componente)) {
-        if (componente != null) {
             this.componentes.add(componente);
             this.componentesCinta.remove(componente);
         }
@@ -83,7 +76,6 @@ public class Minijuego {
 
     public void eliminarComponente(Componente componente) {
         if (componente == null) return;
-        // Desconectar y remover cables asociados a esta pieza
         List<Cable> cablesAEliminar = new ArrayList<>();
         for (Cable cable : cables) {
             if ((cable.getTerminalOrigen() != null && cable.getTerminalOrigen().getComponentePadre() == componente) ||
@@ -115,7 +107,6 @@ public class Minijuego {
         if (componentes.isEmpty()) {
             return false;
         }
-        // El objetivo se cumple si al menos un LED colocado en el grid está encendido ("EXITO")
         boolean hayLED = false;
         for (Componente comp : componentes) {
             if (comp instanceof LED) {
@@ -126,7 +117,6 @@ public class Minijuego {
             }
         }
         if (!hayLED) {
-            // Si no hay LED, verificar que todos los componentes colocados estén en éxito
             for (Componente comp : componentes) {
                 if (!"EXITO".equals(comp.getEstadoActual())) {
                     return false;
@@ -204,22 +194,9 @@ public class Minijuego {
                 ", tituloReto='" + tituloReto + '\'' +
                 ", tiempoLimite=" + tiempoLimite +
                 ", tiempoRestante=" + tiempoRestante +
-                "tiempoRestante=" + tiempoRestante +
                 ", completado=" + completado +
                 ", ganado=" + ganado +
                 ", componentes=" + componentes +
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Controla el tiempo que queda en el nivel y guarda la lista de piezas que estan en la pantalla.
-
-Que falta:
-Tener la lista de piezas que vienen en la cinta lateral y verificar si ya ganaste el nivel al encender el circuito.
-
-Recomendaciones:
-Toda la logica de reglas y victoria debe estar  aqui para mantener el modelo ordenado.
-*/
-

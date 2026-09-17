@@ -58,4 +58,3 @@ public class Switch extends Componente {
                 '}';
     }
 }
-

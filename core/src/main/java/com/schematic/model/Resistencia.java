@@ -69,15 +69,3 @@ public class Resistencia extends Componente {
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Una resistencia que compara sus ohmios con el valor que pide el nivel para saber si esta bien o mal.
-
-Que falta:
-Permitir que el jugador le cambie el valor con una ventanita y que limite el paso de energia.
-
-Recomendaciones:
-Conviene mostrar el valor del componente con texto cerca de la pieza para que el jugador sepa cuanto vale, así no dibujo mas.
-*/
-

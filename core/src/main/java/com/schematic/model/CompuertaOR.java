@@ -2,12 +2,12 @@ package com.schematic.model;
 
 public class CompuertaOR extends CompuertaLogica {
 
-    public CompuertaOR(String identificador, float posicionX, float posicionY) {
-        super(identificador, posicionX, posicionY, false, false);
-    }
-
     public CompuertaOR(String identificador, float posicionX, float posicionY, boolean entradaA, boolean entradaB) {
         super(identificador, posicionX, posicionY, entradaA, entradaB);
+    }
+
+    public CompuertaOR(String identificador, float posicionX, float posicionY) {
+        this(identificador, posicionX, posicionY, false, false);
     }
 
     @Override
@@ -26,12 +26,3 @@ public class CompuertaOR extends CompuertaLogica {
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Una compuerta logica que revisa dos entradas y se activa con exito si al menos una de las dos esta encendida.
-
-Que falta:
-Conectar sus entradas y salidas a los cables.
-
-*/

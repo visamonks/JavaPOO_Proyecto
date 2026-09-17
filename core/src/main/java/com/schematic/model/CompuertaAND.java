@@ -26,14 +26,3 @@ public class CompuertaAND extends CompuertaLogica {
                 '}';
     }
 }
-
-/*
-Que hay ahorita:
-Una compuerta logica que revisa dos entradas y solo se activa con exito si ambas estan encendidas al mismo tiempo.
-
-Que falta:
-Conectar sus entradas y su salida con los cables cuando hagamos el sistema de conexion.
-
-Recomendaciones:
-Sirve como ejemplo perfecto para cuando quieras crear la compuerta OR u otras compuertas parecidas.
-*/

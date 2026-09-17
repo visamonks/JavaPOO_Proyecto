@@ -25,14 +25,12 @@ public class LED extends Componente {
     public boolean evaluarEstado() {
         boolean recibeEnergia = terminalAnodo != null && terminalAnodo.getValorLogico();
         if (recibeEnergia && polaridadCorrecta) {
-        if (polaridadCorrecta) {
             this.estadoActual = "EXITO";
             if (terminalCatodo != null) {
                 terminalCatodo.setValorLogico(true);
             }
             return true;
         } else if (recibeEnergia && !polaridadCorrecta) {
-        } else {
             this.estadoActual = "ERROR";
             if (terminalCatodo != null) {
                 terminalCatodo.setValorLogico(false);
@@ -56,6 +54,14 @@ public class LED extends Componente {
         this.evaluarEstado();
     }
 
+    public Terminal getTerminalAnodo() {
+        return terminalAnodo;
+    }
+
+    public Terminal getTerminalCatodo() {
+        return terminalCatodo;
+    }
+
     @Override
     public String toString() {
         return "LED{" +
@@ -64,19 +70,4 @@ public class LED extends Componente {
                 ", estadoActual='" + estadoActual + '\'' +
                 '}';
     }
-}
-
-
-
-/*
-Que hay ahorita:
-Representa un foco LED. Revisa si está conectado con la polaridad adecuada
- (positivo con positivo y negativo con negativo). Si la orientación es la
-  correcta pasa a estado de éxito, y si está invertido marca error.
-
-Que falta:
-Conectar sus entradas y salidas a los cables.
-Hacer que dependa de que realmente le llegue corriente por un cable para
-encenderse.
-*/
 }

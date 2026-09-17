@@ -17,7 +17,7 @@ public class Lwjgl3Launcher {
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
-        configuration.setTitle("SchematicGame");
+        configuration.setTitle("Short Circuit!");
         configuration.useVsync(true);
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
         configuration.setWindowedMode(Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA);
@@ -27,13 +27,12 @@ public class Lwjgl3Launcher {
 }
 
 /*
-que llevamos: 
-  Este es el punto de partida que arranca el juego en la computadora. Abre la
-  ventana en resolución 1920x1080, le pone el título "SchematicGame" y llama
-  a la clase principal Main para iniciar la partida.
- 
-que falta:
- Si en el futuro queremos que el juego inicie en pantalla completa real o que
-  permita cambiar de resolución desde un menú de opciones va aca.
- 
- */
+Que hay ahorita:
+El archivo que ejecuta el juego en la computadora abriendo la ventana en resolucion 1920x1080.
+
+Que falta:
+Opciones para pantalla completa o cambiar resolucion si el usuario lo pide desde el menu.
+
+Recomendaciones:
+Casi no hace falta tocar este archivo a menos que quieras cambiar el icono o el titulo de la ventana.
+*/
