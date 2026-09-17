@@ -7,7 +7,7 @@ public abstract class CompuertaLogica extends Componente {
     protected boolean salida;
 
     public CompuertaLogica(String identificador, float posicionX, float posicionY, boolean entradaA, boolean entradaB) {
-       
+
         super(identificador, posicionX, posicionY, 60.0f, 40.0f);
         this.entradaA = entradaA;
         this.entradaB = entradaB;
@@ -37,7 +37,7 @@ public abstract class CompuertaLogica extends Componente {
         return salida;
     }
 
-    
+
     public boolean isEntradaA() {
         return entradaA;
     }

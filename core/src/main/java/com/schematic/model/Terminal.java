@@ -32,7 +32,7 @@ public class Terminal {
         this.cableConectado = null;
     }
 
-  
+
     public Vector2 getPosicionAbsoluta() {
         if (componentePadre == null) {
             return new Vector2(offsetX, offsetY);
@@ -48,7 +48,7 @@ public class Terminal {
         this.cableConectado = null;
     }
 
-   
+
     public String getIdentificador() {
         return identificador;
     }

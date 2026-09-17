@@ -11,12 +11,16 @@ public class Cable {
     private boolean tieneEnergia;
     private Terminal terminalOrigen;
     private Terminal terminalDestino;
+    private float codoPersonalizadoX;
+    private float codoPersonalizadoY;
 
     public Cable() {
         this.puntosDeDoblado = new ArrayList<>();
         this.tieneEnergia = false;
         this.terminalOrigen = null;
         this.terminalDestino = null;
+        this.codoPersonalizadoX = Float.NaN;
+        this.codoPersonalizadoY = Float.NaN;
     }
 
     public Cable(Terminal terminalOrigen, Terminal terminalDestino) {
@@ -31,24 +35,35 @@ public class Cable {
         }
     }
 
-    public void propagarSenal() {
-        if (terminalOrigen != null) {
-            this.tieneEnergia = terminalOrigen.getValorLogico();
-            if (terminalDestino != null) {
-                terminalDestino.setValorLogico(this.tieneEnergia);
-            }
-        }
-    }
-
     public boolean conectaTerminal(Terminal t) {
-        if (t == null) return false;
-        return t == terminalOrigen || t == terminalDestino;
+        return t != null && (t == terminalOrigen || t == terminalDestino);
     }
 
     public Terminal getOtroTerminal(Terminal t) {
         if (t == terminalOrigen) return terminalDestino;
         if (t == terminalDestino) return terminalOrigen;
         return null;
+    }
+
+    public void propagarSenal() {
+        if (terminalOrigen != null && terminalDestino != null) {
+            boolean senalOrigen = terminalOrigen.getValorLogico();
+            boolean senalDestino = terminalDestino.getValorLogico();
+
+            if (senalOrigen || senalDestino) {
+                this.tieneEnergia = true;
+                terminalOrigen.setValorLogico(true);
+                terminalDestino.setValorLogico(true);
+            } else {
+                this.tieneEnergia = false;
+            }
+        } else if (terminalOrigen != null) {
+            this.tieneEnergia = terminalOrigen.getValorLogico();
+        } else if (terminalDestino != null) {
+            this.tieneEnergia = terminalDestino.getValorLogico();
+        } else {
+            this.tieneEnergia = false;
+        }
     }
 
     public void desconectar() {
@@ -58,7 +73,6 @@ public class Cable {
         }
         if (terminalDestino != null) {
             terminalDestino.desconectarCable();
-            terminalDestino.setValorLogico(false);
             terminalDestino = null;
         }
         this.tieneEnergia = false;
@@ -108,6 +122,28 @@ public class Cable {
 
     public void setTieneEnergia(boolean tieneEnergia) {
         this.tieneEnergia = tieneEnergia;
+    }
+
+    public boolean tieneCodoPersonalizado() {
+        return !Float.isNaN(codoPersonalizadoX) && !Float.isNaN(codoPersonalizadoY);
+    }
+
+    public float getCodoPersonalizadoX() {
+        return codoPersonalizadoX;
+    }
+
+    public float getCodoPersonalizadoY() {
+        return codoPersonalizadoY;
+    }
+
+    public void setCodoPersonalizado(float x, float y) {
+        this.codoPersonalizadoX = x;
+        this.codoPersonalizadoY = y;
+    }
+
+    public void limpiarCodoPersonalizado() {
+        this.codoPersonalizadoX = Float.NaN;
+        this.codoPersonalizadoY = Float.NaN;
     }
 
     @Override

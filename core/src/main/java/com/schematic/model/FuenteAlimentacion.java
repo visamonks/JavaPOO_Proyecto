@@ -1,27 +1,27 @@
 package com.schematic.model;
 
-import com.badlogic.gdx.math.Vector2;
-
 public class FuenteAlimentacion extends Componente {
 
+    private float voltaje;
     private Terminal terminalPositivo;
     private Terminal terminalNegativo;
-    private float voltaje;
     private boolean encendida;
 
     public FuenteAlimentacion(String identificador, float posicionX, float posicionY) {
-        super(identificador, posicionX, posicionY, 220.0f, 260.0f);
+        super(identificador, posicionX, posicionY, 220f, 500f);
         this.voltaje = 5.0f;
         this.encendida = true;
 
-        this.terminalPositivo = new Terminal(identificador + "_POSITIVO", this, 200f, 190f, true);
-        this.terminalNegativo = new Terminal(identificador + "_NEGATIVO", this, 200f, 70f, false);
+        this.terminalPositivo = new Terminal(identificador + "_POSITIVO", this, ancho - 20f, alto * 0.70f, false);
+        this.terminalPositivo.setValorLogico(true);
+
+        this.terminalNegativo = new Terminal(identificador + "_NEGATIVO", this, ancho - 20f, alto * 0.30f, true);
 
         this.terminales.add(terminalPositivo);
         this.terminales.add(terminalNegativo);
 
-        this.agregarPuntoConexion(200, 190);
-        this.agregarPuntoConexion(200, 70);
+        this.agregarPuntoConexion((int) (ancho - 20f), (int) (alto * 0.70f));
+        this.agregarPuntoConexion((int) (ancho - 20f), (int) (alto * 0.30f));
 
         this.evaluarEstado();
     }
@@ -31,18 +31,14 @@ public class FuenteAlimentacion extends Componente {
         if (terminalPositivo != null) {
             terminalPositivo.setValorLogico(encendida);
         }
-        if (terminalNegativo != null) {
-            terminalNegativo.setValorLogico(false);
+        boolean retornoActivo = terminalNegativo != null && terminalNegativo.getValorLogico();
+        if (retornoActivo) {
+            this.estadoActual = "EXITO";
+            return true;
+        } else {
+            this.estadoActual = "NEUTRO";
+            return false;
         }
-        return encendida;
-    }
-
-    public Terminal getTerminalPositivo() {
-        return terminalPositivo;
-    }
-
-    public Terminal getTerminalNegativo() {
-        return terminalNegativo;
     }
 
     public float getVoltaje() {
@@ -57,17 +53,32 @@ public class FuenteAlimentacion extends Componente {
         return encendida;
     }
 
+    public boolean isEncendida() {
+        return encendida;
+    }
+
     public void setEncendida(boolean encendida) {
         this.encendida = encendida;
-        this.evaluarEstado();
+        if (terminalPositivo != null) {
+            terminalPositivo.setValorLogico(encendida);
+        }
     }
 
-    public Vector2 getPosicionTerminalPositivo() {
-        return terminalPositivo.getPosicionAbsoluta();
+    public Terminal getTerminalPositivo() {
+        return terminalPositivo;
     }
 
-    public Vector2 getPosicionTerminalNegativo() {
-        return terminalNegativo.getPosicionAbsoluta();
+    public Terminal getTerminalNegativo() {
+        return terminalNegativo;
+    }
+
+    @Override
+    public String toString() {
+        return "FuenteAlimentacion{" +
+                "id='" + identificador + '\'' +
+                ", voltaje=" + voltaje +
+                ", encendida=" + encendida +
+                ", estado='" + estadoActual + '\'' +
+                '}';
     }
 }
-
