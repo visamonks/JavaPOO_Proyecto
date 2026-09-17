@@ -57,14 +57,14 @@ public class Minijuego {
     private List<CasillaInventario> inventario;
 
     public Minijuego(float tiempoInicial) {
-        this(1, "NIVEL 1: ENCIENDE EL LED", tiempoInicial);
+        this(1, "NIVEL 1: ENCIENDE EL LED", tiempoInicial > 0 ? tiempoInicial : 30.0f);
     }
 
     public Minijuego(int numeroNivel, String tituloReto, float tiempoLimite) {
         this.numeroNivel = numeroNivel;
         this.tituloReto = tituloReto;
-        this.tiempoLimite = tiempoLimite;
-        this.tiempoRestante = tiempoLimite;
+        this.tiempoLimite = tiempoLimite > 0 ? tiempoLimite : 30.0f;
+        this.tiempoRestante = this.tiempoLimite;
         this.completado = false;
         this.ganado = false;
         this.mensajeEstado = "Objetivo: Prende esta led.";
@@ -87,6 +87,8 @@ public class Minijuego {
         this.inventario.clear();
         this.completado = false;
         this.ganado = false;
+        this.tiempoLimite = 30.0f;
+        this.tiempoRestante = this.tiempoLimite;
         this.mensajeEstado = "Objetivo: Prende esta led.";
 
         FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
@@ -94,6 +96,16 @@ public class Minijuego {
 
         this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ω", 1));
+    }
+
+    public void reiniciarNivelActual() {
+        if (this.numeroNivel == 1) {
+            inicializarNivel1();
+        }
+    }
+
+    public void siguienteNivel() {
+        inicializarNivel1();
     }
 
     public void inicializarComponentesCinta() {

@@ -278,7 +278,7 @@ public class VistaMenu extends ScreenAdapter {
             shapeRenderer.end();
 
             batch.begin();
-            String textoCarga = ">> INICIALIZANDO BANCO DE TRABAJO... <<";
+            String textoCarga = "CARGANDO...";
             glyphLayout.setText(fontBotones, textoCarga);
             fontBotones.setColor(COLOR_NEON_CELESTE);
             fontBotones.draw(batch, textoCarga, (ANCHO - glyphLayout.width) / 2f, ALTO / 2f + 20f);
@@ -286,7 +286,7 @@ public class VistaMenu extends ScreenAdapter {
 
             if (tiempoTransicionNivel >= DURACION_TRANSICION) {
                 if (juego != null) {
-                    Minijuego minijuego = new Minijuego(1, "NIVEL 1: ENCIENDE EL LED", 60.0f);
+                    Minijuego minijuego = new Minijuego(1, "NIVEL 1: ENCIENDE EL LED", 30.0f);
                     juego.setScreen(new VistaNivel(minijuego, juego));
                 }
             }
@@ -666,9 +666,6 @@ public class VistaMenu extends ScreenAdapter {
             float w = BOTON_ANCHO;
 
             String etiqueta = TEXTOS_BOTONES[i];
-            if (factorHover > 0.4f) {
-                etiqueta = "[►  " + etiqueta + "  ◄]";
-            }
 
             glyphLayout.setText(fontBotones, etiqueta);
             float tx = x + (w - glyphLayout.width) / 2f;
@@ -684,17 +681,6 @@ public class VistaMenu extends ScreenAdapter {
             }
             fontBotones.draw(batch, etiqueta, tx, ty);
         }
-
-        String controlHint = "[ CONTROLES: RATÓN O FLECHAS ARRIBA / ABAJO + ENTER ]";
-        glyphLayout.setText(fontDetalle, controlHint);
-        float hintX = (ANCHO - glyphLayout.width) / 2f;
-        float pulsoHint = MathUtils.sin(tiempoTotal * 3.5f) * 0.25f + 0.75f;
-
-        fontDetalle.setColor(0f, 0f, 0f, 0.92f);
-        fontDetalle.draw(batch, controlHint, hintX + 2f, 118f);
-
-        fontDetalle.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, pulsoHint);
-        fontDetalle.draw(batch, controlHint, hintX, 120f);
     }
 
     private void dibujarCajaTrabajando() {
@@ -759,7 +745,7 @@ public class VistaMenu extends ScreenAdapter {
     }
 
     private void dibujarTextosTrabajando() {
-        String cartel = "¡TRABAJANDO EN ESTO!";
+        String cartel = "EN DESARROLLO";
         glyphLayout.setText(fontBotones, cartel);
         float cx = (ANCHO - glyphLayout.width) / 2f;
 
@@ -770,12 +756,12 @@ public class VistaMenu extends ScreenAdapter {
         fontBotones.setColor(COLOR_NEON_CELESTE);
         fontBotones.draw(batch, cartel, cx, 670f);
 
-        String mensaje = "Esta característica se encuentra actualmente en desarrollo para la siguiente entrega.";
+        String mensaje = "Sección en desarrollo para la siguiente entrega.";
         glyphLayout.setText(fontDetalle, mensaje);
         fontDetalle.setColor(Color.WHITE);
         fontDetalle.draw(batch, mensaje, (ANCHO - glyphLayout.width) / 2f, 570f);
 
-        String atajo = "(Presiona ESC o haz clic abajo para regresar)";
+        String atajo = "Presiona ESC para volver.";
         glyphLayout.setText(fontDetalle, atajo);
         fontDetalle.setColor(COLOR_GRIS_CLARO);
         fontDetalle.draw(batch, atajo, (ANCHO - glyphLayout.width) / 2f, 520f);
@@ -783,7 +769,7 @@ public class VistaMenu extends ScreenAdapter {
         if ("CONTINUAR".equals(seccionActual)) {
             float px = (ANCHO - 500f) / 2f + (animProbar * 24f);
             float py = 420f;
-            String textoProbar = animProbar > 0.4f ? "[►  PROBAR CIRCUITO (NIVEL 1)  ◄]" : "PROBAR CIRCUITO (NIVEL 1)";
+            String textoProbar = "PROBAR CIRCUITO (NIVEL 1)";
             glyphLayout.setText(fontDetalle, textoProbar);
             fontDetalle.setColor(animProbar > 0.5f ? Color.WHITE : COLOR_CELESTE_BRILLANTE);
             fontDetalle.draw(batch, textoProbar, px + (500f - glyphLayout.width) / 2f, py + 43f);
@@ -791,7 +777,7 @@ public class VistaMenu extends ScreenAdapter {
 
         float vx = (ANCHO - 440f) / 2f + (animVolver * 24f);
         float vy = 320f;
-        String textoVolver = animVolver > 0.4f ? "[►  VOLVER AL MENÚ  ◄]" : "VOLVER AL MENÚ";
+        String textoVolver = "VOLVER AL MENÚ";
         glyphLayout.setText(fontDetalle, textoVolver);
         fontDetalle.setColor(animVolver > 0.5f ? Color.WHITE : COLOR_NEON_CELESTE);
         fontDetalle.draw(batch, textoVolver, vx + (440f - glyphLayout.width) / 2f, vy + 43f);

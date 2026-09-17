@@ -70,6 +70,7 @@ public class VistaNivel extends ScreenAdapter {
     private float opacidadHollin = 0f;
     private float posicionLimpiadorX = -150f;
     private Vector2 centroExplosion = new Vector2(950f, 500f);
+    private boolean derrotaPorTiempo = false;
 
     private boolean cableEnProgreso;
     private Terminal terminalOrigenCable;
@@ -196,7 +197,11 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         if (minijuego != null) {
-            minijuego.actualizar(delta);
+            if (introCompletada) {
+                minijuego.actualizar(delta);
+            } else {
+                minijuego.actualizar(0f);
+            }
 
             if (minijuego.estaGanado()) {
                 tiempoExitoAcumulado += delta;
@@ -218,11 +223,19 @@ public class VistaNivel extends ScreenAdapter {
                     break;
                 }
             }
-            if (hayError) {
+
+            boolean tiempoAgotado = (introCompletada && minijuego.getTiempoRestante() <= 0f && !minijuego.estaGanado());
+
+            if (hayError || tiempoAgotado) {
                 if (faseDerrota == FASE_DERROTA_NINGUNA) {
+                    derrotaPorTiempo = tiempoAgotado && !hayError;
                     faseDerrota = FASE_DERROTA_ALARMA;
                     tiempoFaseDerrota = 0f;
-                    localizarCentroFallo();
+                    if (derrotaPorTiempo) {
+                        centroExplosion.set(ANCHO_VIRTUAL / 2f, ALTO_VIRTUAL / 2f);
+                    } else {
+                        localizarCentroFallo();
+                    }
                 }
             }
         }
@@ -260,6 +273,7 @@ public class VistaNivel extends ScreenAdapter {
         dibujarTerminalesFisicos();
         dibujarElectronesIntro();
         dibujarParticulas();
+        dibujarBarraTemporizadorSuperior();
         shapeRenderer.end();
 
         batch.begin();
@@ -599,6 +613,68 @@ public class VistaNivel extends ScreenAdapter {
 
             prevX = x;
             prevY = y;
+        }
+    }
+
+    private void dibujarBarraTemporizadorSuperior() {
+        if (minijuego == null) return;
+
+        float limite = minijuego.getTiempoLimite();
+        if (limite <= 0f) limite = 60f;
+        float restante = minijuego.getTiempoRestante();
+        float ratio = MathUtils.clamp(restante / limite, 0f, 1f);
+
+        float altoBarra = 9f;
+        float yBarra = ALTO_VIRTUAL - altoBarra;
+        float anchoTotal = ANCHO_VIRTUAL;
+        float anchoActual = anchoTotal * ratio;
+
+        shapeRenderer.setColor(0.03f, 0.05f, 0.08f, 0.95f);
+        shapeRenderer.rect(0f, yBarra, anchoTotal, altoBarra);
+
+        shapeRenderer.setColor(0.15f, 0.22f, 0.32f, 0.85f);
+        shapeRenderer.rectLine(0f, yBarra, anchoTotal, yBarra, 1.5f);
+
+        for (float xTick = 120f; xTick < anchoTotal; xTick += 120f) {
+            shapeRenderer.setColor(0.20f, 0.30f, 0.42f, 0.35f);
+            shapeRenderer.rectLine(xTick, yBarra, xTick, yBarra + altoBarra, 1f);
+        }
+
+        if (anchoActual > 0f) {
+            Color colorPrincipal;
+            Color colorNucleo;
+            float pulsoAlerta = 1.0f;
+
+            if (ratio > 0.45f) {
+                colorPrincipal = COLOR_NEON_CELESTE;
+                colorNucleo = COLOR_CELESTE_BRILLANTE;
+            } else if (ratio > 0.20f) {
+                colorPrincipal = new Color(1.00f, 0.78f, 0.15f, 1f);
+                colorNucleo = new Color(1.00f, 0.95f, 0.60f, 1f);
+            } else {
+                colorPrincipal = new Color(1.00f, 0.20f, 0.25f, 1f);
+                colorNucleo = new Color(1.00f, 0.85f, 0.85f, 1f);
+                pulsoAlerta = 0.65f + 0.35f * MathUtils.sin(tiempoTotal * 16f);
+            }
+
+            shapeRenderer.setColor(colorPrincipal.r, colorPrincipal.g, colorPrincipal.b, colorPrincipal.a * pulsoAlerta);
+            shapeRenderer.rect(0f, yBarra, anchoActual, altoBarra);
+
+            shapeRenderer.setColor(colorNucleo.r, colorNucleo.g, colorNucleo.b, 0.85f * pulsoAlerta);
+            shapeRenderer.rect(0f, yBarra + altoBarra * 0.30f, anchoActual, altoBarra * 0.40f);
+
+            shapeRenderer.setColor(colorPrincipal.r, colorPrincipal.g, colorPrincipal.b, 0.45f * pulsoAlerta);
+            shapeRenderer.circle(anchoActual, yBarra + altoBarra / 2f, 7f);
+            shapeRenderer.setColor(1f, 1f, 1f, 0.95f * pulsoAlerta);
+            shapeRenderer.circle(anchoActual, yBarra + altoBarra / 2f, 3.5f);
+
+            if (introCompletada && !minijuego.estaGanado()) {
+                if (ratio <= 0.20f && MathUtils.randomBoolean(0.35f)) {
+                    generarChispasImpacto(anchoActual, yBarra + altoBarra / 2f, 1);
+                } else if (MathUtils.randomBoolean(0.08f)) {
+                    generarChispasImpacto(anchoActual, yBarra + altoBarra / 2f, 1);
+                }
+            }
         }
     }
 
@@ -1213,7 +1289,7 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         fontPequena.setColor(0.80f, 0.88f, 0.95f, 1f);
-        fontPequena.draw(batch, "[Arrastrar desde la barra derecha] Colocar piezas | [Clic Izq] Cables rectos | [Clic Der] Quitar | [R] Reiniciar | [ESC] Salir", 40f, 38f);
+        fontPequena.draw(batch, "Clic Izq: Conectar | Clic Der: Quitar cable | R: Reiniciar | ESC: Salir", 40f, 38f);
     }
 
     private void dibujarFondoModal() {
@@ -1248,47 +1324,44 @@ public class VistaNivel extends ScreenAdapter {
 
         if (ganado) {
             fontTitulo.setColor(0.20f, 1.00f, 0.50f, 1f);
-            glyphLayout.setText(fontTitulo, "¡NIVEL 1 COMPLETADO CON ÉXITO!");
-            fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 700f);
+            glyphLayout.setText(fontTitulo, "¡NIVEL COMPLETADO!");
+            fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
 
             font.setColor(0.95f, 0.95f, 1f, 1f);
-            glyphLayout.setText(font, "¡Excelente! Has cerrado el circuito de corriente continua.");
-            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 620f);
-
-            glyphLayout.setText(font, "La resistencia limitó la corriente, protegiendo al diodo LED.");
-            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 570f);
-
-            glyphLayout.setText(font, "Los electrones fluyen libremente en un camino cerrado.");
-            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 520f);
+            glyphLayout.setText(font, "Circuito completado.");
+            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
 
             font.setColor(0.20f, 0.95f, 0.45f, 1f);
-            glyphLayout.setText(font, "REPETIR RETO");
+            glyphLayout.setText(font, "REPETIR");
             font.draw(batch, glyphLayout, 630f + (300f - glyphLayout.width) / 2f, 398f);
 
             font.setColor(0.95f, 0.85f, 0.30f, 1f);
-            glyphLayout.setText(font, "MENÚ PRINCIPAL");
+            glyphLayout.setText(font, "MENÚ");
             font.draw(batch, glyphLayout, 970f + (300f - glyphLayout.width) / 2f, 398f);
         } else {
             fontTitulo.setColor(1.00f, 0.25f, 0.25f, 1f);
-            glyphLayout.setText(fontTitulo, "¡ALERTA DE SOBRETENSIÓN!");
-            fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 700f);
+            if (derrotaPorTiempo) {
+                glyphLayout.setText(fontTitulo, "¡TIEMPO AGOTADO!");
+                fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
 
-            font.setColor(0.95f, 0.95f, 1f, 1f);
-            glyphLayout.setText(font, "El LED se ha quemado por exceso de corriente eléctrica.");
-            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 620f);
+                font.setColor(0.95f, 0.95f, 1f, 1f);
+                glyphLayout.setText(font, "Se acabó el tiempo.");
+                font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
+            } else {
+                glyphLayout.setText(fontTitulo, "¡CIRCUITO QUEMADO!");
+                fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
 
-            glyphLayout.setText(font, "Conectaste 5V directo a tierra sin una resistencia limitadora.");
-            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 570f);
-
-            glyphLayout.setText(font, "Inserta la resistencia en serie para disipar el voltaje sobrante.");
-            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 520f);
+                font.setColor(0.95f, 0.95f, 1f, 1f);
+                glyphLayout.setText(font, "El LED se quemó sin resistencia.");
+                font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
+            }
 
             font.setColor(1.00f, 0.40f, 0.40f, 1f);
             glyphLayout.setText(font, "REINTENTAR");
             font.draw(batch, glyphLayout, 630f + (300f - glyphLayout.width) / 2f, 398f);
 
             font.setColor(0.85f, 0.90f, 0.95f, 1f);
-            glyphLayout.setText(font, "MENÚ PRINCIPAL");
+            glyphLayout.setText(font, "MENÚ");
             font.draw(batch, glyphLayout, 970f + (300f - glyphLayout.width) / 2f, 398f);
         }
     }
@@ -1440,8 +1513,28 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public void reiniciarNivel() {
+        this.derrotaPorTiempo = false;
         if (minijuego != null) {
-            minijuego.inicializarNivel1();
+            minijuego.reiniciarNivelActual();
+        }
+        this.tiempoIntro = 0f;
+        this.introCompletada = false;
+        this.voltajeMedidorDC = 0f;
+        this.tiempoExitoAcumulado = 0f;
+        this.tiempoIntroNivel = 0f;
+        this.faseDerrota = FASE_DERROTA_NINGUNA;
+        this.tiempoFaseDerrota = 0f;
+        this.sacudidaCamaraX = 0f;
+        this.sacudidaCamaraY = 0f;
+        this.opacidadHollin = 0f;
+        this.posicionLimpiadorX = -150f;
+        cancelarCable();
+    }
+
+    public void siguienteNivel() {
+        this.derrotaPorTiempo = false;
+        if (minijuego != null) {
+            minijuego.siguienteNivel();
         }
         this.tiempoIntro = 0f;
         this.introCompletada = false;
