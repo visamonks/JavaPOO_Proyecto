@@ -64,6 +64,10 @@ public class VistaMenu extends ScreenAdapter {
     private float animVolver = 0f;
     private float animProbar = 0f;
 
+    private boolean enTransicionNivel = false;
+    private float tiempoTransicionNivel = 0f;
+    private static final float DURACION_TRANSICION = 0.65f;
+
     public VistaMenu() {
         this((Game) Gdx.app.getApplicationListener());
     }
@@ -96,7 +100,7 @@ public class VistaMenu extends ScreenAdapter {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                if (button != Input.Buttons.LEFT) {
+                if (button != Input.Buttons.LEFT || enTransicionNivel) {
                     return false;
                 }
 
@@ -201,9 +205,9 @@ public class VistaMenu extends ScreenAdapter {
     }
 
     private void iniciarNivelJuego() {
-        if (juego != null) {
-            Minijuego minijuego = new Minijuego(45.0f);
-            juego.setScreen(new VistaNivel(minijuego, juego));
+        if (!enTransicionNivel) {
+            enTransicionNivel = true;
+            tiempoTransicionNivel = 0f;
         }
     }
 
@@ -254,6 +258,39 @@ public class VistaMenu extends ScreenAdapter {
             dibujarTextosTrabajando();
         }
         batch.end();
+
+        if (enTransicionNivel) {
+            tiempoTransicionNivel += delta;
+            float progreso = MathUtils.clamp(tiempoTransicionNivel / DURACION_TRANSICION, 0f, 1f);
+
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(COLOR_FONDO_NEGRO.r, COLOR_FONDO_NEGRO.g, COLOR_FONDO_NEGRO.b, progreso);
+            shapeRenderer.rect(0, 0, ANCHO, ALTO);
+
+            float barraY = ALTO * progreso;
+            shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.95f);
+            shapeRenderer.rectLine(0, barraY, ANCHO, barraY, 5f);
+            shapeRenderer.setColor(1f, 1f, 1f, 0.98f);
+            shapeRenderer.rectLine(0, barraY, ANCHO, barraY, 2f);
+            shapeRenderer.end();
+
+            batch.begin();
+            String textoCarga = ">> INICIALIZANDO BANCO DE TRABAJO... <<";
+            glyphLayout.setText(fontBotones, textoCarga);
+            fontBotones.setColor(COLOR_NEON_CELESTE);
+            fontBotones.draw(batch, textoCarga, (ANCHO - glyphLayout.width) / 2f, ALTO / 2f + 20f);
+            batch.end();
+
+            if (tiempoTransicionNivel >= DURACION_TRANSICION) {
+                if (juego != null) {
+                    Minijuego minijuego = new Minijuego(1, "NIVEL 1: ENCIENDE EL LED", 60.0f);
+                    juego.setScreen(new VistaNivel(minijuego, juego));
+                }
+            }
+        }
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
