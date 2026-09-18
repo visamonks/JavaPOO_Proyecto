@@ -194,8 +194,12 @@ public class VistaMenu extends ScreenAdapter {
             seccionActual = "CONTINUAR";
             estadoActual = PANTALLA_TRABAJANDO;
         } else if (indice == 1) {
-            seccionActual = "GUÍA";
-            estadoActual = PANTALLA_TRABAJANDO;
+            if (juego != null) {
+                juego.setScreen(new VistaGuia(juego));
+            } else {
+                seccionActual = "GUÍA";
+                estadoActual = PANTALLA_TRABAJANDO;
+            }
         } else if (indice == 2) {
             seccionActual = "OPCIONES";
             estadoActual = PANTALLA_TRABAJANDO;
@@ -314,7 +318,7 @@ public class VistaMenu extends ScreenAdapter {
                 float target = hover ? 1f : 0f;
                 animHover[i] = MathUtils.lerp(animHover[i], target, delta * 18f);
             }
-        } else {
+        } else { 
             float volverX = (ANCHO - 440f) / 2f + (animVolver * 24f);
             float volverY = 320f;
             boolean hoverVolver = estaDentro(mx, my, volverX, volverY, 440f, 68f);
