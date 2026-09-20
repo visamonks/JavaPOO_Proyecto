@@ -156,101 +156,88 @@ public class VistaGuia extends ScreenAdapter {
     private void cargarElementos() {
         listaPagina0.add(new ElementoGuia(
                 "DIODO LED",
-                "OPTOELECTRÓNICO ACTIVO",
-                "VF ~ 2.0V | 20mA",
-                "Dispositivo semiconductor que emite luz cuando circula corriente eléctrica por él. Cuenta con dos terminales: ÁNODO (positivo) y CÁTODO (negativo).",
-                "1. POLARIZACIÓN DIRECTA: Conectar siempre el terminal Ánodo (+) a la línea positiva de 5V y el terminal Cátodo (-) al polo negativo o tierra (GND).\n" +
-                "2. RESISTENCIA EN SERIE: Debe conectarse obligatoriamente con una resistencia limitadora (ej. 220 Ω) en la misma línea.\n" +
-                "3. PRECAUCIÓN: Si se conecta directamente a la fuente sin resistencia, la corriente excesiva lo quemará al instante.",
+                "LUZ",
+                "2V | 20mA",
+                "Se enciende cuando la corriente lo atraviesa. Tiene patita positiva (ánodo) y negativa (cátodo).",
+                "• Conecta el ánodo (+) a la corriente y el cátodo (-) a tierra.\n" +
+                "• Ponle siempre una resistencia para no quemarlo.",
                 new String[]{"APAGADO", "ENCENDIDO", "QUEMADO"},
                 0
         ));
 
         listaPagina0.add(new ElementoGuia(
-                "RESISTENCIA LIMITADORA",
-                "COMPONENTE PASIVO",
-                "R = 220 Ω (Rojo-Rojo-Marrón)",
-                "Componente pasivo que genera oposición al paso de corriente según la Ley de Ohm (V = I * R). Se utiliza para reducir la corriente a niveles seguros.",
-                "1. COLOCACIÓN: Conectar en serie antes o después del componente que se quiere proteger.\n" +
-                "2. NO TIENE POLARIDAD: Funciona en cualquier dirección, no importa cuál pata se conecte a positivo o negativo.\n" +
-                "3. VALOR SELECCIONADO: 220 Ohmios protege al LED manteniendo una corriente segura de ~15 a 20 mA.",
-                new String[]{"220 Ω NORMAL", "SOBRECARGA"},
+                "RESISTENCIA",
+                "PROTECCIÓN",
+                "220 Ω",
+                "Frena el exceso de corriente para proteger los componentes y evitar que se quemen.",
+                "• Conéctala en serie antes o después del LED.\n" +
+                "• No tiene polaridad: funciona igual en cualquier sentido.",
+                new String[]{"NORMAL", "QUEMADA"},
                 1
         ));
 
         listaPagina0.add(new ElementoGuia(
-                "FUENTE DE ALIMENTACIÓN DC",
-                "SUMINISTRO / POTENCIA",
-                "VCC = +5.0V DC | GND = 0V",
-                "Unidad de poder del laboratorio que entrega 5 Voltios continuos para alimentar todo el circuito.",
-                "1. CIRCUITO CERRADO: La corriente solo fluirá si el circuito parte del borne positivo (+) y regresa al borne negativo (-).\n" +
-                "2. RETORNO A TIERRA: Si el cable negativo queda desconectado, no habrá circulación de corriente.\n" +
-                "3. CORTOCIRCUITO: Nunca conectes directamente el cable positivo al negativo sin componentes en medio.",
-                new String[]{"ENCENDIDA (5V)", "APAGADA (0V)"},
+                "FUENTE DE PODER",
+                "ENERGÍA",
+                "5V DC",
+                "Suministra la energía para que todo el circuito cobre vida.",
+                "• La energía sale por el (+) y debe regresar al (-).\n" +
+                "• Nunca unas el (+) directo al (-) o harás un cortocircuito.",
+                new String[]{"ON (5V)", "OFF (0V)"},
                 2
         ));
 
         listaPagina0.add(new ElementoGuia(
-                "INTERRUPTOR (SWITCH)",
-                "CONTROL / MANIOBRA",
-                "ESTADO: ON / OFF",
-                "Mecanismo que permite abrir o cerrar la continuidad del circuito para permitir o bloquear el paso de energía.",
-                "1. USO: Hacer clic sobre el switch para cambiar su posición.\n" +
-                "2. ESTADO CERRADO (ON): Conecta sus dos terminales internos y deja pasar la señal eléctrica (1 lógico).\n" +
-                "3. ESTADO ABIERTO (OFF): Separa los contactos físicos y corta el paso de corriente (0 lógico).",
-                new String[]{"CERRADO (ON)", "ABIERTO (OFF)"},
+                "INTERRUPTOR",
+                "CONTROL",
+                "ON / OFF",
+                "Abre o cierra el paso de corriente a tu gusto.",
+                "• Dale clic al centro para abrirlo o cerrarlo.\n" +
+                "• En ON deja pasar la energía; en OFF corta el circuito.",
+                new String[]{"CERRADO", "ABIERTO"},
                 3
         ));
 
         listaPagina1.add(new ElementoGuia(
-                "COMPUERTA LÓGICA AND",
-                "LÓGICA DIGITAL BOOLEANA",
-                "Y = A · B (PRODUCTO)",
-                "Compuerta lógica digital que evalúa dos señales de entrada. Su personaje porta su gorra representativa 'A·B'.",
-                "1. CONDICIÓN: La salida solo se pondrá en 1 (alta) si AMBAS entradas (A y B) reciben señal positiva simultáneamente.\n" +
-                "2. TABLA DE VERDAD:\n" +
-                "   • 0 y 0 = 0   |   0 y 1 = 0   |   1 y 0 = 0\n" +
-                "   • 1 y 1 = 1  (Salida activada)\n" +
-                "3. USO: Sirve para requerir dos condiciones obligatorias antes de activar un componente.",
-                new String[]{"0 · 0 = 0", "1 · 0 = 0", "1 · 1 = 1 (ACTIVA)"},
+                "COMPUERTA AND",
+                "LÓGICA",
+                "Y = A · B",
+                "Solo activa su salida si recibe corriente en sus dos entradas al mismo tiempo.",
+                "• Activa la entrada A y la entrada B para encender la salida.\n" +
+                "• Si falta alguna de las dos, la salida se queda en 0.",
+                new String[]{"0 · 0 = 0", "1 · 0 = 0", "1 · 1 = 1"},
                 4
         ));
 
         listaPagina1.add(new ElementoGuia(
-                "COMPUERTA LÓGICA OR",
-                "LÓGICA DIGITAL BOOLEANA",
-                "Y = A + B (SUMA)",
-                "Compuerta digital de suma lógica con cuerpo curvo y terminación en punta.",
-                "1. CONDICIÓN: La salida se activará en 1 si al menos UNA de sus entradas (A o B) recibe señal activa.\n" +
-                "2. TABLA DE VERDAD:\n" +
-                "   • 0 o 0 = 0 (Único caso apagado)\n" +
-                "   • 1 o 0 = 1   |   0 o 1 = 1   |   1 o 1 = 1\n" +
-                "3. USO: Permite activar una carga desde dos o más interruptores diferentes.",
-                new String[]{"0 + 0 = 0", "1 + 0 = 1", "1 + 1 = 1 (ACTIVA)"},
+                "COMPUERTA OR",
+                "PRÓXIMAMENTE",
+                "EN DESARROLLO",
+                "Compuerta de suma lógica. Estará disponible en los próximos niveles.",
+                "• Próximamente disponible en el simulador.",
+                new String[]{},
                 5
         ));
 
         listaPagina1.add(new ElementoGuia(
-                "CABLES Y BORNES",
-                "CONDUCCIÓN / ENRUTADO",
-                "LÍNEAS CONDUCTORAS",
-                "Cables de cobre aislados que interconectan terminales de componentes y transportan la corriente.",
-                "1. CONEXIÓN: Presionar clic sobre un borne de origen y arrastrar el cable hasta el borne destino.\n" +
-                "2. COLORES: Rojo representa positivo o entrada, azul negativo o tierra, y celeste conexiones lógicas.\n" +
-                "3. CONTINUIDAD: En cuanto la ruta esté cerrada, los electrones empezarán a fluir automáticamente.",
-                new String[]{"CONDUCIENDO", "EN REPOSO"},
+                "CABLES",
+                "CONEXIÓN",
+                "LÍNEA CONDUCTORA",
+                "Unen los componentes y llevan la electricidad por donde decidas.",
+                "• Clic en un pin y arrastra hasta otro para conectarlos.\n" +
+                "• Clic derecho sobre un cable para desconectarlo.",
+                new String[]{"ACTIVO", "REPOSO"},
                 6
         ));
 
         listaPagina1.add(new ElementoGuia(
-                "ELECTRONES DE CARGA",
-                "FÍSICA DEL CIRCUITO",
-                "CARGA NEGATIVA (-)",
-                "Partículas elementales que transportan la energía a través de los cables del simulador.",
-                "1. IMPULSO: Necesitan que la fuente aplique un voltaje para poder ponerse en movimiento.\n" +
-                "2. DIRECCIÓN: Viajan a través del conductor cerrado llevando energía a los componentes.\n" +
-                "3. DETENCIÓN: Si se desconecta cualquier cable o se abre un switch, se detienen inmediatamente.",
-                new String[]{"FLUJO RÁPIDO", "FLUJO PAUSADO"},
+                "ELECTRONES",
+                "ENERGÍA",
+                "CARGA (-)",
+                "Pequeños amigos que viajan por el cable transportando la energía.",
+                "• Fluyen en cuanto el circuito está cerrado de punta a punta.\n" +
+                "• Si abres el interruptor o cortas un cable, se detienen.",
+                new String[]{"FLUYENDO", "PAUSADO"},
                 7
         ));
     }
@@ -319,21 +306,23 @@ public class VistaGuia extends ScreenAdapter {
                     float cx = coords[i][0];
                     float cy = coords[i][1];
 
-                    float btnY = cy + 22f;
-                    float cant = item.nombresEstados.length;
-                    float btnW = (220f - (cant - 1) * 6f) / cant;
+                    if (item.nombresEstados.length > 0) {
+                        float btnY = cy + 22f;
+                        float cant = item.nombresEstados.length;
+                        float btnW = (220f - (cant - 1) * 6f) / cant;
 
-                    for (int b = 0; b < cant; b++) {
-                        float bx = cx + 22f + b * (btnW + 6f);
-                        if (estaAdentro(mx, my, bx, btnY, btnW, 36f)) {
-                            item.estadoSeleccionado = b;
+                        for (int b = 0; b < cant; b++) {
+                            float bx = cx + 22f + b * (btnW + 6f);
+                            if (estaAdentro(mx, my, bx, btnY, btnW, 36f)) {
+                                item.estadoSeleccionado = b;
+                                return true;
+                            }
+                        }
+
+                        if (estaAdentro(mx, my, cx + 22f, cy + 68f, 220f, 230f)) {
+                            item.estadoSeleccionado = (item.estadoSeleccionado + 1) % item.nombresEstados.length;
                             return true;
                         }
-                    }
-
-                    if (estaAdentro(mx, my, cx + 22f, cy + 68f, 220f, 230f)) {
-                        item.estadoSeleccionado = (item.estadoSeleccionado + 1) % item.nombresEstados.length;
-                        return true;
                     }
                 }
 
@@ -547,7 +536,7 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void dibujarCabecera() {
-        String titulo = "MANUAL DE LABORATORIO: GUÍA DE COMPONENTES";
+        String titulo = "GUÍA DE COMPONENTES";
         layout.setText(fontTitulo, titulo);
         float tx = (Constantes.ANCHO_VENTANA - layout.width) / 2f;
 
@@ -556,17 +545,17 @@ public class VistaGuia extends ScreenAdapter {
         fontTitulo.setColor(colorBrillante);
         fontTitulo.draw(batch, titulo, tx, 1055f);
 
-        String sub = "REJILLA DE ESPECIFICACIONES TÉCNICAS, SPRITES Y REGLAS DE CONEXIÓN";
+        String sub = "Conoce las piezas del circuito y aprende cómo utilizarlas";
         layout.setText(fontSubtitulo, sub);
         fontSubtitulo.setColor(colorClaro);
         fontSubtitulo.draw(batch, sub, (Constantes.ANCHO_VENTANA - layout.width) / 2f, 1022f);
 
-        String t0 = "1. COMPONENTES BÁSICOS DE CIRCUITO";
+        String t0 = "1. COMPONENTES BÁSICOS";
         layout.setText(fontBotones, t0);
         fontBotones.setColor(pagina == 0 ? colorBrillante : colorMetal);
         fontBotones.draw(batch, t0, 400f + (520f - layout.width) / 2f, 988f);
 
-        String t1 = "2. LÓGICA DIGITAL Y CONDUCCIÓN";
+        String t1 = "2. LÓGICA Y CONEXIONES";
         layout.setText(fontBotones, t1);
         fontBotones.setColor(pagina == 1 ? colorBrillante : colorMetal);
         fontBotones.draw(batch, t1, 950f + (520f - layout.width) / 2f, 988f);
@@ -665,24 +654,26 @@ public class VistaGuia extends ScreenAdapter {
             shapeRenderer.rectLine(vx + vw, vy + vh, vx, vy + vh, 2.0f);
             shapeRenderer.rectLine(vx, vy + vh, vx, vy, 2.0f);
 
-            float btnY = y + 22f;
-            float cant = item.nombresEstados.length;
-            float btnW = (vw - (cant - 1) * 6f) / cant;
+            if (item.nombresEstados.length > 0) {
+                float btnY = y + 22f;
+                float cant = item.nombresEstados.length;
+                float btnW = (vw - (cant - 1) * 6f) / cant;
 
-            for (int b = 0; b < cant; b++) {
-                float bx = vx + b * (btnW + 6f);
-                boolean sel = (item.estadoSeleccionado == b);
-                boolean hBtn = estaAdentro(mx, my, bx, btnY, btnW, 36f);
+                for (int b = 0; b < cant; b++) {
+                    float bx = vx + b * (btnW + 6f);
+                    boolean sel = (item.estadoSeleccionado == b);
+                    boolean hBtn = estaAdentro(mx, my, bx, btnY, btnW, 36f);
 
-                shapeRenderer.setColor(sel ? colorSlate : colorCaja);
-                shapeRenderer.rect(bx, btnY, btnW, 36f);
+                    shapeRenderer.setColor(sel ? colorSlate : colorCaja);
+                    shapeRenderer.rect(bx, btnY, btnW, 36f);
 
-                Color cB = sel ? colorBrillante : (hBtn ? colorNeon : colorMetal);
-                shapeRenderer.setColor(cB);
-                shapeRenderer.rectLine(bx, btnY, bx + btnW, btnY, sel ? 2.8f : 1.5f);
-                shapeRenderer.rectLine(bx + btnW, btnY, bx + btnW, btnY + 36f, sel ? 2.8f : 1.5f);
-                shapeRenderer.rectLine(bx + btnW, btnY + 36f, bx, btnY + 36f, sel ? 2.8f : 1.5f);
-                shapeRenderer.rectLine(bx, btnY + 36f, bx, btnY, sel ? 2.8f : 1.5f);
+                    Color cB = sel ? colorBrillante : (hBtn ? colorNeon : colorMetal);
+                    shapeRenderer.setColor(cB);
+                    shapeRenderer.rectLine(bx, btnY, bx + btnW, btnY, sel ? 2.8f : 1.5f);
+                    shapeRenderer.rectLine(bx + btnW, btnY, bx + btnW, btnY + 36f, sel ? 2.8f : 1.5f);
+                    shapeRenderer.rectLine(bx + btnW, btnY + 36f, bx, btnY + 36f, sel ? 2.8f : 1.5f);
+                    shapeRenderer.rectLine(bx, btnY + 36f, bx, btnY, sel ? 2.8f : 1.5f);
+                }
             }
 
             float qx = x + 265f;
@@ -758,37 +749,6 @@ public class VistaGuia extends ScreenAdapter {
             }
             shapeRenderer.circle(sx + 25f, cy, 7f);
             shapeRenderer.circle(sx + 115f, cy, 7f);
-
-        } else if (item.tipoVisual == 5) {
-            boolean act = (item.estadoSeleccionado > 0);
-            Color cG = act ? colorBrillante : colorMetal;
-
-            shapeRenderer.setColor(cG);
-            shapeRenderer.rectLine(cx - 75f, cy + 24f, cx - 25f, cy + 24f, 3.5f);
-            shapeRenderer.rectLine(cx - 75f, cy - 24f, cx - 25f, cy - 24f, 3.5f);
-            shapeRenderer.rectLine(cx + 45f, cy, cx + 75f, cy, 3.5f);
-
-            float prevArcX = cx - 35f + MathUtils.sin(-0.5f * MathUtils.PI) * 12f;
-            float prevArcY = cy - 45f;
-            for (int s = 1; s <= 16; s++) {
-                float t = (float) s / 16;
-                float arcY = MathUtils.lerp(cy - 45f, cy + 45f, t);
-                float ang = (t - 0.5f) * MathUtils.PI;
-                float arcX = cx - 28f - MathUtils.cos(ang) * 16f;
-                shapeRenderer.rectLine(prevArcX, prevArcY, arcX, arcY, 4f);
-                prevArcX = arcX;
-                prevArcY = arcY;
-            }
-
-            shapeRenderer.rectLine(cx - 44f, cy + 45f, cx + 45f, cy, 4f);
-            shapeRenderer.rectLine(cx - 44f, cy - 45f, cx + 45f, cy, 4f);
-
-            if (act) {
-                shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.45f);
-                shapeRenderer.circle(cx + 45f, cy, 14f);
-                shapeRenderer.setColor(Color.WHITE);
-                shapeRenderer.circle(cx + 45f, cy, 5f);
-            }
 
         } else if (item.tipoVisual == 6) {
             boolean run = (item.estadoSeleccionado == 0);
@@ -868,7 +828,7 @@ public class VistaGuia extends ScreenAdapter {
             fontPequena.draw(batch, item.categoria, x + w - layout.width - 24f, y + h - 18f);
 
             fontPequena.setColor(colorBrillante);
-            fontPequena.draw(batch, "ESPECIFICACIÓN: " + item.especificacion, x + 265f, y + h - 48f);
+            fontPequena.draw(batch, item.especificacion, x + 265f, y + h - 48f);
 
             float vx = x + 22f;
             float vy = y + 68f;
@@ -905,25 +865,22 @@ public class VistaGuia extends ScreenAdapter {
                 String txtV = on ? "5.00 V" : "0.00 V";
                 layout.setText(fontBotones, txtV);
                 fontBotones.draw(batch, txtV, vx + (vw - layout.width) / 2f, vy + vh - 26f);
-
-            } else if (item.tipoVisual == 5) {
-                fontBotones.setColor(colorAmbar);
-                layout.setText(fontBotones, "Y = A + B");
-                fontBotones.draw(batch, layout, vx + (vw - layout.width) / 2f, vy + 38f);
             }
 
-            float btnY = y + 22f;
-            float cant = item.nombresEstados.length;
-            float btnW = (vw - (cant - 1) * 6f) / cant;
+            if (item.nombresEstados.length > 0) {
+                float btnY = y + 22f;
+                float cant = item.nombresEstados.length;
+                float btnW = (vw - (cant - 1) * 6f) / cant;
 
-            for (int b = 0; b < cant; b++) {
-                float bx = vx + b * (btnW + 6f);
-                boolean sel = (item.estadoSeleccionado == b);
-                String nom = item.nombresEstados[b];
+                for (int b = 0; b < cant; b++) {
+                    float bx = vx + b * (btnW + 6f);
+                    boolean sel = (item.estadoSeleccionado == b);
+                    String nom = item.nombresEstados[b];
 
-                layout.setText(fontPequena, nom);
-                fontPequena.setColor(sel ? Color.WHITE : colorClaro);
-                fontPequena.draw(batch, nom, bx + (btnW - layout.width) / 2f, btnY + 23f);
+                    layout.setText(fontPequena, nom);
+                    fontPequena.setColor(sel ? Color.WHITE : colorClaro);
+                    fontPequena.draw(batch, nom, bx + (btnW - layout.width) / 2f, btnY + 23f);
+                }
             }
 
             float descX = x + 265f;
@@ -931,7 +888,7 @@ public class VistaGuia extends ScreenAdapter {
             float descW = w - 290f;
 
             fontPequena.setColor(colorNeon);
-            fontPequena.draw(batch, "DESCRIPCIÓN DEL COMPONENTE:", descX, descY);
+            fontPequena.draw(batch, "¿QUÉ HACE?", descX, descY);
 
             fontTexto.setColor(Color.WHITE);
             fontTexto.draw(batch, item.descripcion, descX, descY - 18f, descW, Align.left, true);
@@ -942,7 +899,7 @@ public class VistaGuia extends ScreenAdapter {
             float qh = 168f;
 
             fontPequena.setColor(colorAmbar);
-            fontPequena.draw(batch, "REGLAS DE CONEXIÓN: ¿QUÉ HACER PARA QUE FUNCIONE?", qx + 14f, qy + qh - 10f);
+            fontPequena.draw(batch, "¿CÓMO CONECTARLO?", qx + 14f, qy + qh - 10f);
 
             fontPequena.setColor(colorClaro);
             fontPequena.draw(batch, item.queHacer, qx + 14f, qy + qh - 38f, qw - 28f, Align.left, true);
@@ -986,7 +943,7 @@ public class VistaGuia extends ScreenAdapter {
         float bw = 270f;
         float bh = 50f;
 
-        String txt = "< VOLVER AL MENÚ";
+        String txt = "VOLVER AL MENÚ";
         layout.setText(fontBotones, txt);
         float tx = bx + (bw - layout.width) / 2f;
         float ty = by + (bh + layout.height) / 2f;
@@ -997,7 +954,7 @@ public class VistaGuia extends ScreenAdapter {
         fontBotones.setColor(hoverVolver > 0.5f ? Color.WHITE : colorBrillante);
         fontBotones.draw(batch, txt, tx, ty);
 
-        String atajos = "[ESC] Volver   •   [TAB / Flechas] Cambiar Página   •   [CLIC para probar estados]";
+        String atajos = "ESC: Volver   |   Flechas: Cambiar página";
         layout.setText(fontPequena, atajos);
         fontPequena.setColor(colorMetal);
         fontPequena.draw(batch, atajos, (Constantes.ANCHO_VENTANA - layout.width) / 2f + 120f, 48f);
