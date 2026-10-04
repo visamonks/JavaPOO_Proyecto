@@ -9,10 +9,10 @@ public class CompuertaOR extends CompuertaLogica {
     public CompuertaOR(String identificador, float posicionX, float posicionY, boolean entradaA, boolean entradaB) {
         super(identificador, posicionX, posicionY, entradaA, entradaB);
 
-    
+
         this.agregarPuntoConexion(0, 15);
-        this.agregarPuntoConexion(0, 35);  
-        this.agregarPuntoConexion(60, 25); 
+        this.agregarPuntoConexion(0, 35);
+        this.agregarPuntoConexion(60, 25);
     }
 
     @Override
