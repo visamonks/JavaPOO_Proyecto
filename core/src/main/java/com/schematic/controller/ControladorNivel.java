@@ -7,18 +7,18 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.schematic.model.Cable;
-import com.schematic.model.Componente;
-import com.schematic.model.FuenteAlimentacion;
-import com.schematic.model.Minijuego;
-import com.schematic.model.Terminal;
+import com.schematic.model.componentes.Cable;
+import com.schematic.model.componentes.Componente;
+import com.schematic.model.componentes.FuenteAlimentacion;
+import com.schematic.model.componentes.Terminal;
+import com.schematic.model.niveles.Nivel;
 import com.schematic.view.VistaNivel;
 
 public class ControladorNivel extends InputAdapter {
 
     public static final float TAMANO_CELDA = 60f;
 
-    private Minijuego minijuego;
+    private Nivel nivel;
     private OrthographicCamera camara;
     private Viewport viewport;
     private VistaNivel vista;
@@ -34,16 +34,16 @@ public class ControladorNivel extends InputAdapter {
     private Cable cableArrastrandoCodo;
     private boolean arrastrandoCodo;
 
-    public ControladorNivel(Minijuego minijuego) {
-        this(minijuego, null, null, null);
+    public ControladorNivel(Nivel nivel) {
+        this(nivel, null, null, null);
     }
 
-    public ControladorNivel(Minijuego minijuego, OrthographicCamera camara) {
-        this(minijuego, camara, null, null);
+    public ControladorNivel(Nivel nivel, OrthographicCamera camara) {
+        this(nivel, camara, null, null);
     }
 
-    public ControladorNivel(Minijuego minijuego, OrthographicCamera camara, Viewport viewport, VistaNivel vista) {
-        this.minijuego = minijuego;
+    public ControladorNivel(Nivel nivel, OrthographicCamera camara, Viewport viewport, VistaNivel vista) {
+        this.nivel = nivel;
         this.camara = camara;
         this.viewport = viewport;
         this.vista = vista;
@@ -85,9 +85,9 @@ public class ControladorNivel extends InputAdapter {
                 }
             }
 
-            if (minijuego != null && mx >= 1640f && mx <= 1890f) {
+            if (nivel != null && mx >= 1640f && mx <= 1890f) {
                 if (my >= 690f && my <= 890f) {
-                    Minijuego.CasillaInventario casilla = minijuego.buscarCasilla("LED");
+                    Nivel.CasillaInventario casilla = nivel.buscarCasilla("LED");
                     if (casilla != null && casilla.puedeUsar()) {
                         arrastrandoDesdeBarra = true;
                         tipoComponenteArrastrado = "LED";
@@ -95,7 +95,7 @@ public class ControladorNivel extends InputAdapter {
                         return true;
                     }
                 } else if (my >= 450f && my <= 650f) {
-                    Minijuego.CasillaInventario casilla = minijuego.buscarCasilla("RESISTENCIA_220");
+                    Nivel.CasillaInventario casilla = nivel.buscarCasilla("RESISTENCIA_220");
                     if (casilla != null && casilla.puedeUsar()) {
                         arrastrandoDesdeBarra = true;
                         tipoComponenteArrastrado = "RESISTENCIA_220";
@@ -132,25 +132,25 @@ public class ControladorNivel extends InputAdapter {
                 return true;
             }
 
-            if (vista != null && minijuego != null) {
+            if (vista != null && nivel != null) {
                 Terminal term = vista.obtenerTerminalBajoRaton(mx, my, 34f);
                 if (term != null) {
-                    Cable c = minijuego.buscarCableConTerminal(term);
+                    Cable c = nivel.buscarCableConTerminal(term);
                     if (c != null) {
-                        minijuego.eliminarCable(c);
+                        nivel.eliminarCable(c);
                         return true;
                     }
                 }
 
                 Cable cableBajoRaton = vista.obtenerCableBajoRaton(mx, my, 24f);
                 if (cableBajoRaton != null) {
-                    minijuego.eliminarCable(cableBajoRaton);
+                    nivel.eliminarCable(cableBajoRaton);
                     return true;
                 }
 
                 Componente comp = vista.obtenerComponenteBajoRaton(mx, my);
                 if (comp != null && !(comp instanceof FuenteAlimentacion)) {
-                    minijuego.devolverAlInventario(comp);
+                    nivel.devolverAlInventario(comp);
                     return true;
                 }
             }
@@ -222,7 +222,7 @@ public class ControladorNivel extends InputAdapter {
                         posX = mx - 180f;
                         posY = my - 115f;
                     }
-                    minijuego.crearYColocarComponente(tipoComponenteArrastrado, posX, posY);
+                    nivel.crearYColocarComponente(tipoComponenteArrastrado, posX, posY);
                 }
                 arrastrandoDesdeBarra = false;
                 tipoComponenteArrastrado = null;
@@ -237,7 +237,7 @@ public class ControladorNivel extends InputAdapter {
 
             if (componenteSeleccionado != null) {
                 if (mx >= 1620f) {
-                    minijuego.devolverAlInventario(componenteSeleccionado);
+                    nivel.devolverAlInventario(componenteSeleccionado);
                 }
                 componenteSeleccionado = null;
                 return true;
@@ -293,12 +293,12 @@ public class ControladorNivel extends InputAdapter {
         return posicionArrastre;
     }
 
-    public Minijuego getMinijuego() {
-        return minijuego;
+    public Nivel getNivel() {
+        return nivel;
     }
 
-    public void setMinijuego(Minijuego minijuego) {
-        this.minijuego = minijuego;
+    public void setNivel(Nivel nivel) {
+        this.nivel = nivel;
     }
 
     public OrthographicCamera getCamara() {

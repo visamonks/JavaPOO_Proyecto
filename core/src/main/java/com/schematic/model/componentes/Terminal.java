@@ -1,4 +1,4 @@
-package com.schematic.model;
+package com.schematic.model.componentes;
 
 import com.badlogic.gdx.math.Vector2;
 

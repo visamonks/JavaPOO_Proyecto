@@ -18,7 +18,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.constants.Constantes;
-import com.schematic.model.*;
+import com.schematic.model.componentes.*;
+import com.schematic.model.niveles.*;
+import com.schematic.model.progreso.*;
 
 public class VistaMenu extends ScreenAdapter {
 
@@ -290,8 +292,8 @@ public class VistaMenu extends ScreenAdapter {
 
             if (tiempoTransicionNivel >= DURACION_TRANSICION) {
                 if (juego != null) {
-                    Minijuego minijuego = new Minijuego(1, "NIVEL 1: ENCIENDE EL LED", 30.0f);
-                    juego.setScreen(new VistaNivel(minijuego, juego));
+                    Nivel nivel = GestorNiveles.crearNivel(1);
+                    juego.setScreen(new VistaNivel(nivel, juego));
                 }
             }
         }

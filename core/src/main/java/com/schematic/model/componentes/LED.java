@@ -1,4 +1,4 @@
-package com.schematic.model;
+package com.schematic.model.componentes;
 
 public class LED extends Componente {
 
@@ -55,7 +55,7 @@ public class LED extends Componente {
                 return false;
             }
         } else {
-            this.estadoActual = "NEUTRO";
+            this.estadoActual = "NEUTRO"; 
             if (terminalCatodo != null) {
                 terminalCatodo.setValorLogico(false);
             }
