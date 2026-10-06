@@ -1,9 +1,11 @@
-package com.schematic.model;
+package com.schematic.model.niveles;
 
-public class Nivel4 extends Nivel {
+import com.schematic.model.componentes.*;
 
-    public Nivel4() {
-        super(4, "NIVEL 4: COMPUERTA LÓGICA OR", 30.0f);
+public class Nivel3 extends Nivel {
+
+    public Nivel3() {
+        super(3, "NIVEL 3: COMPUERTA LÓGICA AND", 30.0f);
         inicializar();
     }
 
@@ -17,14 +19,14 @@ public class Nivel4 extends Nivel {
         this.ganado = false;
         this.tiempoLimite = 30.0f;
         this.tiempoRestante = this.tiempoLimite;
-        this.mensajeEstado = "Objetivo: Conecta la compuerta OR para permitir el paso de señal.";
+        this.mensajeEstado = "Objetivo: Conecta y activa ambas entradas de la compuerta AND.";
 
         FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
         this.componentes.add(fuente);
 
         this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ω", 1));
-        this.inventario.add(new CasillaInventario("OR", "Compuerta OR", 1));
+        this.inventario.add(new CasillaInventario("AND", "Compuerta AND", 1));
     }
 
     @Override
@@ -41,7 +43,7 @@ public class Nivel4 extends Nivel {
                 if ("EXITO".equals(comp.getEstadoActual())) {
                     this.ganado = true;
                     this.completado = true;
-                    this.mensajeEstado = "¡NIVEL 4 COMPLETADO! Señal OR activada.";
+                    this.mensajeEstado = "¡NIVEL 3 COMPLETADO! Compuerta AND validada correctamente.";
                     return true;
                 }
             }

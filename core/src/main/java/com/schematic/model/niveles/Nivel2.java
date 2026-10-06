@@ -1,4 +1,6 @@
-package com.schematic.model;
+package com.schematic.model.niveles;
+
+import com.schematic.model.componentes.*;
 
 public class Nivel2 extends Nivel {
 

@@ -1,4 +1,4 @@
-package com.schematic.model;
+package com.schematic.model.niveles;
 
 public class GestorNiveles {
 

@@ -2,8 +2,8 @@ package com.schematic;
 
 import com.badlogic.gdx.Game;
 import com.schematic.constants.Constantes;
-import com.schematic.model.GestorPersistenciaJSON;
-import com.schematic.model.ProgresoJugador;
+import com.schematic.model.progreso.GestorPersistenciaJSON;
+import com.schematic.model.progreso.ProgresoJugador;
 import com.schematic.view.VistaMenu;
 
 public class JuegoPrincipal extends Game {

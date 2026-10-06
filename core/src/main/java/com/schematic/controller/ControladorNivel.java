@@ -7,11 +7,11 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
-import com.schematic.model.Cable;
-import com.schematic.model.Componente;
-import com.schematic.model.FuenteAlimentacion;
-import com.schematic.model.Nivel;
-import com.schematic.model.Terminal;
+import com.schematic.model.componentes.Cable;
+import com.schematic.model.componentes.Componente;
+import com.schematic.model.componentes.FuenteAlimentacion;
+import com.schematic.model.componentes.Terminal;
+import com.schematic.model.niveles.Nivel;
 import com.schematic.view.VistaNivel;
 
 public class ControladorNivel extends InputAdapter {

@@ -1,5 +1,6 @@
-package com.schematic.model;
+package com.schematic.model.niveles;
 
+import com.schematic.model.componentes.*;
 import java.util.ArrayList;
 import java.util.List;
 
