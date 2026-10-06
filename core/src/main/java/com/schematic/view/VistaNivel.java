@@ -30,7 +30,7 @@ public class VistaNivel extends ScreenAdapter {
     public static final float ALTO_VIRTUAL = 1080f;
 
     private Game juego;
-    private Minijuego minijuego;
+    private Nivel nivel;
     private OrthographicCamera camara;
     private FitViewport viewport;
     private SpriteBatch batch;
@@ -96,12 +96,12 @@ public class VistaNivel extends ScreenAdapter {
         }
     }
 
-    public VistaNivel(Minijuego minijuego) {
-        this(minijuego, null);
+    public VistaNivel(Nivel nivel) {
+        this(nivel, null);
     }
 
-    public VistaNivel(Minijuego minijuego, Game juego) {
-        this.minijuego = minijuego;
+    public VistaNivel(Nivel nivel, Game juego) {
+        this.nivel = nivel;
         this.juego = juego;
 
         this.camara = new OrthographicCamera();
@@ -145,7 +145,7 @@ public class VistaNivel extends ScreenAdapter {
 
         this.particulas = new ArrayList<>();
 
-        this.controlador = new ControladorNivel(minijuego, camara, viewport, this);
+        this.controlador = new ControladorNivel(nivel, camara, viewport, this);
     }
 
     private void cargarAnimaciones() {
@@ -196,17 +196,17 @@ public class VistaNivel extends ScreenAdapter {
             }
         }
 
-        if (minijuego != null) {
+        if (nivel != null) {
             if (introCompletada) {
-                minijuego.actualizar(delta);
+                nivel.actualizar(delta);
             } else {
-                minijuego.actualizar(0f);
+                nivel.actualizar(0f);
             }
 
-            if (minijuego.estaGanado()) {
+            if (nivel.estaGanado()) {
                 tiempoExitoAcumulado += delta;
                 if (MathUtils.randomBoolean(0.25f)) {
-                    for (Componente c : minijuego.getComponentes()) {
+                    for (Componente c : nivel.getComponentes()) {
                         if (c instanceof LED) {
                             generarChispasImpacto(c.getPosicionX() + c.getAncho() * 0.49f, c.getPosicionY() + c.getAlto() * 0.65f, 4);
                         }
@@ -217,14 +217,14 @@ public class VistaNivel extends ScreenAdapter {
             }
 
             boolean hayError = false;
-            for (Componente c : minijuego.getComponentes()) {
+            for (Componente c : nivel.getComponentes()) {
                 if ("ERROR".equals(c.getEstadoActual())) {
                     hayError = true;
                     break;
                 }
             }
 
-            boolean tiempoAgotado = (introCompletada && minijuego.getTiempoRestante() <= 0f && !minijuego.estaGanado());
+            boolean tiempoAgotado = (introCompletada && nivel.getTiempoRestante() <= 0f && !nivel.estaGanado());
 
             if (hayError || tiempoAgotado) {
                 if (faseDerrota == FASE_DERROTA_NINGUNA) {
@@ -287,7 +287,7 @@ public class VistaNivel extends ScreenAdapter {
 
         dibujarEfectosDerrota();
 
-        if (minijuego != null && ((minijuego.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL)) {
+        if (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL)) {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             dibujarFondoModal();
             shapeRenderer.end();
@@ -315,8 +315,8 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private boolean hayErrorLED() {
-        if (minijuego == null) return false;
-        for (Componente c : minijuego.getComponentes()) {
+        if (nivel == null) return false;
+        for (Componente c : nivel.getComponentes()) {
             if (c instanceof LED && ((LED) c).estaQuemado()) {
                 return true;
             }
@@ -325,8 +325,8 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void localizarCentroFallo() {
-        if (minijuego == null) return;
-        for (Componente c : minijuego.getComponentes()) {
+        if (nivel == null) return;
+        for (Componente c : nivel.getComponentes()) {
             if ("ERROR".equals(c.getEstadoActual())) {
                 centroExplosion.set(c.getPosicionX() + c.getAncho() / 2f, c.getPosicionY() + c.getAlto() / 2f);
                 return;
@@ -617,11 +617,11 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void dibujarBarraTemporizadorSuperior() {
-        if (minijuego == null) return;
+        if (nivel == null) return;
 
-        float limite = minijuego.getTiempoLimite();
+        float limite = nivel.getTiempoLimite();
         if (limite <= 0f) limite = 60f;
-        float restante = minijuego.getTiempoRestante();
+        float restante = nivel.getTiempoRestante();
         float ratio = MathUtils.clamp(restante / limite, 0f, 1f);
 
         float altoBarra = 9f;
@@ -668,7 +668,7 @@ public class VistaNivel extends ScreenAdapter {
             shapeRenderer.setColor(1f, 1f, 1f, 0.95f * pulsoAlerta);
             shapeRenderer.circle(anchoActual, yBarra + altoBarra / 2f, 3.5f);
 
-            if (introCompletada && !minijuego.estaGanado()) {
+            if (introCompletada && !nivel.estaGanado()) {
                 if (ratio <= 0.20f && MathUtils.randomBoolean(0.35f)) {
                     generarChispasImpacto(anchoActual, yBarra + altoBarra / 2f, 1);
                 } else if (MathUtils.randomBoolean(0.08f)) {
@@ -695,7 +695,7 @@ public class VistaNivel extends ScreenAdapter {
 
         float c1x = 1645f;
         float c1y = 690f;
-        boolean puedeUsarLed = (minijuego != null && minijuego.buscarCasilla("LED") != null && minijuego.buscarCasilla("LED").puedeUsar());
+        boolean puedeUsarLed = (nivel != null && nivel.buscarCasilla("LED") != null && nivel.buscarCasilla("LED").puedeUsar());
         shapeRenderer.setColor(puedeUsarLed ? COLOR_SLATE_OSCURO : COLOR_CAJA_OSCURA);
         shapeRenderer.rect(c1x, c1y, anchoTarjeta, altoTarjeta);
         shapeRenderer.setColor(puedeUsarLed ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
@@ -706,7 +706,7 @@ public class VistaNivel extends ScreenAdapter {
 
         float c2x = 1645f;
         float c2y = 450f;
-        boolean puedeUsarRes = (minijuego != null && minijuego.buscarCasilla("RESISTENCIA_220") != null && minijuego.buscarCasilla("RESISTENCIA_220").puedeUsar());
+        boolean puedeUsarRes = (nivel != null && nivel.buscarCasilla("RESISTENCIA_220") != null && nivel.buscarCasilla("RESISTENCIA_220").puedeUsar());
         shapeRenderer.setColor(puedeUsarRes ? COLOR_SLATE_OSCURO : COLOR_CAJA_OSCURA);
         shapeRenderer.rect(c2x, c2y, anchoTarjeta, altoTarjeta);
         shapeRenderer.setColor(puedeUsarRes ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
@@ -725,8 +725,8 @@ public class VistaNivel extends ScreenAdapter {
         glyphLayout.setText(fontTitulo, "COMPONENTES");
         fontTitulo.draw(batch, glyphLayout, 1620f + (300f - glyphLayout.width) / 2f, 950f);
 
-        Minijuego.CasillaInventario casillaLed = (minijuego != null) ? minijuego.buscarCasilla("LED") : null;
-        Minijuego.CasillaInventario casillaRes = (minijuego != null) ? minijuego.buscarCasilla("RESISTENCIA_220") : null;
+        Nivel.CasillaInventario casillaLed = (nivel != null) ? nivel.buscarCasilla("LED") : null;
+        Nivel.CasillaInventario casillaRes = (nivel != null) ? nivel.buscarCasilla("RESISTENCIA_220") : null;
 
         int cantLed = (casillaLed != null) ? casillaLed.getCantidadDisponible() : 0;
         int cantRes = (casillaRes != null) ? casillaRes.getCantidadDisponible() : 0;
@@ -770,8 +770,8 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarFuentePoder() {
         FuenteAlimentacion fuente = null;
-        if (minijuego != null) {
-            for (Componente c : minijuego.getComponentes()) {
+        if (nivel != null) {
+            for (Componente c : nivel.getComponentes()) {
                 if (c instanceof FuenteAlimentacion) {
                     fuente = (FuenteAlimentacion) c;
                     break;
@@ -880,14 +880,14 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void dibujarCablesConectadosRectos() {
-        if (minijuego == null) return;
+        if (nivel == null) return;
 
         Color colFondo = new Color(0.08f, 0.10f, 0.14f, 1f);
         Color colActivo = new Color(0.00f, 0.95f, 1.00f, 1f);
         Color colActivoBrillante = new Color(1f, 1f, 1f, 0.92f);
         Color colInactivo = new Color(0.95f, 0.60f, 0.15f, 1f);
 
-        for (Cable cable : minijuego.getCables()) {
+        for (Cable cable : nivel.getCables()) {
             Terminal t1 = cable.getTerminalOrigen();
             Terminal t2 = cable.getTerminalDestino();
             if (t1 == null || t2 == null) continue;
@@ -1017,7 +1017,7 @@ public class VistaNivel extends ScreenAdapter {
             return calcularPuntosOrtogonalesConCodoManual(p1, p2, cx, cy, origenEsLed, destinoEsLed);
         }
 
-        int indiceCable = (minijuego != null && cable != null) ? minijuego.getCables().indexOf(cable) : 0;
+        int indiceCable = (nivel != null && cable != null) ? nivel.getCables().indexOf(cable) : 0;
         float desfaseCanal = 0f;
         if (indiceCable == 1) {
             desfaseCanal = 32f;
@@ -1135,8 +1135,8 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public Cable obtenerCableCodoBajoRaton(float mx, float my, float radio) {
-        if (minijuego == null) return null;
-        for (Cable cable : minijuego.getCables()) {
+        if (nivel == null) return null;
+        for (Cable cable : nivel.getCables()) {
             Terminal t1 = cable.getTerminalOrigen();
             Terminal t2 = cable.getTerminalDestino();
             if (t1 == null || t2 == null) continue;
@@ -1152,9 +1152,9 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void dibujarTerminalesFisicos() {
-        if (minijuego == null) return;
+        if (nivel == null) return;
 
-        for (Componente comp : minijuego.getComponentes()) {
+        for (Componente comp : nivel.getComponentes()) {
             for (Terminal t : comp.getTerminales()) {
                 Vector2 pos = t.getPosicionAbsoluta();
                 boolean hovered = (terminalBajoRaton == t);
@@ -1192,9 +1192,9 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void dibujarComponentesSprites() {
-        if (minijuego == null) return;
+        if (nivel == null) return;
 
-        for (Componente comp : minijuego.getComponentes()) {
+        for (Componente comp : nivel.getComponentes()) {
             float x = comp.getPosicionX();
             float y = comp.getPosicionY();
             float w = comp.getAncho();
@@ -1241,8 +1241,8 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarTextosHUD() {
         FuenteAlimentacion fuente = null;
-        if (minijuego != null) {
-            for (Componente c : minijuego.getComponentes()) {
+        if (nivel != null) {
+            for (Componente c : nivel.getComponentes()) {
                 if (c instanceof FuenteAlimentacion) {
                     fuente = (FuenteAlimentacion) c;
                     break;
@@ -1259,7 +1259,7 @@ public class VistaNivel extends ScreenAdapter {
             fontTitulo.setColor(0.00f, 0.95f, 1.00f, 1f);
             fontTitulo.draw(batch, String.format("%.2f V", voltajeMedidorDC), fx + 38f, fy + fh - 52f);
 
-            float corriente = (minijuego.estaGanado()) ? 0.02f : 0.00f;
+            float corriente = (nivel.estaGanado()) ? 0.02f : 0.00f;
             font.setColor(0.95f, 0.80f, 0.20f, 1f);
             font.draw(batch, String.format("%.2f A", corriente), fx + 42f, fy + fh - 95f);
 
@@ -1274,11 +1274,12 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         fontTitulo.setColor(0.00f, 0.90f, 1.00f, 1f);
-        fontTitulo.draw(batch, "NIVEL 1", 40f, ALTO_VIRTUAL - 30f);
+        String tituloNivel = (nivel != null) ? "NIVEL " + nivel.getNumeroNivel() : "NIVEL 1";
+        fontTitulo.draw(batch, tituloNivel, 40f, ALTO_VIRTUAL - 30f);
 
-        if (minijuego != null) {
-            String mensaje = minijuego.getMensajeEstado();
-            if (minijuego.estaGanado()) {
+        if (nivel != null) {
+            String mensaje = nivel.getMensajeEstado();
+            if (nivel.estaGanado()) {
                 font.setColor(0.20f, 1.00f, 0.40f, 1f);
             } else if (hayErrorLED()) {
                 font.setColor(1.00f, 0.30f, 0.30f, 1f);
@@ -1304,7 +1305,7 @@ public class VistaNivel extends ScreenAdapter {
         shapeRenderer.setColor(0.12f, 0.15f, 0.20f, 0.98f);
         shapeRenderer.rect(mx, my, mw, mh);
 
-        if (minijuego != null && minijuego.estaGanado()) {
+        if (nivel != null && nivel.estaGanado()) {
             shapeRenderer.setColor(0.15f, 0.85f, 0.45f, 1f);
         } else {
             shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 1f);
@@ -1320,7 +1321,7 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void dibujarContenidoModal() {
-        boolean ganado = (minijuego != null && minijuego.estaGanado());
+        boolean ganado = (nivel != null && nivel.estaGanado());
 
         if (ganado) {
             fontTitulo.setColor(0.20f, 1.00f, 0.50f, 1f);
@@ -1400,8 +1401,8 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public Terminal obtenerTerminalBajoRaton(float mx, float my, float radio) {
-        if (minijuego == null) return null;
-        for (Componente comp : minijuego.getComponentes()) {
+        if (nivel == null) return null;
+        for (Componente comp : nivel.getComponentes()) {
             for (Terminal t : comp.getTerminales()) {
                 Vector2 pos = t.getPosicionAbsoluta();
                 if (pos.dst(mx, my) <= radio) {
@@ -1413,8 +1414,8 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public Componente obtenerComponenteBajoRaton(float mx, float my) {
-        if (minijuego == null) return null;
-        for (Componente comp : minijuego.getComponentes()) {
+        if (nivel == null) return null;
+        for (Componente comp : nivel.getComponentes()) {
             float cx = comp.getPosicionX();
             float cy = comp.getPosicionY();
             float cw = comp.getAncho();
@@ -1438,8 +1439,8 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public Cable obtenerCableBajoRaton(float mx, float my, float tolerancia) {
-        if (minijuego == null) return null;
-        for (Cable cable : minijuego.getCables()) {
+        if (nivel == null) return null;
+        for (Cable cable : nivel.getCables()) {
             Terminal t1 = cable.getTerminalOrigen();
             Terminal t2 = cable.getTerminalDestino();
             if (t1 == null || t2 == null) continue;
@@ -1457,7 +1458,7 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public boolean manejarClicUI(float mx, float my) {
-        boolean modalActivo = (minijuego != null && ((minijuego.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL));
+        boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalActivo) {
             if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) {
                 reiniciarNivel();
@@ -1486,7 +1487,7 @@ public class VistaNivel extends ScreenAdapter {
         if (cableEnProgreso && terminalOrigenCable != null && termDestino != null) {
             if (termDestino != terminalOrigenCable && termDestino.getComponentePadre() != terminalOrigenCable.getComponentePadre()) {
                 boolean existe = false;
-                for (Cable c : minijuego.getCables()) {
+                for (Cable c : nivel.getCables()) {
                     if (c.conectaTerminal(terminalOrigenCable) && c.conectaTerminal(termDestino)) {
                         existe = true;
                         break;
@@ -1494,7 +1495,7 @@ public class VistaNivel extends ScreenAdapter {
                 }
                 if (!existe) {
                     Cable nuevo = new Cable(terminalOrigenCable, termDestino);
-                    minijuego.agregarCable(nuevo);
+                    nivel.agregarCable(nuevo);
                     generarChispasImpacto(termDestino.getPosicionAbsoluta().x, termDestino.getPosicionAbsoluta().y, 12);
                 }
             }
@@ -1514,8 +1515,8 @@ public class VistaNivel extends ScreenAdapter {
 
     public void reiniciarNivel() {
         this.derrotaPorTiempo = false;
-        if (minijuego != null) {
-            minijuego.reiniciarNivelActual();
+        if (nivel != null) {
+            nivel.reiniciarNivelActual();
         }
         this.tiempoIntro = 0f;
         this.introCompletada = false;
@@ -1533,8 +1534,12 @@ public class VistaNivel extends ScreenAdapter {
 
     public void siguienteNivel() {
         this.derrotaPorTiempo = false;
-        if (minijuego != null) {
-            minijuego.siguienteNivel();
+        if (nivel != null) {
+            int siguiente = nivel.getNumeroNivel() + 1;
+            if (siguiente > GestorNiveles.obtenerTotalNiveles()) {
+                siguiente = 1;
+            }
+            cargarNivel(GestorNiveles.crearNivel(siguiente));
         }
         this.tiempoIntro = 0f;
         this.introCompletada = false;
@@ -1548,6 +1553,13 @@ public class VistaNivel extends ScreenAdapter {
         this.opacidadHollin = 0f;
         this.posicionLimpiadorX = -150f;
         cancelarCable();
+    }
+
+    public void cargarNivel(Nivel nuevoNivel) {
+        this.nivel = nuevoNivel;
+        if (this.controlador != null) {
+            this.controlador.setNivel(nuevoNivel);
+        }
     }
 
     public void volverAlMenu() {
