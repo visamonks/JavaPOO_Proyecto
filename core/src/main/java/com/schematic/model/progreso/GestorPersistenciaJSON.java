@@ -1,4 +1,4 @@
-package com.schematic.model;
+package com.schematic.model.progreso;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -11,10 +11,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-/**
- * Clase encargada de manejar la lectura y escritura en disco del archivo local
- * de progreso en formato JSON usando la API de com.badlogic.gdx.utils.Json.
- */
 public class GestorPersistenciaJSON {
 
     private Json json;
@@ -25,12 +21,6 @@ public class GestorPersistenciaJSON {
         this.json.setUsePrototypes(false);
     }
 
-    /**
-     * Guarda el objeto ProgresoJugador en disco en la ruta especificada en formato JSON.
-     *
-     * @param progreso Objeto de datos del progreso del jugador.
-     * @param ruta     Ruta del archivo (por ejemplo, Constantes.RUTA_PROGRESO).
-     */
     public void guardarProgreso(ProgresoJugador progreso, String ruta) {
         if (progreso == null) {
             logError("No se puede guardar un progreso nulo.");
@@ -45,7 +35,6 @@ public class GestorPersistenciaJSON {
                 fileHandle.writeString(jsonTexto, false, "UTF-8");
                 logInfo("Progreso guardado exitosamente en: " + fileHandle.file().getAbsolutePath());
             } else {
-                // Fallback para entornos donde Gdx.files aún no esté inicializado
                 File file = new File(ruta);
                 try (FileWriter writer = new FileWriter(file, false)) {
                     writer.write(jsonTexto);
@@ -57,13 +46,6 @@ public class GestorPersistenciaJSON {
         }
     }
 
-    /**
-     * Carga el objeto ProgresoJugador desde el archivo JSON especificado.
-     * Si el archivo no existe o ocurre un error de lectura, se retorna un nuevo progreso por defecto.
-     *
-     * @param ruta Ruta del archivo (por ejemplo, Constantes.RUTA_PROGRESO).
-     * @return Instancia de ProgresoJugador cargada desde disco o por defecto (nivel 1).
-     */
     public ProgresoJugador cargarProgreso(String ruta) {
         try {
             if (Gdx.files != null) {
@@ -92,23 +74,16 @@ public class GestorPersistenciaJSON {
             logError("No se pudo cargar el archivo " + ruta + ", se creará uno nuevo: " + e.getMessage());
         }
 
-        // Si no existe o hubo error, inicializamos progreso nuevo y lo guardamos
         logInfo("Creando progreso inicial por defecto.");
         ProgresoJugador progresoNuevo = new ProgresoJugador(1);
         guardarProgreso(progresoNuevo, ruta);
         return progresoNuevo;
     }
 
-    /**
-     * Método de conveniencia estático para guardar usando la ruta predeterminada de Constantes.
-     */
     public static void guardar(ProgresoJugador progreso) {
         new GestorPersistenciaJSON().guardarProgreso(progreso, Constantes.RUTA_PROGRESO);
     }
 
-    /**
-     * Método de conveniencia estático para cargar usando la ruta predeterminada de Constantes.
-     */
     public static ProgresoJugador cargar() {
         return new GestorPersistenciaJSON().cargarProgreso(Constantes.RUTA_PROGRESO);
     }

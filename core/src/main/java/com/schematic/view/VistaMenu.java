@@ -18,7 +18,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.constants.Constantes;
-import com.schematic.model.*;
+import com.schematic.model.componentes.*;
+import com.schematic.model.niveles.*;
+import com.schematic.model.progreso.*;
 
 public class VistaMenu extends ScreenAdapter {
 

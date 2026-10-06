@@ -19,7 +19,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.schematic.controller.ControladorNivel;
-import com.schematic.model.*;
+import com.schematic.model.componentes.*;
+import com.schematic.model.niveles.*;
 
 import java.util.ArrayList;
 import java.util.List;
