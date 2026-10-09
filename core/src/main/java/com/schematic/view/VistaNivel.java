@@ -21,6 +21,9 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.schematic.controller.ControladorNivel;
 import com.schematic.model.componentes.*;
 import com.schematic.model.niveles.*;
+import com.schematic.model.progreso.GestorPersistenciaJSON;
+import com.schematic.model.progreso.ProgresoJugador;
+import com.schematic.JuegoPrincipal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +58,7 @@ public class VistaNivel extends ScreenAdapter {
     private boolean introCompletada;
     private float voltajeMedidorDC;
     private float tiempoExitoAcumulado;
+    private boolean progresoGuardado;
     private float offsetGridPerspectiva;
     private float tiempoIntroNivel;
 
@@ -205,6 +209,21 @@ public class VistaNivel extends ScreenAdapter {
             }
 
             if (nivel.estaGanado()) {
+                if (!progresoGuardado) {
+                    progresoGuardado = true;
+                    int siguiente = nivel.getNumeroNivel() + 1;
+                    if (juego instanceof JuegoPrincipal) {
+                        JuegoPrincipal jp = (JuegoPrincipal) juego;
+                        if (jp.getProgreso() != null) {
+                            jp.getProgreso().desbloquearNivel(siguiente);
+                            jp.guardarProgreso();
+                        }
+                    } else {
+                        ProgresoJugador p = GestorPersistenciaJSON.cargar();
+                        p.desbloquearNivel(siguiente);
+                        GestorPersistenciaJSON.guardar(p);
+                    }
+                }
                 tiempoExitoAcumulado += delta;
                 if (MathUtils.randomBoolean(0.25f)) {
                     for (Componente c : nivel.getComponentes()) {
@@ -1516,6 +1535,7 @@ public class VistaNivel extends ScreenAdapter {
 
     public void reiniciarNivel() {
         this.derrotaPorTiempo = false;
+        this.progresoGuardado = false;
         if (nivel != null) {
             nivel.reiniciarNivelActual();
         }
@@ -1535,6 +1555,7 @@ public class VistaNivel extends ScreenAdapter {
 
     public void siguienteNivel() {
         this.derrotaPorTiempo = false;
+        this.progresoGuardado = false;
         if (nivel != null) {
             int siguiente = nivel.getNumeroNivel() + 1;
             if (siguiente > GestorNiveles.obtenerTotalNiveles()) {
@@ -1565,7 +1586,7 @@ public class VistaNivel extends ScreenAdapter {
 
     public void volverAlMenu() {
         if (juego != null) {
-            juego.setScreen(new VistaMenu(juego));
+            juego.setScreen(new VistaSeleccionNivel(juego));
         }
     }
 

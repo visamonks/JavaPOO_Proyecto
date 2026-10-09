@@ -3,11 +3,11 @@ package com.schematic;
 import com.badlogic.gdx.Game;
 import com.schematic.view.VistaMenu;
 
-public class Main extends Game {
+public class Main extends JuegoPrincipal {
 
     @Override
     public void create() {
-        setScreen(new VistaMenu(this));
+        super.create();
     }
 
     @Override
