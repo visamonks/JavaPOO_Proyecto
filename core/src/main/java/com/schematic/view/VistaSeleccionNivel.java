@@ -45,7 +45,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     private final BitmapFont fontCardDetalle;
     private final BitmapFont fontPequena;
     private final BitmapFont fontBotones;
-    private final BitmapFont fontDialogo;
 
     private final Color COLOR_FONDO = new Color(0.02f, 0.03f, 0.06f, 1f);
     private final Color COLOR_GRID = new Color(0.05f, 0.12f, 0.18f, 0.40f);
@@ -77,16 +76,14 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         public final String tiempo;
         public final String componentes;
         public final String descripcion;
-        public final String dialogoElectron;
 
-        public InfoNivel(int numero, String titulo, String categoria, String tiempo, String componentes, String descripcion, String dialogoElectron) {
+        public InfoNivel(int numero, String titulo, String categoria, String tiempo, String componentes, String descripcion) {
             this.numero = numero;
             this.titulo = titulo;
             this.categoria = categoria;
             this.tiempo = tiempo;
             this.componentes = componentes;
             this.descripcion = descripcion;
-            this.dialogoElectron = dialogoElectron;
         }
     }
 
@@ -113,8 +110,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     private float tiempoParpadeo = 0f;
     private boolean parpadeando = false;
     private int clicsElectron = 0;
-    private String dialogoInteractivoActual = "";
-    private float tiempoDialogoCustom = 0f;
     private static final float RADIO_INTERACCION_ELECTRON = 65f;
 
     private static class ChispaParticula {
@@ -134,15 +129,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         }
     }
     private final List<ChispaParticula> chispas = new ArrayList<>();
-
-    private final String[] FRASES_CLIC_ELECTRON = {
-            "¡Bzzzt! ¡Eso hace cosquillas en mis polos!",
-            "¡Cuidado con la estática, me vas a polarizar!",
-            "¡Carga elemental: -1.602 × 10⁻¹⁹ C de pura chispa!",
-            "¡Listo para fluir a la velocidad de la luz, comandante!",
-            "¡No me toques tanto que se me escapan los microvoltios!",
-            "¡Bip-bzzzt! ¡Mis orbitales atómicos están al 100%!"
-    };
 
     private boolean enTransicion = false;
     private float tiempoTransicion = 0f;
@@ -171,7 +157,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         this.fontCardDetalle = crearFuente(0.98f);
         this.fontPequena = crearFuente(0.85f);
         this.fontBotones = crearFuente(1.30f);
-        this.fontDialogo = crearFuente(1.05f);
 
         inicializarDatosNiveles();
         cargarProgresoJugador();
@@ -180,8 +165,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         this.electronY = CARDS_BASE_Y + CARD_ALTO + 70f;
         this.targetElectronX = this.electronX;
         this.targetElectronY = this.electronY;
-
-        actualizarDialogoElectron();
     }
 
     private BitmapFont crearFuente(float escala) {
@@ -195,47 +178,42 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         datosNiveles[0] = new InfoNivel(
                 1,
                 "ENCIENDE EL LED",
-                "BÁSICO",
+                "BASICO",
                 "30s",
-                "Fuente DC • Resistencia 220Ω • LED",
-                "La base de la electrónica. Conecta la fuente al LED intercalando una resistencia para protegerlo.",
-                "¡Nivel 1! ¡Aquí arrancamos! Conecta el ánodo, el cátodo y la resistencia... ¡O terminaré bien chamuscado!"
+                "Fuente DC - Resistencia 220 Ohm - LED",
+                "La base de la electronica. Conecta la fuente al LED intercalando una resistencia para protegerlo."
         );
         datosNiveles[1] = new InfoNivel(
                 2,
                 "CIRCUITO CON SWITCH",
                 "INTERMEDIO",
                 "30s",
-                "Fuente DC • Interruptor • Resistencia • LED",
-                "Aprende a controlar la corriente. Un interruptor en serie permite abrir o cerrar el paso de electrones.",
-                "¡Nivel 2! ¡Un interruptor! Abre y cierra el circuito a tu antojo. ¡A ver qué tan rápido controlas el flujo!"
+                "Fuente DC - Interruptor - Resistencia - LED",
+                "Aprende a controlar la corriente. Un interruptor en serie permite abrir o cerrar el paso de electrones."
         );
         datosNiveles[2] = new InfoNivel(
                 3,
                 "COMPUERTA AND",
-                "LÓGICA I",
+                "LOGICA I",
                 "30s",
-                "Fuente • Compuerta AND 7408 • LEDs",
-                "Lógica digital estricta: solo deja pasar energía cuando AMBAS entradas (A y B) están encendidas.",
-                "¡Nivel 3! Compuerta AND. ¡Exigente como ninguna: solo pasaré si activas AMBAS entradas al mismo tiempo!"
+                "Fuente - Compuerta AND 7408 - LEDs",
+                "Logica digital estricta: solo deja pasar energia cuando AMBAS entradas (A y B) estan encendidas."
         );
         datosNiveles[3] = new InfoNivel(
                 4,
                 "COMPUERTA OR",
-                "LÓGICA II",
+                "LOGICA II",
                 "30s",
-                "Fuente • Compuerta OR 7432 • LEDs",
-                "Lógica inclusiva: permite el flujo de energía con que AL MENOS UNA de las ramas esté activa.",
-                "¡Nivel 4! Compuerta OR. ¡Mucho más amigable! Con que una sola rama tenga energía, ¡fluyo a toda potencia!"
+                "Fuente - Compuerta OR 7432 - LEDs",
+                "Logica inclusiva: permite el flujo de energia con que AL MENOS UNA de las ramas este activa."
         );
         datosNiveles[4] = new InfoNivel(
                 5,
                 "CIRCUITO FINAL",
                 "MAESTRO",
                 "35s",
-                "Sistema Integral • Compuertas • Diodos",
-                "El examen definitivo de esquemáticos. Integra compuertas, interruptores y protecciones contrarreloj.",
-                "¡Nivel 5! ¡El circuito maestro definitivo! Cuidado con los cortos y la lógica. ¡Ponte las gafas y a triunfar!"
+                "Sistema Integral - Compuertas - Diodos",
+                "El examen definitivo de esquematicos. Integra compuertas, interruptores y protecciones contrarreloj."
         );
     }
 
@@ -283,7 +261,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                     float by = CARDS_BASE_Y + (animHoverCards[i] * 12f);
                     if (estaDentro(mx, my, bx, by, CARD_ANCHO, CARD_ALTO)) {
                         if (nivelSeleccionado == i && estaDesbloqueado(i)) {
-
                             iniciarNivel(i + 1);
                         } else {
                             seleccionarNivel(i);
@@ -320,7 +297,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 float modoY = ALTO_VIRTUAL - 80f;
                 if (estaDentro(mx, my, modoX, modoY, modoW, modoH)) {
                     modoLibreDesbloqueado = !modoLibreDesbloqueado;
-                    actualizarDialogoElectron();
                     generarChispas(electronX, electronY, 15, modoLibreDesbloqueado ? COLOR_VERDE : COLOR_AMBAR);
                     return true;
                 }
@@ -356,7 +332,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 }
                 if (keycode == Input.Keys.U) {
                     modoLibreDesbloqueado = !modoLibreDesbloqueado;
-                    actualizarDialogoElectron();
                     generarChispas(electronX, electronY, 15, modoLibreDesbloqueado ? COLOR_VERDE : COLOR_AMBAR);
                     return true;
                 }
@@ -368,36 +343,20 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
     private void seleccionarNivel(int index) {
         this.nivelSeleccionado = MathUtils.clamp(index, 0, CANTIDAD_NIVELES - 1);
-        this.tiempoDialogoCustom = 0f;
-        actualizarDialogoElectron();
-        generarChispas(electronX, electronY, 6, COLOR_NEON_CYAN);
+        saltoElectron = 10f;
+        generarChispas(electronX, electronY, 8, COLOR_NEON_CYAN);
     }
 
     private void acariciarElectron() {
         clicsElectron++;
         saltoElectron = 24f;
         giroElectron = 360f;
-        tiempoDialogoCustom = 3.5f;
-        int idx = (clicsElectron - 1) % FRASES_CLIC_ELECTRON.length;
-        dialogoInteractivoActual = FRASES_CLIC_ELECTRON[idx];
-        generarChispas(electronX, electronY, 14, COLOR_CELESTE_BRILLANTE);
+        generarChispas(electronX, electronY, 16, COLOR_CELESTE_BRILLANTE);
     }
 
     private void reaccionarNivelBloqueado() {
-        tiempoDialogoCustom = 3.0f;
-        dialogoInteractivoActual = "🔒 ¡Alto ahí! Este sector del circuito está desenergizado. ¡Supera el nivel anterior primero!";
         saltoElectron = 12f;
-        generarChispas(electronX, electronY, 10, COLOR_ROJO);
-    }
-
-    private void actualizarDialogoElectron() {
-        if (tiempoDialogoCustom > 0f) return;
-
-        if (estaDesbloqueado(nivelSeleccionado)) {
-            dialogoInteractivoActual = datosNiveles[nivelSeleccionado].dialogoElectron;
-        } else {
-            dialogoInteractivoActual = "🔒 Nivel bloqueado. Debes resolver el Nivel " + nivelSeleccionado + " para habilitar este diagrama.";
-        }
+        generarChispas(electronX, electronY, 12, COLOR_ROJO);
     }
 
     private void iniciarNivel(int nivelNum) {
@@ -405,7 +364,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         enTransicion = true;
         tiempoTransicion = 0f;
         nivelParaIniciar = nivelNum;
-        dialogoInteractivoActual = "¡A la velocidad de la luz! ¡Allá vamos! ⚡";
         saltoElectron = 35f;
         generarChispas(electronX, electronY, 30, COLOR_CELESTE_BRILLANTE);
     }
@@ -462,7 +420,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         dibujarBotonModoLibreShape(mx, my);
         dibujarChispas();
         dibujarElectronMascota(mx, my);
-        dibujarBocadilloDialogoShape();
         if (enTransicion) {
             dibujarEfectoTransicion();
         }
@@ -472,7 +429,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         dibujarEncabezado();
         dibujarTextosTarjetas();
         dibujarTextosBotones();
-        dibujarTextoBocadilloDialogo();
         batch.end();
 
         Gdx.gl.glDisable(GL20.GL_BLEND);
@@ -484,14 +440,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void actualizarAnimaciones(float delta, float mx, float my) {
-
-        if (tiempoDialogoCustom > 0f) {
-            tiempoDialogoCustom -= delta;
-            if (tiempoDialogoCustom <= 0f) {
-                actualizarDialogoElectron();
-            }
-        }
-
         if (saltoElectron > 0f) {
             saltoElectron = Math.max(0f, saltoElectron - delta * 45f);
         }
@@ -563,7 +511,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void dibujarFondoGrid() {
-
         shapeRenderer.setColor(COLOR_FONDO);
         shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
 
@@ -594,7 +541,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void dibujarRayosDecorativos() {
-
         float yConductor = CARDS_BASE_Y - 24f;
         shapeRenderer.setColor(0.08f, 0.18f, 0.28f, 0.85f);
         shapeRenderer.rectLine(CARDS_INICIO_X - 40f, yConductor, CARDS_INICIO_X + CARDS_TOTAL_ANCHO + 40f, yConductor, 6f);
@@ -709,7 +655,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void dibujarIconoCandado(float cx, float cy) {
-
         shapeRenderer.setColor(0.35f, 0.40f, 0.48f, 0.9f);
         shapeRenderer.rect(cx - 24f, cy - 28f, 48f, 38f);
 
@@ -815,7 +760,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void dibujarEsquemaCircuitoCombinado(float cx, float cy, boolean sel) {
-
         shapeRenderer.setColor(0.12f, 0.16f, 0.24f, 0.95f);
         shapeRenderer.rect(cx - 48f, cy - 34f, 96f, 68f);
 
@@ -839,147 +783,84 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     private void dibujarElectronMascota(float mx, float my) {
         float ex = electronX;
         float ey = electronY;
-        float escala = 3.3f;
+        float escala = 3.2f;
 
-        float inclinacion = MathUtils.clamp((targetElectronX - electronX) * 0.006f, -0.28f, 0.28f);
-
-        float pulsoAura = 1f + MathUtils.sin(tiempoTotal * 8f) * 0.08f;
+        float pulso = 1f + MathUtils.sin(tiempoTotal * 5f) * 0.08f;
         shapeRenderer.setColor(0.00f, 0.85f, 1.00f, 0.22f);
-        shapeRenderer.circle(ex, ey, 32f * escala * pulsoAura);
+        shapeRenderer.circle(ex, ey, 25f * escala * pulso);
 
-        shapeRenderer.setColor(0.00f, 0.92f, 1.00f, 0.60f);
-        shapeRenderer.circle(ex, ey, 22f * escala * pulsoAura);
+        shapeRenderer.setColor(0.00f, 0.95f, 1.00f, 0.85f);
+        shapeRenderer.circle(ex, ey, 16f * escala);
 
-        shapeRenderer.setColor(0.70f, 0.98f, 1.00f, 1.0f);
-        shapeRenderer.circle(ex, ey, 15f * escala);
+        shapeRenderer.setColor(0.75f, 1.00f, 1.00f, 1f);
+        shapeRenderer.circle(ex, ey, 11f * escala);
 
-        shapeRenderer.setColor(1.0f, 1.0f, 1.0f, 0.95f);
-        shapeRenderer.circle(ex - 5f * escala, ey + 6f * escala, 4.5f * escala);
+        shapeRenderer.setColor(1f, 1f, 1f, 0.95f);
+        shapeRenderer.circle(ex - 4f * escala, ey + 4f * escala, 3.5f * escala);
 
-        shapeRenderer.setColor(1.0f, 0.45f, 0.65f, 0.55f);
-        shapeRenderer.circle(ex - 10f * escala, ey - 2.5f * escala, 3.8f * escala);
-        shapeRenderer.circle(ex + 10f * escala, ey - 2.5f * escala, 3.8f * escala);
+        shapeRenderer.setColor(1.0f, 0.45f, 0.65f, 0.45f);
+        shapeRenderer.circle(ex - 8.5f * escala, ey - 2.5f * escala, 2.8f * escala);
+        shapeRenderer.circle(ex + 8.5f * escala, ey - 2.5f * escala, 2.8f * escala);
 
-        float vectorMiraX = mx - ex;
-        float vectorMiraY = my - ey;
-        float anguloMira = MathUtils.atan2(vectorMiraY, vectorMiraX);
-        float dirMiraX = MathUtils.cos(anguloMira) * 2.2f * escala;
-        float dirMiraY = MathUtils.sin(anguloMira) * 2.2f * escala;
+        float ojoDistX = 5.2f * escala;
+        float ojoDistY = 3.2f * escala;
 
-        float ojoDistX = 6.5f * escala;
-        float ojoDistY = 3.5f * escala;
+        float vecX = mx - ex;
+        float vecY = my - ey;
+        float anguloMira = MathUtils.atan2(vecY, vecX);
+        float lookX = MathUtils.cos(anguloMira) * 1.6f * escala;
+        float lookY = MathUtils.sin(anguloMira) * 1.6f * escala;
 
         if (parpadeando) {
-
-            shapeRenderer.setColor(0.06f, 0.12f, 0.22f, 1.0f);
-            shapeRenderer.rectLine(ex - ojoDistX - 6f, ey + ojoDistY, ex - ojoDistX + 6f, ey + ojoDistY, 3.5f);
-            shapeRenderer.rectLine(ex + ojoDistX - 6f, ey + ojoDistY, ex + ojoDistX + 6f, ey + ojoDistY, 3.5f);
-        } else if (saltoElectron > 8f) {
-
-            shapeRenderer.setColor(0.06f, 0.12f, 0.22f, 1.0f);
-            shapeRenderer.rectLine(ex - ojoDistX - 6f, ey + ojoDistY - 2f, ex - ojoDistX, ey + ojoDistY + 4f, 3.5f);
-            shapeRenderer.rectLine(ex - ojoDistX, ey + ojoDistY + 4f, ex - ojoDistX + 6f, ey + ojoDistY - 2f, 3.5f);
-            shapeRenderer.rectLine(ex + ojoDistX - 6f, ey + ojoDistY - 2f, ex + ojoDistX, ey + ojoDistY + 4f, 3.5f);
-            shapeRenderer.rectLine(ex + ojoDistX, ey + ojoDistY + 4f, ex + ojoDistX + 6f, ey + ojoDistY - 2f, 3.5f);
+            shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
+            shapeRenderer.rectLine(ex - ojoDistX - 4f * escala, ey + ojoDistY, ex - ojoDistX + 4f * escala, ey + ojoDistY, 3.2f);
+            shapeRenderer.rectLine(ex + ojoDistX - 4f * escala, ey + ojoDistY, ex + ojoDistX + 4f * escala, ey + ojoDistY, 3.2f);
+        } else if (saltoElectron > 6f) {
+            shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
+            shapeRenderer.rectLine(ex - ojoDistX - 4f * escala, ey + ojoDistY - 1.5f * escala, ex - ojoDistX, ey + ojoDistY + 3.0f * escala, 3.2f);
+            shapeRenderer.rectLine(ex - ojoDistX, ey + ojoDistY + 3.0f * escala, ex - ojoDistX + 4f * escala, ey + ojoDistY - 1.5f * escala, 3.2f);
+            shapeRenderer.rectLine(ex + ojoDistX - 4f * escala, ey + ojoDistY - 1.5f * escala, ex + ojoDistX, ey + ojoDistY + 3.0f * escala, 3.2f);
+            shapeRenderer.rectLine(ex + ojoDistX, ey + ojoDistY + 3.0f * escala, ex + ojoDistX + 4f * escala, ey + ojoDistY - 1.5f * escala, 3.2f);
         } else {
+            shapeRenderer.setColor(1f, 1f, 1f, 1f);
+            shapeRenderer.circle(ex - ojoDistX, ey + ojoDistY, 5.2f * escala);
+            shapeRenderer.circle(ex + ojoDistX, ey + ojoDistY, 5.2f * escala);
 
-            shapeRenderer.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-            shapeRenderer.circle(ex - ojoDistX, ey + ojoDistY, 6.2f * escala);
-            shapeRenderer.circle(ex + ojoDistX, ey + ojoDistY, 6.2f * escala);
+            shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
+            shapeRenderer.circle(ex - ojoDistX + lookX, ey + ojoDistY + lookY, 2.7f * escala);
+            shapeRenderer.circle(ex + ojoDistX + lookX, ey + ojoDistY + lookY, 2.7f * escala);
 
-            shapeRenderer.setColor(0.05f, 0.10f, 0.22f, 1.0f);
-            shapeRenderer.circle(ex - ojoDistX + dirMiraX, ey + ojoDistY + dirMiraY, 3.4f * escala);
-            shapeRenderer.circle(ex + ojoDistX + dirMiraX, ey + ojoDistY + dirMiraY, 3.4f * escala);
-
-            shapeRenderer.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-            shapeRenderer.circle(ex - ojoDistX + dirMiraX + 1.2f * escala, ey + ojoDistY + dirMiraY + 1.2f * escala, 1.3f * escala);
-            shapeRenderer.circle(ex + ojoDistX + dirMiraX + 1.2f * escala, ey + ojoDistY + dirMiraY + 1.2f * escala, 1.3f * escala);
+            shapeRenderer.setColor(1f, 1f, 1f, 1f);
+            shapeRenderer.circle(ex - ojoDistX + lookX + 0.9f * escala, ey + ojoDistY + lookY + 0.9f * escala, 1.1f * escala);
+            shapeRenderer.circle(ex + ojoDistX + lookX + 0.9f * escala, ey + ojoDistY + lookY + 0.9f * escala, 1.1f * escala);
         }
 
-        if (saltoElectron > 8f || enTransicion) {
+        shapeRenderer.setColor(0.05f, 0.08f, 0.18f, 1f);
+        float myCenterY = ey - 5.5f * escala;
+        shapeRenderer.rectLine(ex - 3.2f * escala, myCenterY + 1.2f * escala, ex - 1.2f * escala, myCenterY - 0.8f * escala, 2.4f);
+        shapeRenderer.rectLine(ex - 1.2f * escala, myCenterY - 0.8f * escala, ex + 1.2f * escala, myCenterY - 0.8f * escala, 2.4f);
+        shapeRenderer.rectLine(ex + 1.2f * escala, myCenterY - 0.8f * escala, ex + 3.2f * escala, myCenterY + 1.2f * escala, 2.4f);
 
-            shapeRenderer.setColor(0.06f, 0.10f, 0.20f, 1.0f);
-            shapeRenderer.circle(ex, ey - 7f * escala, 4.0f * escala);
-            shapeRenderer.setColor(1.00f, 0.45f, 0.65f, 1.0f);
-            shapeRenderer.circle(ex, ey - 7.5f * escala, 2.2f * escala);
-        } else if (!estaDesbloqueado(nivelSeleccionado)) {
+        float estela1 = MathUtils.sin(tiempoTotal * 6.5f) * 3.5f * escala;
+        float estela2 = MathUtils.cos(tiempoTotal * 5.8f) * 3.5f * escala;
+        shapeRenderer.setColor(0.20f, 0.90f, 1.00f, 0.50f);
+        shapeRenderer.circle(ex - 18f * escala - estela1, ey - 14f * escala + estela2, 2.8f * escala);
+        shapeRenderer.circle(ex + 18f * escala + estela2, ey - 14f * escala - estela1, 2.2f * escala);
 
-            shapeRenderer.setColor(0.06f, 0.10f, 0.20f, 1.0f);
-            shapeRenderer.circle(ex, ey - 7f * escala, 2.2f * escala);
-        } else {
-
-            shapeRenderer.setColor(0.06f, 0.10f, 0.20f, 1.0f);
-            shapeRenderer.ellipse(ex - 3f * escala, ey - 7f * escala, 6f * escala, 3.8f * escala);
-            shapeRenderer.setColor(1.00f, 0.45f, 0.65f, 1.0f);
-            shapeRenderer.circle(ex, ey - 7.5f * escala, 1.8f * escala);
-        }
-
-        float orbitaR1 = 28f * escala;
-        float orbitaR2 = 36f * escala;
-        float ang1 = tiempoTotal * 4.5f;
-        float ang2 = -tiempoTotal * 3.8f + 2.0f;
+        float orbitaR1 = 26f * escala;
+        float orbitaR2 = 33f * escala;
+        float ang1 = tiempoTotal * 4.2f;
+        float ang2 = -tiempoTotal * 3.6f + 1.8f;
 
         float ox1 = ex + MathUtils.cos(ang1) * orbitaR1;
-        float oy1 = ey + MathUtils.sin(ang1) * (orbitaR1 * 0.45f);
+        float oy1 = ey + MathUtils.sin(ang1) * (orbitaR1 * 0.40f);
         shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE);
-        shapeRenderer.circle(ox1, oy1, 3.8f);
+        shapeRenderer.circle(ox1, oy1, 3.6f);
 
         float ox2 = ex + MathUtils.cos(ang2) * orbitaR2;
-        float oy2 = ey + MathUtils.sin(ang2) * (orbitaR2 * 0.50f);
+        float oy2 = ey + MathUtils.sin(ang2) * (orbitaR2 * 0.45f);
         shapeRenderer.setColor(COLOR_AMBAR);
-        shapeRenderer.circle(ox2, oy2, 3.2f);
-    }
-
-    private void dibujarBocadilloDialogoShape() {
-        if (dialogoInteractivoActual == null || dialogoInteractivoActual.isEmpty()) return;
-
-        float bocadilloW = 440f;
-        float bocadilloH = 125f;
-
-        float bocadilloX;
-        float bocadilloY = electronY - 20f;
-
-        boolean aLaDerecha = (electronX < ANCHO_VIRTUAL / 2f);
-        if (aLaDerecha) {
-            bocadilloX = electronX + 65f;
-        } else {
-            bocadilloX = electronX - bocadilloW - 65f;
-        }
-
-        shapeRenderer.setColor(0.03f, 0.08f, 0.15f, 0.94f);
-        shapeRenderer.rect(bocadilloX, bocadilloY, bocadilloW, bocadilloH);
-
-        shapeRenderer.setColor(COLOR_NEON_CYAN.r, COLOR_NEON_CYAN.g, COLOR_NEON_CYAN.b, 0.85f);
-        dibujarRectContorno(bocadilloX, bocadilloY, bocadilloW, bocadilloH, 2.2f);
-
-        if (aLaDerecha) {
-            shapeRenderer.triangle(
-                    bocadilloX, bocadilloY + (bocadilloH / 2f) + 12f,
-                    bocadilloX, bocadilloY + (bocadilloH / 2f) - 12f,
-                    bocadilloX - 22f, electronY
-            );
-        } else {
-            shapeRenderer.triangle(
-                    bocadilloX + bocadilloW, bocadilloY + (bocadilloH / 2f) + 12f,
-                    bocadilloX + bocadilloW, bocadilloY + (bocadilloH / 2f) - 12f,
-                    bocadilloX + bocadilloW + 22f, electronY
-            );
-        }
-    }
-
-    private void dibujarTextoBocadilloDialogo() {
-        if (dialogoInteractivoActual == null || dialogoInteractivoActual.isEmpty()) return;
-
-        float bocadilloW = 440f;
-        float bocadilloH = 125f;
-        float bocadilloX = (electronX < ANCHO_VIRTUAL / 2f) ? (electronX + 65f) : (electronX - bocadilloW - 65f);
-        float bocadilloY = electronY - 20f;
-
-        fontPequena.setColor(COLOR_NEON_CYAN);
-        fontPequena.draw(batch, "⚡ ELECTRÓN DICE:", bocadilloX + 16f, bocadilloY + bocadilloH - 14f);
-
-        fontDialogo.setColor(COLOR_TEXTO_BLANCO);
-        fontDialogo.draw(batch, dialogoInteractivoActual, bocadilloX + 16f, bocadilloY + bocadilloH - 38f, bocadilloW - 32f, Align.left, true);
+        shapeRenderer.circle(ox2, oy2, 3.0f);
     }
 
     private void dibujarBotonVolverShape(float mx, float my) {
@@ -1004,7 +885,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
         boolean desb = estaDesbloqueado(nivelSeleccionado);
         if (desb) {
-
             Color colBase = (animIniciar > 0.05f) ? new Color(0.00f, 0.70f, 0.85f, 1f) : new Color(0.00f, 0.50f, 0.65f, 1f);
             shapeRenderer.setColor(colBase);
             shapeRenderer.rect(ix, iy, iw, ih);
@@ -1012,7 +892,6 @@ public class VistaSeleccionNivel extends ScreenAdapter {
             shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE);
             dibujarRectContorno(ix, iy, iw, ih, (animIniciar > 0.05f) ? 3.5f : 2.2f);
         } else {
-
             shapeRenderer.setColor(0.12f, 0.15f, 0.20f, 0.85f);
             shapeRenderer.rect(ix, iy, iw, ih);
 
@@ -1055,16 +934,16 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void dibujarEncabezado() {
-
         fontTitulo.setColor(COLOR_NEON_CYAN);
-        layout.setText(fontTitulo, "SELECCIÓN DE NIVEL");
+        layout.setText(fontTitulo, "SELECCION DE NIVEL");
         float tituloX = (ANCHO_VIRTUAL - layout.width) / 2f;
-        fontTitulo.draw(batch, "SELECCIÓN DE NIVEL", tituloX, ALTO_VIRTUAL - 75f);
+        fontTitulo.draw(batch, "SELECCION DE NIVEL", tituloX, ALTO_VIRTUAL - 75f);
 
         fontSubtitulo.setColor(COLOR_TEXTO_MUTED);
-        layout.setText(fontSubtitulo, "Diagramas Esquemáticos y Circuitos  •  Elige tu reto");
+        String subTexto = "Diagramas Esquematicos y Circuitos - Elige tu reto";
+        layout.setText(fontSubtitulo, subTexto);
         float subX = (ANCHO_VIRTUAL - layout.width) / 2f;
-        fontSubtitulo.draw(batch, layout.runs.size > 0 ? "Diagramas Esquemáticos y Circuitos  •  Elige tu reto" : "", subX, ALTO_VIRTUAL - 135f);
+        fontSubtitulo.draw(batch, subTexto, subX, ALTO_VIRTUAL - 135f);
 
         int maxDesbloqueado = (progreso != null) ? progreso.getNivelMaximoDesbloqueado() : 1;
         int completados = Math.max(0, maxDesbloqueado - 1);
@@ -1085,7 +964,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
             fontPequena.setColor(desb ? COLOR_NEON_CYAN : COLOR_TEXTO_MUTED);
             fontPequena.draw(batch, "NIVEL 0" + info.numero, x + 18f, y + CARD_ALTO - 20f);
 
-            String badgeTexto = comp ? "★ LISTO" : (desb ? "⚡ ACTIVO" : "🔒 BLOQ");
+            String badgeTexto = comp ? "LISTO" : (desb ? "ACTIVO" : "BLOQ");
             Color colBadge = comp ? COLOR_AMBAR : (desb ? COLOR_VERDE : COLOR_ROJO);
             layout.setText(fontPequena, badgeTexto);
             fontPequena.setColor(colBadge);
@@ -1113,15 +992,14 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void dibujarTextosBotones() {
-
-        layout.setText(fontBotones, "← VOLVER");
+        layout.setText(fontBotones, "VOLVER");
         fontBotones.setColor((animVolver > 0.05f) ? COLOR_NEON_CYAN : COLOR_TEXTO_BLANCO);
-        fontBotones.draw(batch, "← VOLVER", 70f + (280f - layout.width) / 2f, 60f + 42f);
+        fontBotones.draw(batch, "VOLVER", 70f + (280f - layout.width) / 2f, 60f + 42f);
 
         float iniciarW = 460f;
         float iniciarX = (ANCHO_VIRTUAL - iniciarW) / 2f;
         boolean desb = estaDesbloqueado(nivelSeleccionado);
-        String txtIniciar = desb ? "⚡ INICIAR NIVEL " + (nivelSeleccionado + 1) : "🔒 NIVEL BLOQUEADO";
+        String txtIniciar = desb ? "INICIAR NIVEL " + (nivelSeleccionado + 1) : "NIVEL BLOQUEADO";
         layout.setText(fontBotones, txtIniciar);
         fontBotones.setColor(desb ? Color.WHITE : COLOR_TEXTO_MUTED);
         fontBotones.draw(batch, txtIniciar, iniciarX + (iniciarW - layout.width) / 2f, 60f + 47f);
@@ -1135,7 +1013,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         fontPequena.draw(batch, txtModo, modoX + (modoW - layout.width) / 2f, modoY + 32f);
 
         fontPequena.setColor(new Color(0.40f, 0.50f, 0.65f, 0.8f));
-        String ayuda = "[A / D o Flechas] Cambiar nivel   •   [Enter / Clic] Iniciar   •   [Clic en Electrón] Interactuar   •   [U] Modo Libre";
+        String ayuda = "[A / D o Flechas] Cambiar nivel   |   [Enter / Clic] Iniciar   |   [Clic en Electron] Interactuar   |   [U] Modo Libre";
         layout.setText(fontPequena, ayuda);
         fontPequena.draw(batch, ayuda, (ANCHO_VIRTUAL - layout.width) / 2f, 28f);
     }
@@ -1157,7 +1035,5 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         fontCardDetalle.dispose();
         fontPequena.dispose();
         fontBotones.dispose();
-        fontDialogo.dispose();
     }
 }
-
