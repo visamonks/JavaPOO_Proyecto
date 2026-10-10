@@ -1039,12 +1039,14 @@ public class VistaNivel extends ScreenAdapter {
 
         int indiceCable = (nivel != null && cable != null) ? nivel.getCables().indexOf(cable) : 0;
         float desfaseCanal = 0f;
-        if (indiceCable == 1) {
-            desfaseCanal = 32f;
-        } else if (indiceCable == 2) {
-            desfaseCanal = -32f;
-        } else if (indiceCable > 2) {
-            desfaseCanal = ((indiceCable % 2 == 0) ? -1f : 1f) * (32f + (indiceCable / 2) * 16f);
+        if (!origenEsLed && !destinoEsLed) {
+            if (indiceCable == 1) {
+                desfaseCanal = 32f;
+            } else if (indiceCable == 2) {
+                desfaseCanal = -32f;
+            } else if (indiceCable > 2) {
+                desfaseCanal = ((indiceCable % 2 == 0) ? -1f : 1f) * (32f + (indiceCable / 2) * 16f);
+            }
         }
 
         return calcularPuntosOrtogonales(p1, p2, origenEsLed, destinoEsLed, desfaseCanal);
@@ -1233,9 +1235,9 @@ public class VistaNivel extends ScreenAdapter {
                 batch.draw(frame, x, y, w, h);
 
                 fontPequena.setColor(1f, 0.3f, 0.3f, 1f);
-                fontPequena.draw(batch, "+", x + 138f, y + 90f);
+                fontPequena.draw(batch, "+", x + 107f - 4f, y + 80f);
                 fontPequena.setColor(0.3f, 0.7f, 1f, 1f);
-                fontPequena.draw(batch, "-", x + 167f, y + 90f);
+                fontPequena.draw(batch, "-", x + 208f - 4f, y + 80f);
 
                 font.setColor(1f, 1f, 1f, 1f);
                 font.draw(batch, "LED", x + 145f, y + h + 24f);
