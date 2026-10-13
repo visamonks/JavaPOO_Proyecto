@@ -207,8 +207,12 @@ public class VistaMenu extends ScreenAdapter {
                 estadoActual = PANTALLA_TRABAJANDO;
             }
         } else if (indice == 2) {
-            seccionActual = "OPCIONES";
-            estadoActual = PANTALLA_TRABAJANDO;
+            if (juego != null) {
+                juego.setScreen(new VistaConfiguraciones(juego));
+            } else {
+                seccionActual = "OPCIONES";
+                estadoActual = PANTALLA_TRABAJANDO;
+            }
         } else if (indice == 3) {
             Gdx.app.exit();
         }
