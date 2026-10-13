@@ -18,7 +18,9 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.constants.Constantes;
-import com.schematic.model.*;
+import com.schematic.model.componentes.*;
+import com.schematic.model.niveles.*;
+import com.schematic.model.progreso.*;
 
 public class VistaMenu extends ScreenAdapter {
 
@@ -43,7 +45,7 @@ public class VistaMenu extends ScreenAdapter {
     private static final float ANCHO = Constantes.ANCHO_VENTANA;
     private static final float ALTO = Constantes.ALTO_VENTANA;
 
-    private static final String[] TEXTOS_BOTONES = {"CONTINUAR", "GUÍA", "OPCIONES", "SALIR"};
+    private static final String[] TEXTOS_BOTONES = {"JUGAR / NIVELES", "GUÍA", "OPCIONES", "SALIR"};
     private final float[] animHover = new float[4];
     private int indiceSeleccionadoTeclado = -1;
     private boolean mouseActivo = true;
@@ -191,8 +193,12 @@ public class VistaMenu extends ScreenAdapter {
 
     private void activarOpcion(int indice) {
         if (indice == 0) {
-            seccionActual = "CONTINUAR";
-            estadoActual = PANTALLA_TRABAJANDO;
+            if (juego != null) {
+                juego.setScreen(new VistaSeleccionNivel(juego));
+            } else {
+                seccionActual = "CONTINUAR";
+                estadoActual = PANTALLA_TRABAJANDO;
+            }
         } else if (indice == 1) {
             if (juego != null) {
                 juego.setScreen(new VistaGuia(juego));
@@ -209,7 +215,9 @@ public class VistaMenu extends ScreenAdapter {
     }
 
     private void iniciarNivelJuego() {
-        if (!enTransicionNivel) {
+        if (juego != null) {
+            juego.setScreen(new VistaSeleccionNivel(juego));
+        } else if (!enTransicionNivel) {
             enTransicionNivel = true;
             tiempoTransicionNivel = 0f;
         }
@@ -290,8 +298,8 @@ public class VistaMenu extends ScreenAdapter {
 
             if (tiempoTransicionNivel >= DURACION_TRANSICION) {
                 if (juego != null) {
-                    Minijuego minijuego = new Minijuego(1, "NIVEL 1: ENCIENDE EL LED", 30.0f);
-                    juego.setScreen(new VistaNivel(minijuego, juego));
+                    Nivel nivel = GestorNiveles.crearNivel(1);
+                    juego.setScreen(new VistaNivel(nivel, juego));
                 }
             }
         }
