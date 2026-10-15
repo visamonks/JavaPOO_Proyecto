@@ -285,6 +285,7 @@ public class VistaNivel extends ScreenAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         dibujarMesaDeTrabajo();
         dibujarFuentePoder();
+        dibujarSwitches();
         dibujarBarraLateralAlmacen();
         dibujarCablesConectadosRectos();
         if (cableEnProgreso && terminalOrigenCable != null) {
@@ -738,6 +739,30 @@ public class VistaNivel extends ScreenAdapter {
         shapeRenderer.setColor(COLOR_FONDO_NEGRO);
         shapeRenderer.rect(c1x + anchoTarjeta - 55f, c1y + 8f, 48f, 32f);
         shapeRenderer.rect(c2x + anchoTarjeta - 55f, c2y + 8f, 48f, 32f);
+
+        float c3x = 1645f;
+        float c3y = 210f;
+        Nivel.CasillaInventario casillaSw = (nivel != null) ? nivel.buscarCasilla("SWITCH") : null;
+        if (casillaSw != null) {
+            boolean puedeUsarSw = casillaSw.puedeUsar();
+            shapeRenderer.setColor(puedeUsarSw ? COLOR_SLATE_OSCURO : COLOR_CAJA_OSCURA);
+            shapeRenderer.rect(c3x, c3y, anchoTarjeta, altoTarjeta);
+            shapeRenderer.setColor(puedeUsarSw ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
+            shapeRenderer.rectLine(c3x, c3y, c3x + anchoTarjeta, c3y, 2.5f);
+            shapeRenderer.rectLine(c3x + anchoTarjeta, c3y, c3x + anchoTarjeta, c3y + altoTarjeta, 2.5f);
+            shapeRenderer.rectLine(c3x + anchoTarjeta, c3y + altoTarjeta, c3x, c3y + altoTarjeta, 2.5f);
+            shapeRenderer.rectLine(c3x, c3y + altoTarjeta, c3x, c3y, 2.5f);
+
+            shapeRenderer.setColor(0.12f, 0.16f, 0.24f, 1f);
+            shapeRenderer.rect(c3x + 35f, c3y + 60f, 180f, 80f);
+            shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
+            shapeRenderer.rectLine(c3x + 60f, c3y + 100f, c3x + 190f, c3y + 100f, 5f);
+            shapeRenderer.circle(c3x + 60f, c3y + 100f, 6f);
+            shapeRenderer.circle(c3x + 190f, c3y + 100f, 6f);
+
+            shapeRenderer.setColor(COLOR_FONDO_NEGRO);
+            shapeRenderer.rect(c3x + anchoTarjeta - 55f, c3y + 8f, 48f, 32f);
+        }
     }
 
     private void dibujarContenidoBarraLateral() {
@@ -747,6 +772,7 @@ public class VistaNivel extends ScreenAdapter {
 
         Nivel.CasillaInventario casillaLed = (nivel != null) ? nivel.buscarCasilla("LED") : null;
         Nivel.CasillaInventario casillaRes = (nivel != null) ? nivel.buscarCasilla("RESISTENCIA_220") : null;
+        Nivel.CasillaInventario casillaSw = (nivel != null) ? nivel.buscarCasilla("SWITCH") : null;
 
         int cantLed = (casillaLed != null) ? casillaLed.getCantidadDisponible() : 0;
         int cantRes = (casillaRes != null) ? casillaRes.getCantidadDisponible() : 0;
@@ -770,6 +796,14 @@ public class VistaNivel extends ScreenAdapter {
         font.draw(batch, "220 Ω", 1660f, 635f);
         fontTitulo.setColor(cantRes > 0 ? new Color(0.2f, 0.95f, 0.4f, 1f) : Color.DARK_GRAY);
         fontTitulo.draw(batch, "x" + cantRes, 1645f + 250f - 50f, 485f);
+
+        if (casillaSw != null) {
+            int cantSw = casillaSw.getCantidadDisponible();
+            font.setColor(cantSw > 0 ? Color.WHITE : Color.GRAY);
+            font.draw(batch, "INTERRUPTOR", 1660f, 395f);
+            fontTitulo.setColor(cantSw > 0 ? new Color(0.2f, 0.95f, 0.4f, 1f) : Color.DARK_GRAY);
+            fontTitulo.draw(batch, "x" + cantSw, 1645f + 250f - 50f, 245f);
+        }
     }
 
     private void dibujarVistaPreviaArrastre() {
@@ -784,6 +818,17 @@ public class VistaNivel extends ScreenAdapter {
         } else if ("RESISTENCIA_220".equals(tipo)) {
             TextureRegion frame = animResistenciaNormal.getKeyFrame(tiempoTotal, true);
             batch.draw(frame, pos.x - 180f, pos.y - 115f, 360f, 230f);
+        } else if ("SWITCH".equals(tipo)) {
+            batch.end();
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(0.10f, 0.14f, 0.20f, 0.90f);
+            shapeRenderer.rect(pos.x - 120f, pos.y - 70f, 240f, 140f);
+            shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 0.95f);
+            shapeRenderer.rectLine(pos.x - 80f, pos.y, pos.x + 80f, pos.y, 6f);
+            shapeRenderer.circle(pos.x - 80f, pos.y, 8f);
+            shapeRenderer.circle(pos.x + 80f, pos.y, 8f);
+            shapeRenderer.end();
+            batch.begin();
         }
         batch.setColor(Color.WHITE);
     }
@@ -834,6 +879,56 @@ public class VistaNivel extends ScreenAdapter {
         shapeRenderer.circle(fx + 38f, fy + fh - 165f, 16f);
         shapeRenderer.setColor(rLed, gLed, bLed, 1f);
         shapeRenderer.circle(fx + 38f, fy + fh - 165f, 9f);
+    }
+
+    private void dibujarSwitches() {
+        if (nivel == null) return;
+        for (Componente comp : nivel.getComponentes()) {
+            if (comp instanceof Switch) {
+                Switch sw = (Switch) comp;
+                float sx = sw.getPosicionX();
+                float sy = sw.getPosicionY();
+                float swWidth = sw.getAncho();
+                float swHeight = sw.getAlto();
+                float cy = sy + swHeight / 2f;
+                boolean cerrado = sw.isCerrado();
+
+                shapeRenderer.setColor(0.08f, 0.11f, 0.16f, 0.95f);
+                shapeRenderer.rect(sx, sy, swWidth, swHeight);
+
+                shapeRenderer.setColor(cerrado ? new Color(0.20f, 0.85f, 0.45f, 0.9f) : COLOR_GRIS_METAL);
+                shapeRenderer.rectLine(sx, sy, sx + swWidth, sy, 2.5f);
+                shapeRenderer.rectLine(sx + swWidth, sy, sx + swWidth, sy + swHeight, 2.5f);
+                shapeRenderer.rectLine(sx + swWidth, sy + swHeight, sx, sy + swHeight, 2.5f);
+                shapeRenderer.rectLine(sx, sy + swHeight, sx, sy, 2.5f);
+
+                shapeRenderer.setColor(0.04f, 0.06f, 0.09f, 1f);
+                shapeRenderer.rect(sx + 14f, sy + 14f, swWidth - 28f, swHeight - 28f);
+
+                shapeRenderer.setColor(0.68f, 0.75f, 0.85f, 1f);
+                shapeRenderer.rect(sx + 16f, cy - 10f, 24f, 20f);
+                shapeRenderer.rect(sx + swWidth - 40f, cy - 10f, 24f, 20f);
+
+                shapeRenderer.setColor(0.85f, 0.92f, 1.0f, 1f);
+                shapeRenderer.circle(sx + 35f, cy, 9f);
+                shapeRenderer.circle(sx + swWidth - 35f, cy, 9f);
+
+                if (cerrado) {
+                    shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
+                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 35f, cy, 7.5f);
+                    shapeRenderer.setColor(1f, 1f, 1f, 0.85f);
+                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 35f, cy, 2.5f);
+                } else {
+                    shapeRenderer.setColor(0.95f, 0.32f, 0.32f, 1f);
+                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 55f, cy + 45f, 7.5f);
+                    shapeRenderer.setColor(1f, 1f, 1f, 0.75f);
+                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 55f, cy + 45f, 2.5f);
+                }
+
+                shapeRenderer.setColor(0.25f, 0.30f, 0.40f, 1f);
+                shapeRenderer.circle(sx + 35f, cy, 5.5f);
+            }
+        }
     }
 
     private void dibujarElectronesIntro() {
@@ -1257,6 +1352,22 @@ public class VistaNivel extends ScreenAdapter {
 
                 font.setColor(1f, 1f, 1f, 1f);
                 font.draw(batch, res.getTextoEtiqueta(), x + 150f, y + h + 22f);
+            } else if (comp instanceof Switch) {
+                Switch sw = (Switch) comp;
+                boolean cerrado = sw.isCerrado();
+                fontPequena.setColor(1f, 1f, 1f, 1f);
+                fontPequena.draw(batch, "IN", x + 15f, y + h - 18f);
+                fontPequena.draw(batch, "OUT", x + w - 45f, y + h - 18f);
+
+                font.setColor(cerrado ? new Color(0.2f, 0.95f, 0.4f, 1f) : new Color(0.95f, 0.35f, 0.35f, 1f));
+                String estadoStr = cerrado ? "SWITCH [CERRADO / ON]" : "SWITCH [ABIERTO / OFF]";
+                glyphLayout.setText(font, estadoStr);
+                font.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h + 24f);
+
+                fontPequena.setColor(0.6f, 0.85f, 1f, 0.85f);
+                String subStr = "(Clic al centro para alternar)";
+                glyphLayout.setText(fontPequena, subStr);
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y - 8f);
             }
         }
     }

@@ -1013,7 +1013,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         fontPequena.draw(batch, txtModo, modoX + (modoW - layout.width) / 2f, modoY + 32f);
 
         fontPequena.setColor(new Color(0.40f, 0.50f, 0.65f, 0.8f));
-        String ayuda = "[A / D o Flechas] Cambiar nivel   |   [Enter / Clic] Iniciar   |   [Clic en Electron] Interactuar   |   [U] Modo Libre";
+        String ayuda = "A / D o Flechas Cambiar nivel   |   [Enter / Clic] Iniciar   |   [Clic en Electron] Interactuar   |   [U] Modo Libre";
         layout.setText(fontPequena, ayuda);
         fontPequena.draw(batch, ayuda, (ANCHO_VIRTUAL - layout.width) / 2f, 28f);
     }

@@ -10,6 +10,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.model.componentes.Cable;
 import com.schematic.model.componentes.Componente;
 import com.schematic.model.componentes.FuenteAlimentacion;
+import com.schematic.model.componentes.Switch;
 import com.schematic.model.componentes.Terminal;
 import com.schematic.model.niveles.Nivel;
 import com.schematic.view.VistaNivel;
@@ -30,6 +31,8 @@ public class ControladorNivel extends InputAdapter {
 
     private float desfaseArrastreX;
     private float desfaseArrastreY;
+    private float clickInicioX;
+    private float clickInicioY;
 
     private Cable cableArrastrandoCodo;
     private boolean arrastrandoCodo;
@@ -102,6 +105,14 @@ public class ControladorNivel extends InputAdapter {
                         posicionArrastre.set(mx, my);
                         return true;
                     }
+                } else if (my >= 210f && my <= 410f) {
+                    Nivel.CasillaInventario casilla = nivel.buscarCasilla("SWITCH");
+                    if (casilla != null && casilla.puedeUsar()) {
+                        arrastrandoDesdeBarra = true;
+                        tipoComponenteArrastrado = "SWITCH";
+                        posicionArrastre.set(mx, my);
+                        return true;
+                    }
                 }
             }
 
@@ -115,6 +126,8 @@ public class ControladorNivel extends InputAdapter {
                 Componente comp = vista.obtenerComponenteBajoRaton(mx, my);
                 if (comp != null && !(comp instanceof FuenteAlimentacion)) {
                     componenteSeleccionado = comp;
+                    clickInicioX = mx;
+                    clickInicioY = my;
                     desfaseArrastreX = mx - comp.getPosicionX();
                     desfaseArrastreY = my - comp.getPosicionY();
                     return true;
@@ -221,6 +234,9 @@ public class ControladorNivel extends InputAdapter {
                     } else if ("RESISTENCIA_220".equals(tipoComponenteArrastrado)) {
                         posX = mx - 180f;
                         posY = my - 115f;
+                    } else if ("SWITCH".equals(tipoComponenteArrastrado)) {
+                        posX = mx - 120f;
+                        posY = my - 70f;
                     }
                     nivel.crearYColocarComponente(tipoComponenteArrastrado, posX, posY);
                 }
@@ -238,6 +254,12 @@ public class ControladorNivel extends InputAdapter {
             if (componenteSeleccionado != null) {
                 if (mx >= 1620f) {
                     nivel.devolverAlInventario(componenteSeleccionado);
+                } else if (componenteSeleccionado instanceof Switch) {
+                    float distArrastre = Vector2.dst(clickInicioX, clickInicioY, mx, my);
+                    if (distArrastre < 15f) {
+                        ((Switch) componenteSeleccionado).conmutar();
+                        nivel.actualizar(0f);
+                    }
                 }
                 componenteSeleccionado = null;
                 return true;
