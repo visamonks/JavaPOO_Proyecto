@@ -1351,11 +1351,11 @@ public class VistaNivel extends ScreenAdapter {
             fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
 
             font.setColor(0.95f, 0.95f, 1f, 1f);
-            glyphLayout.setText(font, "Circuito completado.");
+            glyphLayout.setText(font, "¡Circuito completado con éxito!");
             font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
 
             font.setColor(0.20f, 0.95f, 0.45f, 1f);
-            glyphLayout.setText(font, "REPETIR");
+            glyphLayout.setText(font, "SIGUIENTE");
             font.draw(batch, glyphLayout, 630f + (300f - glyphLayout.width) / 2f, 398f);
 
             font.setColor(0.95f, 0.85f, 0.30f, 1f);
@@ -1483,7 +1483,11 @@ public class VistaNivel extends ScreenAdapter {
         boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalActivo) {
             if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) {
-                reiniciarNivel();
+                if (nivel != null && nivel.estaGanado()) {
+                    siguienteNivel();
+                } else {
+                    reiniciarNivel();
+                }
                 return true;
             }
             if (mx >= 970f && mx <= 1270f && my >= 360f && my <= 420f) {

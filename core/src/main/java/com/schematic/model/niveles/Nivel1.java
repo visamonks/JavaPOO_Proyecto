@@ -19,13 +19,23 @@ public class Nivel1 extends Nivel {
         this.ganado = false;
         this.tiempoLimite = 30.0f;
         this.tiempoRestante = this.tiempoLimite;
-        this.mensajeEstado = "Objetivo: Prende esta led.";
+        this.mensajeEstado = "Objetivo: Conecta la fuente (+), la resistencia y el LED para encenderlo.";
 
         FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
-        this.componentes.add(fuente);
+        Resistencia resistencia = new Resistencia("R_1", 600f, 410f, 220, 220);
+        LED led = new LED("LED_1", 1120f, 365f, true);
 
-        this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
-        this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ω", 1));
+        this.componentes.add(fuente);
+        this.componentes.add(resistencia);
+        this.componentes.add(led);
+
+        CasillaInventario casLed = new CasillaInventario("LED", "LED (Diodo)", 1);
+        casLed.decrementar();
+        this.inventario.add(casLed);
+
+        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ω", 1);
+        casRes.decrementar();
+        this.inventario.add(casRes);
     }
 
     @Override
@@ -75,7 +85,7 @@ public class Nivel1 extends Nivel {
                 res.setQuemada(false);
                 res.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = "Objetivo: Prende esta led.";
+            mensajeEstado = "Objetivo: Conecta la fuente (+), la resistencia y el LED para encenderlo.";
             this.ganado = false;
             this.completado = false;
             return false;
@@ -170,26 +180,36 @@ public class Nivel1 extends Nivel {
                         mensajeEstado = "Conecta el cátodo del LED al polo negativo (-).";
                         return false;
                     }
+                } else if (led != null && destinoSalida == led.getTerminalCatodo()) {
+                    cableSalida.setTieneEnergia(true);
+                    destinoSalida.setValorLogico(true);
+                    led.setQuemado(false);
+                    led.setEstadoActual("NEUTRO");
+                    res.setQuemada(false);
+                    res.setEstadoActual("NEUTRO");
+                    fuente.setEstadoActual("NEUTRO");
+                    mensajeEstado = "Polaridad invertida: Conecta la resistencia al Ánodo (+) del LED.";
+                    return false;
                 } else if (destinoSalida == fuente.getTerminalNegativo()) {
                     cableSalida.setTieneEnergia(true);
                     fuente.getTerminalNegativo().setValorLogico(true);
                     res.setQuemada(false);
                     res.setEstadoActual("EXITO");
                     fuente.setEstadoActual("NEUTRO");
-                    mensajeEstado = "Corriente fluyendo por la resistencia. Falta colocar el LED.";
+                    mensajeEstado = "Corriente fluyendo por la resistencia. Intercala el LED en el circuito.";
                     return false;
                 }
             }
             res.setQuemada(false);
             res.setEstadoActual("NEUTRO");
             fuente.setEstadoActual("NEUTRO");
-            mensajeEstado = "Conecta la salida de la resistencia hacia el LED.";
+            mensajeEstado = "Conecta la salida de la resistencia hacia el Ánodo (+) del LED.";
             return false;
         } else if (led != null && destinoPos == led.getTerminalCatodo()) {
             led.setQuemado(false);
             led.setEstadoActual("NEUTRO");
             fuente.setEstadoActual("NEUTRO");
-            mensajeEstado = "Polaridad invertida: El positivo (+) debe conectarse al Ánodo del LED.";
+            mensajeEstado = "Polaridad invertida: El positivo (+) debe conectarse al Ánodo (+) del LED.";
             return false;
         }
 
