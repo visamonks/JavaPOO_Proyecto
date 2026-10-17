@@ -17,6 +17,7 @@ public class Nivel3 extends Nivel {
         this.inventario.clear();
         this.completado = false;
         this.ganado = false;
+        this.tiempoCircuitoActivo = 0.0f;
         this.tiempoLimite = 30.0f;
         this.tiempoRestante = this.tiempoLimite;
         this.mensajeEstado = "Objetivo: Conecta y activa ambas entradas de la compuerta AND.";
@@ -41,9 +42,11 @@ public class Nivel3 extends Nivel {
         for (Componente comp : componentes) {
             if (comp instanceof LED) {
                 if ("EXITO".equals(comp.getEstadoActual())) {
-                    this.ganado = true;
-                    this.completado = true;
-                    this.mensajeEstado = "¡NIVEL 3 COMPLETADO! Compuerta AND validada correctamente.";
+                    if (tiempoCircuitoActivo >= TIEMPO_REQUERIDO_VICTORIA) {
+                        this.mensajeEstado = "¡NIVEL 3 COMPLETADO! Compuerta AND validada correctamente.";
+                    } else {
+                        this.mensajeEstado = String.format("¡COMPUERTA AND ACTIVA! Manténla encendida: %.1f / %.1f s", tiempoCircuitoActivo, TIEMPO_REQUERIDO_VICTORIA);
+                    }
                     return true;
                 }
             }

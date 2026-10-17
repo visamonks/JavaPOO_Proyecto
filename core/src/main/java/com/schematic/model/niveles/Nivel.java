@@ -45,12 +45,15 @@ public abstract class Nivel {
         }
     }
 
+    public static final float TIEMPO_REQUERIDO_VICTORIA = 5.0f;
+
     protected int numeroNivel;
     protected String tituloReto;
     protected float tiempoLimite;
     protected float tiempoRestante;
     protected boolean completado;
     protected boolean ganado;
+    protected float tiempoCircuitoActivo;
     protected String mensajeEstado;
 
     protected List<Componente> componentes;
@@ -65,6 +68,7 @@ public abstract class Nivel {
         this.tiempoRestante = this.tiempoLimite;
         this.completado = false;
         this.ganado = false;
+        this.tiempoCircuitoActivo = 0.0f;
         this.mensajeEstado = "";
         this.componentes = new ArrayList<>();
         this.componentesCinta = new ArrayList<>();
@@ -75,24 +79,39 @@ public abstract class Nivel {
     public abstract void inicializar();
 
     public void reiniciarNivelActual() {
+        this.tiempoCircuitoActivo = 0.0f;
+        this.completado = false;
+        this.ganado = false;
         inicializar();
     }
 
     public abstract boolean evaluarCircuitoCompleto();
 
     public void actualizar(float deltaTiempo) {
-        if (completado && ganado) {
-            return;
-        }
-
-        if (tiempoRestante > 0) {
+        if (tiempoRestante > 0 && !(completado && ganado)) {
             tiempoRestante -= deltaTiempo;
             if (tiempoRestante <= 0) {
                 tiempoRestante = 0;
             }
         }
 
-        evaluarCircuitoCompleto();
+        boolean circuitoActivo = evaluarCircuitoCompleto();
+
+        if (circuitoActivo) {
+            tiempoCircuitoActivo += deltaTiempo;
+            if (tiempoCircuitoActivo >= TIEMPO_REQUERIDO_VICTORIA) {
+                tiempoCircuitoActivo = TIEMPO_REQUERIDO_VICTORIA;
+                this.ganado = true;
+                this.completado = true;
+            } else {
+                this.ganado = false;
+                this.completado = false;
+            }
+        } else {
+            tiempoCircuitoActivo = 0.0f;
+            this.ganado = false;
+            this.completado = false;
+        }
     }
 
     public CasillaInventario buscarCasilla(String tipo) {
@@ -228,6 +247,10 @@ public abstract class Nivel {
 
     public String getMensajeEstado() { return mensajeEstado; }
     public void setMensajeEstado(String mensajeEstado) { this.mensajeEstado = mensajeEstado; }
+
+    public float getTiempoCircuitoActivo() { return tiempoCircuitoActivo; }
+    public void setTiempoCircuitoActivo(float tiempoCircuitoActivo) { this.tiempoCircuitoActivo = tiempoCircuitoActivo; }
+    public float getTiempoRequeridoVictoria() { return TIEMPO_REQUERIDO_VICTORIA; }
 
     public List<Componente> getComponentes() { return componentes; }
     public List<Componente> getComponentesCinta() { return componentesCinta; }

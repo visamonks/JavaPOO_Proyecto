@@ -234,6 +234,7 @@ public class VistaNivel extends ScreenAdapter {
                 }
             } else {
                 tiempoExitoAcumulado = 0f;
+                progresoGuardado = false;
             }
 
             boolean hayError = false;
@@ -308,7 +309,7 @@ public class VistaNivel extends ScreenAdapter {
 
         dibujarEfectosDerrota();
 
-        if (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL)) {
+        if (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL)) {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             dibujarFondoModal();
             shapeRenderer.end();
@@ -1392,7 +1393,7 @@ public class VistaNivel extends ScreenAdapter {
             fontTitulo.setColor(0.00f, 0.95f, 1.00f, 1f);
             fontTitulo.draw(batch, String.format("%.2f V", voltajeMedidorDC), fx + 38f, fy + fh - 52f);
 
-            float corriente = (nivel.estaGanado()) ? 0.02f : 0.00f;
+            float corriente = (nivel != null && (nivel.estaGanado() || nivel.getTiempoCircuitoActivo() > 0)) ? 0.02f : 0.00f;
             font.setColor(0.95f, 0.80f, 0.20f, 1f);
             font.draw(batch, String.format("%.2f A", corriente), fx + 42f, fy + fh - 95f);
 
@@ -1414,6 +1415,8 @@ public class VistaNivel extends ScreenAdapter {
             String mensaje = nivel.getMensajeEstado();
             if (nivel.estaGanado()) {
                 font.setColor(0.20f, 1.00f, 0.40f, 1f);
+            } else if (nivel.getTiempoCircuitoActivo() > 0) {
+                font.setColor(0.00f, 0.95f, 1.00f, 1f);
             } else if (hayErrorLED()) {
                 font.setColor(1.00f, 0.30f, 0.30f, 1f);
             } else {

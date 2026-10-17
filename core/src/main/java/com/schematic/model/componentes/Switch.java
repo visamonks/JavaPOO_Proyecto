@@ -28,21 +28,36 @@ public class Switch extends Componente {
 
     public void conmutar() {
         this.cerrado = !this.cerrado;
+        if (!this.cerrado) {
+            this.estadoActual = "NEUTRO";
+            if (terminalSalida != null) terminalSalida.setValorLogico(false);
+        }
         this.evaluarEstado();
     }
 
     @Override
     public boolean evaluarEstado() {
+        if (!cerrado) {
+            this.estadoActual = "NEUTRO";
+            if (terminalSalida != null) {
+                terminalSalida.setValorLogico(false);
+            }
+            return false;
+        }
+
         boolean entradaActiva = (terminalEntrada != null && terminalEntrada.getValorLogico()) ||
                                (terminalSalida != null && terminalSalida.getValorLogico());
 
-        if (entradaActiva && cerrado) {
+        if (entradaActiva) {
             if (terminalEntrada != null) terminalEntrada.setValorLogico(true);
             if (terminalSalida != null) terminalSalida.setValorLogico(true);
             this.estadoActual = "EXITO";
             return true;
         } else {
             this.estadoActual = "NEUTRO";
+            if (terminalSalida != null) {
+                terminalSalida.setValorLogico(false);
+            }
             return false;
         }
     }
@@ -53,6 +68,10 @@ public class Switch extends Componente {
 
     public void setCerrado(boolean cerrado) {
         this.cerrado = cerrado;
+        if (!this.cerrado) {
+            this.estadoActual = "NEUTRO";
+            if (terminalSalida != null) terminalSalida.setValorLogico(false);
+        }
         this.evaluarEstado();
     }
 

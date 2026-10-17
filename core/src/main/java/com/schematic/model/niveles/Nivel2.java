@@ -21,6 +21,7 @@ public class Nivel2 extends Nivel {
         this.inventario.clear();
         this.completado = false;
         this.ganado = false;
+        this.tiempoCircuitoActivo = 0.0f;
         this.tiempoLimite = 30.0f;
         this.tiempoRestante = this.tiempoLimite;
         this.mensajeEstado = "Objetivo: Conecta la fuente, el interruptor, la resistencia y el LED.";
@@ -113,17 +114,16 @@ public class Nivel2 extends Nivel {
         boolean switchAbiertoEnCamino = false;
         boolean llegoATierra = false;
         Set<Componente> componentesVisitados = new HashSet<>();
+        List<Cable> cablesEnCamino = new ArrayList<>();
 
         while (true) {
             Cable cableSaliente = buscarCableConTerminal(terminalActual);
             if (cableSaliente == null) {
                 break;
             }
+            cablesEnCamino.add(cableSaliente);
 
-            cableSaliente.setTieneEnergia(!switchAbiertoEnCamino);
             Terminal destino = cableSaliente.getOtroTerminal(terminalActual);
-            destino.setValorLogico(!switchAbiertoEnCamino);
-
             Componente compDestino = destino.getComponentePadre();
             if (compDestino == null) {
                 break;
@@ -132,7 +132,6 @@ public class Nivel2 extends Nivel {
             if (compDestino == fuente) {
                 if (destino == fuente.getTerminalNegativo()) {
                     llegoATierra = true;
-                    fuente.getTerminalNegativo().setValorLogico(!switchAbiertoEnCamino);
                 }
                 break;
             }
@@ -151,14 +150,12 @@ public class Nivel2 extends Nivel {
                 if (!sw.isCerrado()) {
                     switchAbiertoEnCamino = true;
                 }
-                salidaSw.setValorLogico(!switchAbiertoEnCamino);
                 terminalActual = salidaSw;
 
             } else if (compDestino instanceof Resistencia) {
                 Resistencia r = (Resistencia) compDestino;
                 pasoPorResistencia = true;
                 Terminal salidaR = (destino == r.getTerminalEntrada()) ? r.getTerminalSalida() : r.getTerminalEntrada();
-                salidaR.setValorLogico(!switchAbiertoEnCamino);
                 terminalActual = salidaR;
 
             } else if (compDestino instanceof LED) {
@@ -172,7 +169,6 @@ public class Nivel2 extends Nivel {
                 }
                 pasoPorLed = true;
                 Terminal catodo = l.getTerminalCatodo();
-                catodo.setValorLogico(!switchAbiertoEnCamino);
                 terminalActual = catodo;
             } else {
                 break;
@@ -187,16 +183,26 @@ public class Nivel2 extends Nivel {
                     led.setEstadoActual("ERROR");
                 }
                 fuente.setEstadoActual("ERROR");
+                for (Cable c : cablesEnCamino) {
+                    c.setTieneEnergia(true);
+                }
                 mensajeEstado = "¡EL LED SE HA QUEMADO! Conectaste a tierra sin resistencia limitadora.";
                 return false;
             }
 
             if (!pasoPorSwitch) {
+                fuente.setEstadoActual("NEUTRO");
+                if (interruptor != null) interruptor.setEstadoActual("NEUTRO");
+                if (res != null) res.setEstadoActual("NEUTRO");
+                if (led != null) led.setEstadoActual("NEUTRO");
                 mensajeEstado = "Falta intercalar el interruptor (Switch) en el circuito.";
                 return false;
             }
 
             if (!pasoPorLed) {
+                fuente.setEstadoActual("NEUTRO");
+                if (interruptor != null) interruptor.setEstadoActual("NEUTRO");
+                if (res != null) res.setEstadoActual("NEUTRO");
                 mensajeEstado = "Falta intercalar el LED en el circuito.";
                 return false;
             }
@@ -213,9 +219,11 @@ public class Nivel2 extends Nivel {
                         led.setQuemado(false);
                         led.setEstadoActual("NEUTRO");
                     }
+                    // Detener inmediatamente el flujo de corriente en todos los cables
+                    for (Cable c : cables) {
+                        c.setTieneEnergia(false);
+                    }
                     mensajeEstado = "Circuito conectado. Haz clic sobre el interruptor para cerrarlo y encender el LED.";
-                    this.ganado = false;
-                    this.completado = false;
                     return false;
                 } else {
                     fuente.setEstadoActual("EXITO");
@@ -228,16 +236,44 @@ public class Nivel2 extends Nivel {
                         led.setQuemado(false);
                         led.setEstadoActual("EXITO");
                     }
-                    mensajeEstado = "¡CIRCUITO COMPLETO! El LED está encendido.";
-                    this.ganado = true;
-                    this.completado = true;
+                    for (Cable c : cablesEnCamino) {
+                        c.setTieneEnergia(true);
+                    }
+                    fuente.getTerminalPositivo().setValorLogico(true);
+                    fuente.getTerminalNegativo().setValorLogico(true);
+                    if (interruptor != null) {
+                        interruptor.getTerminalEntrada().setValorLogico(true);
+                        interruptor.getTerminalSalida().setValorLogico(true);
+                    }
+                    if (res != null) {
+                        res.getTerminalEntrada().setValorLogico(true);
+                        res.getTerminalSalida().setValorLogico(true);
+                    }
+                    if (led != null) {
+                        led.getTerminalAnodo().setValorLogico(true);
+                        led.getTerminalCatodo().setValorLogico(true);
+                    }
+
+                    if (tiempoCircuitoActivo >= TIEMPO_REQUERIDO_VICTORIA) {
+                        mensajeEstado = "¡CIRCUITO COMPLETO! El LED se mantuvo encendido 5 segundos. ¡Nivel superado!";
+                    } else {
+                        mensajeEstado = String.format("¡CIRCUITO ACTIVO! Manténlo encendido: %.1f / %.1f s", tiempoCircuitoActivo, TIEMPO_REQUERIDO_VICTORIA);
+                    }
                     return true;
                 }
             }
         }
 
-        // Si aún no llega a tierra, proveer ayuda de guiado según el último componente
-        Componente ultimo = terminalActual.getComponentePadre();
+        // Si aún no llega a tierra (circuito interrumpido o switch quitado), apagar corriente y neutro a componentes
+        fuente.setEstadoActual("NEUTRO");
+        if (interruptor != null) interruptor.setEstadoActual("NEUTRO");
+        if (res != null && !res.isQuemada()) res.setEstadoActual("NEUTRO");
+        if (led != null && !led.isQuemado()) led.setEstadoActual("NEUTRO");
+        for (Cable c : cables) {
+            c.setTieneEnergia(false);
+        }
+
+        Componente ultimo = (terminalActual != null) ? terminalActual.getComponentePadre() : null;
         if (ultimo instanceof Switch) {
             mensajeEstado = "Conecta la salida del Switch hacia el resto de componentes.";
         } else if (ultimo instanceof Resistencia) {
@@ -248,8 +284,6 @@ public class Nivel2 extends Nivel {
             mensajeEstado = "Conecta los componentes en serie y cierra el circuito al polo (-).";
         }
 
-        this.ganado = false;
-        this.completado = false;
         return false;
     }
 }
