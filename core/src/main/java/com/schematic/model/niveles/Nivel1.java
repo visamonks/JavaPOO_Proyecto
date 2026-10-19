@@ -17,6 +17,7 @@ public class Nivel1 extends Nivel {
         this.inventario.clear();
         this.completado = false;
         this.ganado = false;
+        this.tiempoCircuitoActivo = 0.0f;
         this.tiempoLimite = 30.0f;
         this.tiempoRestante = this.tiempoLimite;
         this.mensajeEstado = "Objetivo: Conecta la fuente (+), la resistencia y el LED para encenderlo.";
@@ -124,9 +125,11 @@ public class Nivel1 extends Nivel {
                         res.setQuemada(false);
                         res.setEstadoActual("EXITO");
                         fuente.setEstadoActual("EXITO");
-                        mensajeEstado = "¡CIRCUITO COMPLETO! El LED está encendido.";
-                        this.ganado = true;
-                        this.completado = true;
+                        if (tiempoCircuitoActivo >= TIEMPO_REQUERIDO_VICTORIA) {
+                            mensajeEstado = "¡CIRCUITO COMPLETO! El LED se mantuvo encendido 5 segundos. ¡Nivel superado!";
+                        } else {
+                            mensajeEstado = String.format("¡CIRCUITO ACTIVO! Manténlo encendido: %.1f / %.1f s", tiempoCircuitoActivo, TIEMPO_REQUERIDO_VICTORIA);
+                        }
                         return true;
                     } else {
                         led.setQuemado(false);
@@ -166,9 +169,11 @@ public class Nivel1 extends Nivel {
                         res.setQuemada(false);
                         res.setEstadoActual("EXITO");
                         fuente.setEstadoActual("EXITO");
-                        mensajeEstado = "¡CIRCUITO COMPLETO! El LED está encendido.";
-                        this.ganado = true;
-                        this.completado = true;
+                        if (tiempoCircuitoActivo >= TIEMPO_REQUERIDO_VICTORIA) {
+                            mensajeEstado = "¡CIRCUITO COMPLETO! El LED se mantuvo encendido 5 segundos. ¡Nivel superado!";
+                        } else {
+                            mensajeEstado = String.format("¡CIRCUITO ACTIVO! Manténlo encendido: %.1f / %.1f s", tiempoCircuitoActivo, TIEMPO_REQUERIDO_VICTORIA);
+                        }
                         return true;
                     } else {
                         cableSalida.setTieneEnergia(true);

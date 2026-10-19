@@ -17,6 +17,7 @@ public class Nivel5 extends Nivel {
         this.inventario.clear();
         this.completado = false;
         this.ganado = false;
+        this.tiempoCircuitoActivo = 0.0f;
         this.tiempoLimite = 35.0f;
         this.tiempoRestante = this.tiempoLimite;
         this.mensajeEstado = "Objetivo: Resuelve el circuito esquemático combinado completo.";
@@ -42,9 +43,11 @@ public class Nivel5 extends Nivel {
         for (Componente comp : componentes) {
             if (comp instanceof LED) {
                 if ("EXITO".equals(comp.getEstadoActual())) {
-                    this.ganado = true;
-                    this.completado = true;
-                    this.mensajeEstado = "¡FELICITACIONES! Has superado el circuito final.";
+                    if (tiempoCircuitoActivo >= TIEMPO_REQUERIDO_VICTORIA) {
+                        this.mensajeEstado = "¡FELICITACIONES! Has superado el circuito final.";
+                    } else {
+                        this.mensajeEstado = String.format("¡CIRCUITO ACTIVO! Manténlo encendido: %.1f / %.1f s", tiempoCircuitoActivo, TIEMPO_REQUERIDO_VICTORIA);
+                    }
                     return true;
                 }
             }
