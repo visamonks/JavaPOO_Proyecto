@@ -193,11 +193,11 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         );
         datosNiveles[2] = new InfoNivel(
                 3,
-                "COMPUERTA AND",
+                "DOBLE SWITCH (AND)",
                 "LOGICA I",
                 "30s",
-                "Fuente - Compuerta AND 7408 - LEDs",
-                "Logica digital estricta: solo deja pasar energia cuando AMBAS entradas (A y B) estan encendidas."
+                "Fuente DC - 2x Interruptores - Resistencia - LED",
+                "Logica digital en serie: conecta dos interruptores en serie. Ambos deben cerrarse para encender el LED."
         );
         datosNiveles[3] = new InfoNivel(
                 4,

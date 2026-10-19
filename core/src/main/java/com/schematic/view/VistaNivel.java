@@ -1361,7 +1361,13 @@ public class VistaNivel extends ScreenAdapter {
                 fontPequena.draw(batch, "OUT", x + w - 45f, y + h - 18f);
 
                 font.setColor(cerrado ? new Color(0.2f, 0.95f, 0.4f, 1f) : new Color(0.95f, 0.35f, 0.35f, 1f));
-                String estadoStr = cerrado ? "SWITCH [CERRADO / ON]" : "SWITCH [ABIERTO / OFF]";
+                String nombreSw = "SWITCH";
+                if ("SW_1".equals(sw.getIdentificador()) && nivel != null && nivel.getNumeroNivel() >= 3) {
+                    nombreSw = "SWITCH A";
+                } else if ("SW_2".equals(sw.getIdentificador())) {
+                    nombreSw = "SWITCH B";
+                }
+                String estadoStr = nombreSw + (cerrado ? " [CERRADO / ON]" : " [ABIERTO / OFF]");
                 glyphLayout.setText(font, estadoStr);
                 font.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h + 24f);
 

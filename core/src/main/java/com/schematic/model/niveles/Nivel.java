@@ -103,6 +103,7 @@ public abstract class Nivel {
                 tiempoCircuitoActivo = TIEMPO_REQUERIDO_VICTORIA;
                 this.ganado = true;
                 this.completado = true;
+                evaluarCircuitoCompleto();
             } else {
                 this.ganado = false;
                 this.completado = false;
@@ -145,7 +146,11 @@ public abstract class Nivel {
         } else if ("RESISTENCIA_220".equals(tipo)) {
             return new Resistencia("R_1", x, y, 220, 220);
         } else if ("SWITCH".equals(tipo)) {
-            return new Switch("SW_1", x, y, false);
+            int num = 1;
+            for (Componente c : componentes) {
+                if (c instanceof Switch) num++;
+            }
+            return new Switch("SW_" + num, x, y, false);
         } else if ("AND".equals(tipo)) {
             return new CompuertaAND("AND_1", x, y, false, false);
         } else if ("OR".equals(tipo)) {
@@ -186,6 +191,17 @@ public abstract class Nivel {
             }
         }
         return null;
+    }
+
+    public List<Cable> buscarCablesConTerminal(Terminal terminal) {
+        List<Cable> resultado = new ArrayList<>();
+        if (terminal == null) return resultado;
+        for (Cable c : cables) {
+            if (c.conectaTerminal(terminal)) {
+                resultado.add(c);
+            }
+        }
+        return resultado;
     }
 
     public void agregarComponente(Componente componente) {
