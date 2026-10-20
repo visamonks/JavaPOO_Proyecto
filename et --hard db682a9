@@ -1,0 +1,313 @@
+[33m41054c9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32msecondary[m[33m, [m[1;31morigin/secondary[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33mee51d45[m HEAD@{1}: reset: moving to HEAD~1
+[33mb44ae9d[m HEAD@{2}: commit: feat: nivel 3 terminado
+[33mee51d45[m HEAD@{3}: rebase (finish): returning to refs/heads/secondary
+[33mee51d45[m HEAD@{4}: rebase (pick): feat: bases del nivel 3
+[33m41054c9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32msecondary[m[33m, [m[1;31morigin/secondary[m[33m)[m HEAD@{5}: rebase (pick): Fix: corrección de bug en switch y temporizador de victoria de 5s
+[33m9343905[m HEAD@{6}: rebase (squash): feat: nivel 2 terminado
+[33m55412e8[m HEAD@{7}: rebase (squash): # This is a combination of 2 commits.
+[33mb4fa99b[m HEAD@{8}: rebase (start): checkout 35d15fc
+[33mdb682a9[m HEAD@{9}: pull: Fast-forward
+[33m385cd5b[m HEAD@{10}: commit: feat: Nivel 2 empezao
+[33m398b2fb[m HEAD@{11}: commit: feat: versión inicial funcional del nivel 2 (circuito con interruptor)
+[33mb4fa99b[m HEAD@{12}: commit: feat: versión inicial funcional del nivel 1
+[33m35d15fc[m HEAD@{13}: commit: feat: menú de configuraciones
+[33m65dca72[m HEAD@{14}: reset: moving to HEAD~1
+[33m18a3855[m HEAD@{15}: commit: feat: menú de configuraciones
+[33m65dca72[m HEAD@{16}: commit: fix: corrección de errores de diseño en ventana de selección de nivel
+[33mef91bc8[m HEAD@{17}: commit: fix: arreglo de un bug de las conexiones de la led
+[33m0ae858f[m HEAD@{18}: reset: moving to HEAD~1
+[33m1d17860[m HEAD@{19}: commit: fix: arreglo de un bug de las conexiones de la led
+[33m0ae858f[m HEAD@{20}: commit: feat: menú interactivo para cambiar de niveles
+[33mc1aadb7[m HEAD@{21}: commit (amend): Reorganizar model en subpaquetes componentes, niveles y progreso
+[33m240e7e6[m HEAD@{22}: rebase (finish): returning to refs/heads/secondary
+[33m240e7e6[m HEAD@{23}: rebase (pick): Reorganizar model en subpaquetes componentes, niveles y progreso
+[33m7f8c43b[m HEAD@{24}: commit (amend): Se elimino el archivo de minijuego.java y arregle todo para que compilara
+[33mf97bec9[m HEAD@{25}: rebase: fast-forward
+[33m9c80db9[m HEAD@{26}: rebase (start): checkout HEAD~2
+[33mb7eb406[m HEAD@{27}: commit (amend): Reorganizar model en subpaquetes componentes, niveles y progreso
+[33m71e3dcf[m HEAD@{28}: rebase (finish): returning to refs/heads/secondary
+[33m71e3dcf[m HEAD@{29}: rebase (pick): Reorganizar model en subpaquetes componentes, niveles y progreso
+[33mf97bec9[m HEAD@{30}: rebase (pick): Se elimino el archivo de minijuego.java y arregle todo para que compilara
+[33m9c80db9[m HEAD@{31}: commit (amend): Implementar arquitectura modular de niveles y GestorNiveles
+[33md6c0d95[m HEAD@{32}: rebase: fast-forward
+[33m10c815f[m HEAD@{33}: rebase (start): checkout HEAD~3
+[33mab93d4c[m HEAD@{34}: rebase (finish): returning to refs/heads/secondary
+[33mab93d4c[m HEAD@{35}: rebase (pick): Reorganizar model en subpaquetes componentes, niveles y progreso
+[33m0c53f89[m HEAD@{36}: rebase (pick): Se elimino el archivo de minijuego.java y arregle todo para que compilara
+[33md6c0d95[m HEAD@{37}: commit (amend): Implementar arquitectura modular de niveles y GestorNiveles
+[33m5c02266[m HEAD@{38}: rebase: fast-forward
+[33m10c815f[m HEAD@{39}: rebase (start): checkout HEAD~3
+[33m76fb1e9[m HEAD@{40}: commit: Reorganizar model en subpaquetes componentes, niveles y progreso
+[33mf8d01ec[m HEAD@{41}: commit: Se elimino el archivo de minijuego.java y arregle todo para que compilara
+[33m5c02266[m HEAD@{42}: commit: Implementar arquitectura modular de niveles y GestorNiveles
+[33m10c815f[m HEAD@{43}: pull: Fast-forward
+[33m35da21d[m HEAD@{44}: checkout: moving from Main to secondary
+[33ma415626[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{45}: checkout: moving from secondary to Main
+[33m35da21d[m HEAD@{46}: checkout: moving from test-menu-precario to secondary
+[33m670f0c6[m HEAD@{47}: checkout: moving from main to test-menu-precario
+[33ma415626[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{48}: checkout: moving from captura-prototipo to main
+[33m31e3bfd[m HEAD@{49}: checkout: moving from main to captura-prototipo
+[33ma415626[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{50}: commit: Uml actualizado
+[33mb85bbfe[m HEAD@{51}: merge secondary: Merge made by the 'ort' strategy.
+[33m86d98ef[m HEAD@{52}: checkout: moving from main to main
+[33m86d98ef[m HEAD@{53}: reset: moving to 86d98ef
+[33m670f0c6[m HEAD@{54}: checkout: moving from main to main
+[33m670f0c6[m HEAD@{55}: reset: moving to 670f0c6
+[33m670f0c6[m HEAD@{56}: checkout: moving from secondary to main
+[33m35da21d[m HEAD@{57}: checkout: moving from main to secondary
+[33m670f0c6[m HEAD@{58}: reset: moving to 670f0c6
+[33m863058d[m HEAD@{59}: checkout: moving from secondary to main
+[33m35da21d[m HEAD@{60}: reset: moving to 35da21d
+[33m680715a[m HEAD@{61}: checkout: moving from secondary to secondary
+[33m680715a[m HEAD@{62}: reset: moving to temp-rebuild
+[33m44dee5a[m HEAD@{63}: checkout: moving from temp-rebuild to secondary
+[33m680715a[m HEAD@{64}: checkout: moving from secondary to temp-rebuild
+[33m44dee5a[m HEAD@{65}: checkout: moving from main to secondary
+[33m863058d[m HEAD@{66}: reset: moving to HEAD~1
+[33m7210901[m HEAD@{67}: checkout: moving from temp-fix to main
+[33mda03c4b[m[33m ([m[1;32mtemp-fix[m[33m)[m HEAD@{68}: filter-branch: rewrite
+[33mcc1e1ce[m HEAD@{69}: reset: moving to temp-fix
+[33mcc1e1ce[m HEAD@{70}: cherry-pick: Primera versión del nivel 1
+[33m680715a[m HEAD@{71}: checkout: moving from secondary to temp-fix
+[33m44dee5a[m HEAD@{72}: rebase (abort): returning to refs/heads/secondary
+[33m680715a[m HEAD@{73}: rebase (start): checkout 670f0c6
+[33m44dee5a[m HEAD@{74}: filter-branch: rewrite
+[33mc1fa20f[m HEAD@{75}: rebase (finish): returning to refs/heads/secondary
+[33mc1fa20f[m HEAD@{76}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m38068a3[m HEAD@{77}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m75ebcbb[m HEAD@{78}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33m7ab703c[m HEAD@{79}: rebase (pick): Nivel 1 terminado
+[33mebd00bc[m HEAD@{80}: rebase (pick): Primera versión del nivel 1
+[33me5b15f6[m HEAD@{81}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33m680715a[m HEAD@{82}: commit: Trabajando en la primera versión del menu
+[33m670f0c6[m HEAD@{83}: reset: moving to HEAD~1
+[33mdeb3649[m HEAD@{84}: rebase (edit): Menú principal terminado con todas sun animaciones
+[33m670f0c6[m HEAD@{85}: rebase (start): checkout 670f0c6
+[33md69690b[m HEAD@{86}: filter-branch: rewrite
+[33m9f5c2e8[m HEAD@{87}: rebase (finish): returning to refs/heads/secondary
+[33m9f5c2e8[m HEAD@{88}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33ma928ca5[m HEAD@{89}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m595c947[m HEAD@{90}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33m2c91c5a[m HEAD@{91}: rebase (pick): Nivel 1 terminado
+[33mfa7890c[m HEAD@{92}: rebase (pick): Primera versión del nivel 1
+[33m347b2a3[m HEAD@{93}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33m49780b8[m HEAD@{94}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33m00bbf82[m HEAD@{95}: commit (amend): Trabajando en la primera versión del menu
+[33mc65fd6f[m HEAD@{96}: rebase (edit): Trabajando en la primera versión del menu
+[33m670f0c6[m HEAD@{97}: rebase (start): checkout 670f0c6
+[33m6be96dd[m HEAD@{98}: rebase (finish): returning to refs/heads/secondary
+[33m6be96dd[m HEAD@{99}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33mda4e6e3[m HEAD@{100}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m4beaf79[m HEAD@{101}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33md5d69ee[m HEAD@{102}: rebase (pick): Nivel 1 terminado
+[33m0d21df8[m HEAD@{103}: rebase (pick): Primera versión del nivel 1
+[33m060aeea[m HEAD@{104}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33mea949b5[m HEAD@{105}: rebase (edit): Trabajando en la primera versión del menu
+[33m5bf63a1[m HEAD@{106}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33m670f0c6[m HEAD@{107}: rebase (start): checkout 670f0c6
+[33m6be96dd[m HEAD@{108}: filter-branch: rewrite
+[33m193f267[m HEAD@{109}: reset: moving to 193f267
+[33m35da21d[m HEAD@{110}: reset: moving to 35da21d
+[33m193f267[m HEAD@{111}: rebase (finish): returning to refs/heads/secondary
+[33m193f267[m HEAD@{112}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m9b9a726[m HEAD@{113}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m2035ce6[m HEAD@{114}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33mb56fe5f[m HEAD@{115}: rebase (pick): Nivel 1 terminado
+[33mfa82200[m HEAD@{116}: rebase (pick): Primera versión del nivel 1
+[33mf0d2c04[m HEAD@{117}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33me243c66[m HEAD@{118}: commit: Trabajando en la primera versión del menu
+[33m5bf63a1[m HEAD@{119}: rebase (edit): Menú principal terminado con todas sun animaciones
+[33m670f0c6[m HEAD@{120}: rebase (start): checkout 670f0c6
+[33m35da21d[m HEAD@{121}: rebase (abort): returning to refs/heads/secondary
+[33m670f0c6[m HEAD@{122}: rebase (start): checkout 670f0c6
+[33m35da21d[m HEAD@{123}: reset: moving to 35da21d
+[33me4d4628[m HEAD@{124}: rebase (finish): returning to refs/heads/secondary
+[33me4d4628[m HEAD@{125}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m688758a[m HEAD@{126}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33mc2705f1[m HEAD@{127}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33md695cc2[m HEAD@{128}: rebase (pick): Nivel 1 terminado
+[33m4f84e6f[m HEAD@{129}: rebase (pick): Primera versión del nivel 1
+[33mc1717a4[m HEAD@{130}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33mefaf9db[m HEAD@{131}: commit: Menú principal terminado con todas sun animaciones
+[33m3ee03c5[m HEAD@{132}: commit: Trabajando en la primera versión del menu
+[33m670f0c6[m HEAD@{133}: reset: moving to HEAD~1
+[33m5bf63a1[m HEAD@{134}: rebase: fast-forward
+[33m670f0c6[m HEAD@{135}: rebase (start): checkout 670f0c6
+[33m35da21d[m HEAD@{136}: pull: Fast-forward
+[33m61755ec[m HEAD@{137}: checkout: moving from main to secondary
+[33m7210901[m HEAD@{138}: reset: moving to 79bf77f~1
+[33m79bf77f[m HEAD@{139}: checkout: moving from secondary to main
+[33m61755ec[m HEAD@{140}: reset: moving to HEAD~1
+[33m35da21d[m HEAD@{141}: checkout: moving from secondary to secondary
+[33m35da21d[m HEAD@{142}: rebase (finish): returning to refs/heads/secondary
+[33m35da21d[m HEAD@{143}: rebase (start): checkout 670f0c6
+[33m35da21d[m HEAD@{144}: reset: moving to origin/secondary
+[33m35da21d[m HEAD@{145}: checkout: moving from main to secondary
+[33m79bf77f[m HEAD@{146}: rebase (abort): returning to refs/heads/main
+[33m670f0c6[m HEAD@{147}: rebase (start): checkout 5bf63a1~1
+[33m79bf77f[m HEAD@{148}: rebase (abort): returning to refs/heads/main
+[33m670f0c6[m HEAD@{149}: rebase (start): checkout 5bf63a1~1
+[33m79bf77f[m HEAD@{150}: rebase (abort): returning to refs/heads/main
+[33m670f0c6[m HEAD@{151}: rebase (start): checkout 5bf63a1~1
+[33m79bf77f[m HEAD@{152}: merge secondary: Merge made by the 'ort' strategy.
+[33m7210901[m HEAD@{153}: reset: moving to HEAD
+[33m7210901[m HEAD@{154}: checkout: moving from secondary to main
+[33m35da21d[m HEAD@{155}: commit (amend): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m2622953[m HEAD@{156}: filter-branch: rewrite
+[33m2a04d83[m HEAD@{157}: rebase (finish): returning to refs/heads/secondary
+[33m2a04d83[m HEAD@{158}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m61755ec[m HEAD@{159}: commit (amend): Pantalla de Guia con display interactivo de componentes
+[33m1b0b21a[m HEAD@{160}: rebase: fast-forward
+[33m6ee00f9[m HEAD@{161}: rebase (start): checkout 1b0b21a~1
+[33m6467957[m HEAD@{162}: rebase (abort): returning to refs/heads/secondary
+[33m6467957[m HEAD@{163}: rebase: fast-forward
+[33m1b0b21a[m HEAD@{164}: rebase (start): checkout 1b0b21a~1
+[33m6467957[m HEAD@{165}: filter-branch: rewrite
+[33m4c92c92[m HEAD@{166}: rebase (finish): returning to refs/heads/secondary
+[33m4c92c92[m HEAD@{167}: commit (amend): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m2a2301c[m HEAD@{168}: rebase (edit): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m2b9a5b8[m HEAD@{169}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m6ee00f9[m HEAD@{170}: commit (amend): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33ma9d0992[m HEAD@{171}: rebase: fast-forward
+[33m0d3ea3a[m HEAD@{172}: rebase (start): checkout a9d0992~1
+[33m079c71a[m HEAD@{173}: filter-branch: rewrite
+[33m04f4af5[m HEAD@{174}: rebase (finish): returning to refs/heads/secondary
+[33m04f4af5[m HEAD@{175}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33md478e5f[m HEAD@{176}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m30e75c0[m HEAD@{177}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33mac18276[m HEAD@{178}: rebase (pick): Nivel 1 terminado
+[33m31e3bfd[m HEAD@{179}: commit (amend): Primera versión del nivel 1
+[33m0914be3[m HEAD@{180}: rebase: fast-forward
+[33m2f568c4[m HEAD@{181}: rebase (start): checkout 0914be3~1
+[33mbfc2e9c[m HEAD@{182}: filter-branch: rewrite
+[33m5077225[m HEAD@{183}: rebase (finish): returning to refs/heads/secondary
+[33m5077225[m HEAD@{184}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m5596a6e[m HEAD@{185}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m254f25b[m HEAD@{186}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33me0288ac[m HEAD@{187}: rebase (pick): Nivel 1 terminado
+[33m9587d74[m HEAD@{188}: rebase (pick): Primera versión del nivel 1
+[33m5e530fa[m HEAD@{189}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33mfa79598[m HEAD@{190}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33m670f0c6[m HEAD@{191}: commit (amend): Arregle todos los metodos para que compilaran. Empecé con el menu y la creación de las pantallas principales del juego
+[33m38ff09e[m HEAD@{192}: rebase: fast-forward
+[33mfadb8ea[m HEAD@{193}: rebase (start): checkout ca38dbe~1
+[33m48bc99b[m HEAD@{194}: filter-branch: rewrite
+[33m0583e4d[m[33m ([m[1;31morigin/respaldo-seguro[m[33m)[m HEAD@{195}: filter-branch: rewrite
+[33m29907b4[m HEAD@{196}: rebase (finish): returning to refs/heads/secondary
+[33m29907b4[m HEAD@{197}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m09fd5d6[m HEAD@{198}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m7c2a657[m HEAD@{199}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33m7c13b54[m HEAD@{200}: rebase (pick): Nivel 1 terminado
+[33m935fc01[m HEAD@{201}: commit (amend): Primera versión del nivel 1
+[33m915611c[m HEAD@{202}: rebase (edit): Primera versión del nivel 1
+[33m428ace4[m HEAD@{203}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33m1db731a[m HEAD@{204}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33mcf172d1[m HEAD@{205}: rebase (pick): Arregle todos los metodos para que compilaran. Empecé con el menu y la creación de las pantallas principales del juego
+[33mfadb8ea[m HEAD@{206}: commit (amend): cambios en archivos model
+[33m5b43ff8[m HEAD@{207}: rebase: fast-forward
+[33m863058d[m HEAD@{208}: rebase (start): checkout 86d98ef~1
+[33m4b4432e[m HEAD@{209}: reset: moving to respaldo-seguro
+[33m4b4432e[m HEAD@{210}: checkout: moving from secondary to secondary
+[33m4b4432e[m HEAD@{211}: reset: moving to respaldo-seguro
+[33m62f7782[m HEAD@{212}: checkout: moving from secondary to secondary
+[33m62f7782[m HEAD@{213}: rebase (finish): returning to refs/heads/secondary
+[33m62f7782[m HEAD@{214}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m0dd49fc[m HEAD@{215}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33me8a8ca3[m HEAD@{216}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33mb19ca4f[m HEAD@{217}: rebase (pick): Nivel 1 terminado
+[33m6893fcf[m HEAD@{218}: commit (amend): Primera versión del nivel 1
+[33m28e9e9b[m HEAD@{219}: rebase (edit): Primera versión del nivel 1
+[33m338e733[m HEAD@{220}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33md7b3d6f[m HEAD@{221}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33ma83932b[m HEAD@{222}: rebase (pick): Arregle todos los metodos para que compilaran. Empecé con el menu y la creación de las pantallas principales del juego
+[33m68111d4[m HEAD@{223}: commit (amend): cambios en archivos model
+[33m5b43ff8[m HEAD@{224}: rebase: fast-forward
+[33m863058d[m HEAD@{225}: rebase (start): checkout 86d98ef~1
+[33m4b4432e[m HEAD@{226}: reset: moving to respaldo-seguro
+[33m4b4432e[m HEAD@{227}: checkout: moving from secondary to secondary
+[33m4b4432e[m HEAD@{228}: rebase (abort): returning to refs/heads/secondary
+[33me2ad767[m HEAD@{229}: rebase (pick): Primera versión del nivel 1
+[33m3e40620[m HEAD@{230}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33m8ded3bd[m HEAD@{231}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33m6832a88[m HEAD@{232}: rebase (pick): Arregle todos los metodos para que compilaran. Empecé con el menu y la creación de las pantallas principales del juego
+[33m0134f91[m HEAD@{233}: rebase (pick): cambios en archivos model
+[33mb134cdf[m HEAD@{234}: rebase (pick): Se trabajo en el controller y en el view, ademas se anadieron unas clases al model que eran necesarias de inmediato. También se trabajó la corrección de los imports debido a la migración al formato de Libgdx
+[33m51fbf4c[m HEAD@{235}: rebase (pick): Poniendo lib_gdx y migrando carpetas ya trabajdas donde corresponde
+[33mee88be4[m HEAD@{236}: rebase (pick): Se Trabajo completamente el trabajo escrito el cual esta acá en pdf, cada quien hizo una parte dentro del documento. Lo unico pendiente del mismo son los formularios de tiempo los cuales serán llenados con el tiempo
+[33m5c87370[m HEAD@{237}: commit (amend): Agregando UML terminado
+[33ma79b776[m HEAD@{238}: rebase (start): checkout 86d98ef~1
+[33m4b4432e[m HEAD@{239}: reset: moving to respaldo-seguro
+[33m4b4432e[m HEAD@{240}: checkout: moving from secondary to secondary
+[33m4b4432e[m HEAD@{241}: rebase (abort): returning to refs/heads/secondary
+[33mc35de6d[m HEAD@{242}: rebase (pick): Primera versión del nivel 1
+[33m7a013bd[m HEAD@{243}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33m381a13f[m HEAD@{244}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33m2b39651[m HEAD@{245}: rebase (pick): Arregle todos los metodos para que compilaran. Empecé con el menu y la creación de las pantallas principales del juego
+[33mdb60608[m HEAD@{246}: commit (amend): cambios en archivos model
+[33m5b43ff8[m HEAD@{247}: rebase (start): checkout 86d98ef~1
+[33m4b4432e[m HEAD@{248}: reset: moving to respaldo-seguro
+[33mf025a88[m HEAD@{249}: checkout: moving from secondary to secondary
+[33mf025a88[m HEAD@{250}: rebase (finish): returning to refs/heads/secondary
+[33mf025a88[m HEAD@{251}: commit (amend): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33ma02ac32[m HEAD@{252}: rebase (pick): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m4addd2d[m HEAD@{253}: commit (amend): Pantalla de Guia con display interactivo de componentes
+[33mf365278[m HEAD@{254}: rebase (pick): Pantalla de Guia con display interactivo de componentes
+[33m6384b1b[m HEAD@{255}: commit (amend): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33m3471e8f[m HEAD@{256}: rebase (pick): Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33mdbd9c45[m HEAD@{257}: commit (amend): Nivel 1 terminado
+[33m71bdae9[m HEAD@{258}: rebase (pick): Nivel 1 terminado
+[33m60662cd[m HEAD@{259}: commit (amend): Primera versión del nivel 1
+[33m4949837[m HEAD@{260}: rebase (pick): Primera versión del nivel 1
+[33m4126070[m HEAD@{261}: commit (amend): Agregando sprites de and, led, resistencia y and
+[33m1f432a1[m HEAD@{262}: rebase (pick): Agregando sprites de and, led, resistencia y and
+[33mcd6b659[m HEAD@{263}: commit (amend): Menú principal terminado con todas sun animaciones
+[33m7f68156[m HEAD@{264}: rebase (pick): Menú principal terminado con todas sun animaciones
+[33m19bc81c[m HEAD@{265}: commit (amend): Arregle todos los metodos para que compilaran. Empecé con el menu y la creación de las pantallas principales del juego
+[33m766c140[m HEAD@{266}: rebase (start): checkout HEAD~8
+[33m88edeb6[m HEAD@{267}: rebase (abort): returning to refs/heads/secondary
+[33m7210901[m HEAD@{268}: rebase (start): checkout origin/main
+[33m88edeb6[m HEAD@{269}: commit (amend): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m4b4432e[m HEAD@{270}: rebase (abort): returning to refs/heads/secondary
+[33m4b4432e[m HEAD@{271}: rebase (abort): returning to refs/heads/secondary
+[33md5d1b8e[m HEAD@{272}: commit (amend): Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m4b4432e[m HEAD@{273}: commit: Cree un archivo .bat para ejecutar el programa más facil, está en la raiz, y corregí algunos textos de la guía
+[33m7e8cbd6[m HEAD@{274}: pull: Fast-forward
+[33mb531582[m HEAD@{275}: commit: Se anadio la barra de tiempo, el juego en cada estado detecta si la barra ya llegó a 0 para dar el estado de que el jugador perdio, el tiempo de todos los niveles se fijo a 30 segundos
+[33m26e7b5b[m HEAD@{276}: reset: moving to HEAD
+[33m26e7b5b[m HEAD@{277}: commit: Nivel 1 terminado
+[33m33aaa02[m HEAD@{278}: reset: moving to 33aaa02
+[33m33aaa02[m HEAD@{279}: reset: moving to HEAD~1
+[33mb827c15[m HEAD@{280}: commit: Nivel 1 terminado
+[33m33aaa02[m HEAD@{281}: commit (amend): Primera versión del nivel 1
+[33m1ccec2a[m HEAD@{282}: commit: Sprites de led y resistencias actualizados sin fondo
+[33m54c54b5[m HEAD@{283}: reset: moving to HEAD
+[33m54c54b5[m HEAD@{284}: reset: moving to 54c54b52643a93bf19e9f8df8f966010b59e73da
+[33m54c54b5[m HEAD@{285}: 
+[33m676ad9d[m HEAD@{286}: reset: moving to HEAD
+[33m676ad9d[m HEAD@{287}: reset: moving to HEAD
+[33m676ad9d[m HEAD@{288}: commit: Quitandole fondo a los sprites
+[33mcb6a88d[m HEAD@{289}: commit: Agregando sprites de and, led, resistencia y and
+[33m7d439ac[m HEAD@{290}: commit: Menú principal terminado con todas sun animaciones
+[33meee9829[m HEAD@{291}: commit: Arregle todos los emtodos para que compilaran, me tomo 3 dias, Luego Empecé con el menu y la creación como tal de las pantallas principales del juego
+[33m5b43ff8[m HEAD@{292}: reset: moving to HEAD
+[33m5b43ff8[m HEAD@{293}: reset: moving to HEAD
+[33m5b43ff8[m HEAD@{294}: pull: Fast-forward
+[33m863058d[m HEAD@{295}: reset: moving to HEAD~1
+[33m5b43ff8[m HEAD@{296}: checkout: moving from main to secondary
+[33m7210901[m HEAD@{297}: commit: Trabajando en la primera versión del menu
+[33m863058d[m HEAD@{298}: commit: Se trabajo en el controller y en el view, ademas se anadieron unas clases al model que eran necesarias de inmediato. También se trabajó la corrección de los imports debido a la migración al formato de Libgdx
+[33m902d988[m HEAD@{299}: reset: moving to HEAD~1
+[33m8e71a87[m HEAD@{300}: commit: Se trabajo en el controller y en el view, ademas se anadieron unas clases al model que eran necesarias de inmediato. También se trabajó la corrección de los imports debido a la migración al formato de Libgdx
+[33m902d988[m HEAD@{301}: reset: moving to HEAD~1
+[33md2c139b[m HEAD@{302}: commit: Se trabajo en el controller y en el view, ademas se anadieron unas clases al model que eran necesarias de inmediato.
+[33m902d988[m HEAD@{303}: commit: Poniendo lib_gdx y migrando carpetas ya trabajdas donde corresponde
+[33m86d98ef[m HEAD@{304}: commit: Se Trabajo completamente el trabajo escrito el cual esta acá en pdf, cada quien hizo una parte dentro del documento. Lo unico pendiente del mismo son los formularios de tiempo los cuales serán llenados con el tiempo
+[33ma79b776[m HEAD@{305}: commit: Agregando UML terminado
+[33m0cfff8b[m HEAD@{306}: pull: Fast-forward
+[33m0591289[m HEAD@{307}: pull: Fast-forward
+[33m88c25c1[m HEAD@{308}: pull origin main --allow-unrelated-histories --rebase (finish): returning to refs/heads/main
+[33m88c25c1[m HEAD@{309}: pull origin main --allow-unrelated-histories --rebase (pick): Daniel Villatoro: Creando la primera versión del view del juego
+[33m25eaf84[m HEAD@{310}: pull origin main --allow-unrelated-histories --rebase (start): checkout 25eaf84902189dc6c33d5c096e7aa169c56e270f
+[33mc6f0b47[m HEAD@{311}: Branch: renamed refs/heads/master to refs/heads/main
+[33mc6f0b47[m HEAD@{313}: commit (initial): Daniel Villatoro: Creando la primera versión del view del juego
