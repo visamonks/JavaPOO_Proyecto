@@ -19,6 +19,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.schematic.controller.ControladorNivel;
+import com.schematic.audio.GestorAudio;
 import com.schematic.model.componentes.*;
 import com.schematic.model.niveles.*;
 import com.schematic.model.progreso.GestorPersistenciaJSON;
@@ -34,6 +35,7 @@ public class VistaNivel extends ScreenAdapter {
     public static final float ALTO_VIRTUAL = 1080f;
 
     private Game juego;
+    private GestorAudio gestorAudio;
     private Nivel nivel;
     private OrthographicCamera camara;
     private FitViewport viewport;
@@ -108,6 +110,7 @@ public class VistaNivel extends ScreenAdapter {
     public VistaNivel(Nivel nivel, Game juego) {
         this.nivel = nivel;
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
 
         this.camara = new OrthographicCamera();
         this.viewport = new FitViewport(ANCHO_VIRTUAL, ALTO_VIRTUAL, camara);
@@ -1720,6 +1723,10 @@ public class VistaNivel extends ScreenAdapter {
         this.tiempoIntro = 3f;
         this.introCompletada = true;
         this.voltajeMedidorDC = 5.0f;
+    }
+
+    public GestorAudio getGestorAudio() {
+        return gestorAudio;
     }
 
     public boolean estaCableEnProgreso() {

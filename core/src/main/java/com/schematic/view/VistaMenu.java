@@ -17,6 +17,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.schematic.audio.GestorAudio;
 import com.schematic.constants.Constantes;
 import com.schematic.model.componentes.*;
 import com.schematic.model.niveles.*;
@@ -25,6 +26,7 @@ import com.schematic.model.progreso.*;
 public class VistaMenu extends ScreenAdapter {
 
     private Game juego;
+    private GestorAudio gestorAudio;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
     private BitmapFont fontTitulo;
@@ -76,6 +78,7 @@ public class VistaMenu extends ScreenAdapter {
 
     public VistaMenu(Game juego) {
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
         this.glyphLayout = new GlyphLayout();

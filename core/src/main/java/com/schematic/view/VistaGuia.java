@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.schematic.audio.GestorAudio;
 import com.schematic.constants.Constantes;
 
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import java.util.List;
 public class VistaGuia extends ScreenAdapter {
 
     private Game juego;
+    private GestorAudio gestorAudio;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
     private GlyphLayout layout;
@@ -82,6 +84,7 @@ public class VistaGuia extends ScreenAdapter {
 
     public VistaGuia(Game juego) {
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
         this.layout = new GlyphLayout();

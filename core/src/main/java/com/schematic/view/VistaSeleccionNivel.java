@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.JuegoPrincipal;
+import com.schematic.audio.GestorAudio;
 import com.schematic.constants.Constantes;
 import com.schematic.model.niveles.GestorNiveles;
 import com.schematic.model.niveles.Nivel;
@@ -32,6 +33,7 @@ import java.util.List;
 public class VistaSeleccionNivel extends ScreenAdapter {
 
     private final Game juego;
+    private final GestorAudio gestorAudio;
     private final SpriteBatch batch;
     private final ShapeRenderer shapeRenderer;
     private final GlyphLayout layout;
@@ -141,6 +143,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
     public VistaSeleccionNivel(Game juego) {
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
         this.layout = new GlyphLayout();

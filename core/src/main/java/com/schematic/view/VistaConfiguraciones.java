@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.JuegoPrincipal;
+import com.schematic.audio.GestorAudio;
 import com.schematic.constants.Constantes;
 import com.schematic.model.progreso.GestorPersistenciaJSON;
 import com.schematic.model.progreso.ProgresoJugador;
@@ -31,6 +32,7 @@ import java.util.List;
 public class VistaConfiguraciones extends ScreenAdapter {
 
     private final Game juego;
+    private final GestorAudio gestorAudio;
     private final SpriteBatch batch;
     private final ShapeRenderer shapeRenderer;
     private final GlyphLayout layout;
@@ -126,6 +128,7 @@ public class VistaConfiguraciones extends ScreenAdapter {
 
     public VistaConfiguraciones(Game juego) {
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
         this.layout = new GlyphLayout();

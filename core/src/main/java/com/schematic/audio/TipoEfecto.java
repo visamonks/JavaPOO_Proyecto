@@ -1,0 +1,13 @@
+package com.schematic.audio;
+
+public enum TipoEfecto {
+    CLICK_UI,
+    TOMAR_COMPONENTE,
+    COLOCAR_COMPONENTE,
+    CONECTAR_CABLE,
+    DESCONECTAR_CABLE,
+    CONMUTAR_SWITCH,
+    EXITO_NIVEL,
+    CORTOCIRCUITO,
+    ALARMA_TIEMPO
+}

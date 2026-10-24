@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.schematic.audio.GestorAudio;
 import com.schematic.model.componentes.Cable;
 import com.schematic.model.componentes.Componente;
 import com.schematic.model.componentes.FuenteAlimentacion;
@@ -23,6 +24,7 @@ public class ControladorNivel extends InputAdapter {
     private OrthographicCamera camara;
     private Viewport viewport;
     private VistaNivel vista;
+    private GestorAudio gestorAudio;
     private Componente componenteSeleccionado;
 
     private boolean arrastrandoDesdeBarra;
@@ -50,6 +52,7 @@ public class ControladorNivel extends InputAdapter {
         this.camara = camara;
         this.viewport = viewport;
         this.vista = vista;
+        this.gestorAudio = (vista != null) ? vista.getGestorAudio() : null;
         this.componenteSeleccionado = null;
         this.arrastrandoDesdeBarra = false;
         this.tipoComponenteArrastrado = null;
