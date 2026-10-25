@@ -23,6 +23,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.audio.GestorAudio;
+import com.schematic.audio.TipoEfecto;
 import com.schematic.constants.Constantes;
 
 import java.util.ArrayList;
@@ -69,6 +70,7 @@ public class VistaGuia extends ScreenAdapter {
     private float offsetGrid = 0f;
 
     private int pagina = 0;
+    private int ultimoElementoHover = -1;
     private float hoverVolver = 0f;
     private float hoverTab0 = 1f;
     private float hoverTab1 = 0f;
@@ -285,19 +287,23 @@ public class VistaGuia extends ScreenAdapter {
 
                 if (estaAdentro(mx, my, 400f, 960f, 520f, 44f)) {
                     pagina = 0;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
                 if (estaAdentro(mx, my, 950f, 960f, 520f, 44f)) {
                     pagina = 1;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
 
                 if (estaAdentro(mx, my, 340f, 960f, 48f, 44f)) {
                     pagina = (pagina - 1 + 2) % 2;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
                 if (estaAdentro(mx, my, 1485f, 960f, 48f, 44f)) {
                     pagina = (pagina + 1) % 2;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
 
@@ -318,12 +324,14 @@ public class VistaGuia extends ScreenAdapter {
                             float bx = cx + 22f + b * (btnW + 6f);
                             if (estaAdentro(mx, my, bx, btnY, btnW, 36f)) {
                                 item.estadoSeleccionado = b;
+                                sonar(TipoEfecto.CONMUTAR_SWITCH);
                                 return true;
                             }
                         }
 
                         if (estaAdentro(mx, my, cx + 22f, cy + 68f, 220f, 230f)) {
                             item.estadoSeleccionado = (item.estadoSeleccionado + 1) % item.nombresEstados.length;
+                            sonar(TipoEfecto.CONMUTAR_SWITCH);
                             return true;
                         }
                     }
@@ -340,18 +348,22 @@ public class VistaGuia extends ScreenAdapter {
                 }
                 if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A) {
                     pagina = (pagina - 1 + 2) % 2;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
                 if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.D || keycode == Input.Keys.TAB) {
                     pagina = (pagina + 1) % 2;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
                 if (keycode == Input.Keys.NUM_1) {
                     pagina = 0;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
                 if (keycode == Input.Keys.NUM_2) {
                     pagina = 1;
+                    sonar(TipoEfecto.CLICK_UI);
                     return true;
                 }
                 return false;
@@ -359,7 +371,14 @@ public class VistaGuia extends ScreenAdapter {
         });
     }
 
+    private void sonar(TipoEfecto efecto) {
+        if (gestorAudio != null) {
+            gestorAudio.reproducirEfecto(efecto);
+        }
+    }
+
     private void volverAlMenu() {
+        sonar(TipoEfecto.CLICK_UI);
         if (juego != null) {
             juego.setScreen(new VistaMenu(juego));
         }
@@ -418,21 +437,38 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void actualizarAnimaciones(float delta, float mx, float my) {
-        hoverVolver = MathUtils.lerp(hoverVolver, estaAdentro(mx, my, 60f, 20f, 270f, 50f) ? 1f : 0f, delta * 18f);
+        int hoverActual = -1;
+        boolean hVolver = estaAdentro(mx, my, 60f, 20f, 270f, 50f);
+        hoverVolver = MathUtils.lerp(hoverVolver, hVolver ? 1f : 0f, delta * 18f);
+        if (hVolver) hoverActual = 10;
 
         boolean hTab0 = estaAdentro(mx, my, 400f, 960f, 520f, 44f);
         boolean hTab1 = estaAdentro(mx, my, 950f, 960f, 520f, 44f);
         hoverTab0 = MathUtils.lerp(hoverTab0, (pagina == 0 || hTab0) ? 1f : 0f, delta * 18f);
         hoverTab1 = MathUtils.lerp(hoverTab1, (pagina == 1 || hTab1) ? 1f : 0f, delta * 18f);
+        if (hTab0) hoverActual = 11;
+        else if (hTab1) hoverActual = 12;
 
-        hoverPrev = MathUtils.lerp(hoverPrev, estaAdentro(mx, my, 340f, 960f, 48f, 44f) ? 1f : 0f, delta * 18f);
-        hoverNext = MathUtils.lerp(hoverNext, estaAdentro(mx, my, 1485f, 960f, 48f, 44f) ? 1f : 0f, delta * 18f);
+        boolean hPrev = estaAdentro(mx, my, 340f, 960f, 48f, 44f);
+        boolean hNext = estaAdentro(mx, my, 1485f, 960f, 48f, 44f);
+        hoverPrev = MathUtils.lerp(hoverPrev, hPrev ? 1f : 0f, delta * 18f);
+        hoverNext = MathUtils.lerp(hoverNext, hNext ? 1f : 0f, delta * 18f);
+        if (hPrev) hoverActual = 13;
+        else if (hNext) hoverActual = 14;
 
         ArrayList<ElementoGuia> lista = (pagina == 0) ? listaPagina0 : listaPagina1;
         float[][] coords = getCoordenadasTarjetas();
         for (int i = 0; i < lista.size(); i++) {
             boolean hCard = estaAdentro(mx, my, coords[i][0], coords[i][1], 880f, 390f);
             lista.get(i).animHover = MathUtils.lerp(lista.get(i).animHover, hCard ? 1f : 0f, delta * 16f);
+            if (hCard && hoverActual == -1) hoverActual = i;
+        }
+
+        if (hoverActual != ultimoElementoHover) {
+            if (hoverActual >= 0) {
+                sonar(TipoEfecto.HOVER_UI);
+            }
+            ultimoElementoHover = hoverActual;
         }
     }
 

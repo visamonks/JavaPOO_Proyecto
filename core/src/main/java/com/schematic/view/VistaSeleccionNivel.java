@@ -21,6 +21,7 @@ import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.JuegoPrincipal;
 import com.schematic.audio.GestorAudio;
+import com.schematic.audio.TipoEfecto;
 import com.schematic.constants.Constantes;
 import com.schematic.model.niveles.GestorNiveles;
 import com.schematic.model.niveles.Nivel;
@@ -95,6 +96,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     private ProgresoJugador progreso;
     private int nivelSeleccionado = 0;
     private int indiceHover = -1;
+    private int ultimoElementoHover = -1;
     private boolean modoLibreDesbloqueado = false;
 
     private float tiempoTotal = 0f;
@@ -300,6 +302,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 float modoY = ALTO_VIRTUAL - 80f;
                 if (estaDentro(mx, my, modoX, modoY, modoW, modoH)) {
                     modoLibreDesbloqueado = !modoLibreDesbloqueado;
+                    sonar(TipoEfecto.CONMUTAR_SWITCH);
                     generarChispas(electronX, electronY, 15, modoLibreDesbloqueado ? COLOR_VERDE : COLOR_AMBAR);
                     return true;
                 }
@@ -335,6 +338,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 }
                 if (keycode == Input.Keys.U) {
                     modoLibreDesbloqueado = !modoLibreDesbloqueado;
+                    sonar(TipoEfecto.CONMUTAR_SWITCH);
                     generarChispas(electronX, electronY, 15, modoLibreDesbloqueado ? COLOR_VERDE : COLOR_AMBAR);
                     return true;
                 }
@@ -344,13 +348,21 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         });
     }
 
+    private void sonar(TipoEfecto efecto) {
+        if (gestorAudio != null) {
+            gestorAudio.reproducirEfecto(efecto);
+        }
+    }
+
     private void seleccionarNivel(int index) {
+        sonar(TipoEfecto.CLICK_UI);
         this.nivelSeleccionado = MathUtils.clamp(index, 0, CANTIDAD_NIVELES - 1);
         saltoElectron = 10f;
         generarChispas(electronX, electronY, 8, COLOR_NEON_CYAN);
     }
 
     private void acariciarElectron() {
+        sonar(TipoEfecto.ELECTRON);
         clicsElectron++;
         saltoElectron = 24f;
         giroElectron = 360f;
@@ -358,12 +370,14 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void reaccionarNivelBloqueado() {
+        sonar(TipoEfecto.ALARMA_TIEMPO);
         saltoElectron = 12f;
         generarChispas(electronX, electronY, 12, COLOR_ROJO);
     }
 
     private void iniciarNivel(int nivelNum) {
         if (enTransicion) return;
+        sonar(TipoEfecto.CONECTAR_CABLE);
         enTransicion = true;
         tiempoTransicion = 0f;
         nivelParaIniciar = nivelNum;
@@ -372,6 +386,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void volverAlMenu() {
+        sonar(TipoEfecto.CLICK_UI);
         if (juego != null) {
             juego.setScreen(new VistaMenu(juego));
         }
@@ -497,6 +512,19 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         float modoY = ALTO_VIRTUAL - 80f;
         boolean hoverModo = estaDentro(mx, my, modoX, modoY, modoW, modoH);
         animModoLibre = MathUtils.lerp(animModoLibre, hoverModo ? 1f : 0f, delta * 9f);
+
+        int hoverActual = indiceHover;
+        if (hoverVolver) hoverActual = 10;
+        else if (hoverIniciar) hoverActual = 11;
+        else if (hoverModo) hoverActual = 12;
+        else if (Vector2.dst(mx, my, electronX, electronY) <= RADIO_INTERACCION_ELECTRON) hoverActual = 13;
+
+        if (!enTransicion && hoverActual != ultimoElementoHover) {
+            if (hoverActual >= 0) {
+                sonar(TipoEfecto.HOVER_UI);
+            }
+            ultimoElementoHover = hoverActual;
+        }
 
         for (int i = chispas.size() - 1; i >= 0; i--) {
             ChispaParticula p = chispas.get(i);

@@ -1,6 +1,8 @@
 package com.schematic.audio;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Disposable;
 
 public class EfectoSonoro implements Disposable {
@@ -10,7 +12,7 @@ public class EfectoSonoro implements Disposable {
     private float volumenBase;
 
     public EfectoSonoro(TipoEfecto tipo) {
-        this(tipo, 1.0f);
+        this(tipo, tipo.getVolumenBase());
     }
 
     public EfectoSonoro(TipoEfecto tipo, float volumenBase) {
@@ -19,9 +21,22 @@ public class EfectoSonoro implements Disposable {
         this.sonido = null;
     }
 
+    public void cargar() {
+        if (Gdx.files == null || Gdx.audio == null) {
+            return;
+        }
+        try {
+            FileHandle archivo = Gdx.files.internal(tipo.getRuta());
+            if (archivo.exists()) {
+                this.sonido = Gdx.audio.newSound(archivo);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     public void reproducir(float volumenGeneral) {
-        if (sonido != null) {
-            sonido.play(volumenBase * volumenGeneral);
+        if (sonido != null && volumenGeneral > 0f) {
+            sonido.play(Math.min(1.0f, volumenBase * volumenGeneral));
         }
     }
 
