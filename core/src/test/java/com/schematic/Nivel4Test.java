@@ -288,6 +288,113 @@ public class Nivel4Test {
     }
 
     @Test
+    public void testDesconexionDeCableInterrumpeTemporizador() {
+        conectarCircuitoParaleloCompleto();
+        switch1.setCerrado(true);
+
+        nivel.actualizar(4.0f);
+        assertEquals(4.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
+
+        // Desconectar el cable de tierra
+        Cable cableTierra = nivel.buscarCableConTerminal(fuente.getTerminalNegativo());
+        assertNotNull(cableTierra);
+        nivel.eliminarCable(cableTierra);
+
+        // El temporizador debe volver a 0.0s inmediatamente
+        assertEquals(0.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
+        assertFalse(nivel.estaGanado());
+    }
+
+    @Test
+    public void testTransferenciaFluidaDeRamaSinRomperCircuito() {
+        conectarCircuitoParaleloCompleto();
+
+        // Inicialmente con Switch 1 cerrado durante 2.0s
+        switch1.setCerrado(true);
+        switch2.setCerrado(false);
+        nivel.actualizar(2.0f);
+        assertEquals(2.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
+
+        // Se cierra Switch 2 antes de abrir Switch 1 (ambos cerrados, corriente ininterrumpida)
+        switch2.setCerrado(true);
+        nivel.actualizar(1.5f);
+        assertEquals(3.5f, nivel.getTiempoCircuitoActivo(), 0.001f);
+
+        // Ahora se abre Switch 1 (Switch 2 sigue cerrado -> el circuito nunca se interrumpe)
+        switch1.setCerrado(false);
+        nivel.actualizar(1.5f);
+
+        // Alcanza los 5.0 segundos continuos acumulados
+        assertEquals(5.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
+        assertTrue(nivel.estaGanado());
+        assertTrue(nivel.estaCompletado());
+    }
+
+    @Test
+    public void testTopologiaConNodosPuenteados() {
+        // Conexión puenteada común (jumpers entre bornes de entrada y salida de interruptores)
+        nivel.agregarCable(new Cable(fuente.getTerminalPositivo(), switch1.getTerminalEntrada()));
+        nivel.agregarCable(new Cable(switch1.getTerminalEntrada(), switch2.getTerminalEntrada()));
+
+        nivel.agregarCable(new Cable(switch1.getTerminalSalida(), resistencia.getTerminalEntrada()));
+        nivel.agregarCable(new Cable(switch2.getTerminalSalida(), switch1.getTerminalSalida()));
+
+        nivel.agregarCable(new Cable(resistencia.getTerminalSalida(), led.getTerminalAnodo()));
+        nivel.agregarCable(new Cable(led.getTerminalCatodo(), fuente.getTerminalNegativo()));
+
+        // Probar conducción a través del switch puenteado Switch B (SW_2)
+        switch1.setCerrado(false);
+        switch2.setCerrado(true);
+        nivel.actualizar(1.0f);
+
+        assertEquals("EXITO", switch2.getEstadoActual());
+        assertEquals("EXITO", led.getEstadoActual());
+        assertEquals(1.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
+
+        // Probar conducción a través del Switch A (SW_1)
+        switch1.setCerrado(true);
+        switch2.setCerrado(false);
+        nivel.actualizar(1.0f);
+
+        assertEquals("EXITO", switch1.getEstadoActual());
+        assertEquals("EXITO", led.getEstadoActual());
+    }
+
+    @Test
+    public void testResistenciaEnLadoNegativoFuncionaCorrectamente() {
+        // Fuente(+) -> Switches en paralelo -> LED -> Resistencia -> Fuente(-)
+        nivel.agregarCable(new Cable(fuente.getTerminalPositivo(), switch1.getTerminalEntrada()));
+        nivel.agregarCable(new Cable(fuente.getTerminalPositivo(), switch2.getTerminalEntrada()));
+
+        nivel.agregarCable(new Cable(switch1.getTerminalSalida(), led.getTerminalAnodo()));
+        nivel.agregarCable(new Cable(switch2.getTerminalSalida(), led.getTerminalAnodo()));
+
+        nivel.agregarCable(new Cable(led.getTerminalCatodo(), resistencia.getTerminalEntrada()));
+        nivel.agregarCable(new Cable(resistencia.getTerminalSalida(), fuente.getTerminalNegativo()));
+
+        switch1.setCerrado(true);
+        nivel.actualizar(1.0f);
+
+        assertFalse(led.estaQuemado());
+        assertEquals("EXITO", led.getEstadoActual());
+        assertEquals("EXITO", resistencia.getEstadoActual());
+        assertEquals(1.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
+    }
+
+    @Test
+    public void testAgotamientoDeTiempoFallaNivel() {
+        conectarCircuitoParaleloCompleto();
+        switch1.setCerrado(false);
+        switch2.setCerrado(false);
+
+        // Agotar todo el tiempo disponible (30 segundos)
+        nivel.actualizar(31.0f);
+
+        assertEquals(0.0f, nivel.getTiempoRestante(), 0.001f);
+        assertFalse(nivel.estaGanado());
+    }
+
+    @Test
     public void testReiniciarNivelLimpiaTemporizadoresYCables() {
         conectarCircuitoParaleloCompleto();
         switch1.setCerrado(true);
@@ -303,4 +410,3 @@ public class Nivel4Test {
         assertEquals(Constantes.TIEMPO_LIMITE_NIVEL_4, nivel.getTiempoRestante(), 0.001f);
     }
 }
-

@@ -64,6 +64,7 @@ public class VistaNivel extends ScreenAdapter {
     private boolean progresoGuardado;
     private float offsetGridPerspectiva;
     private float tiempoIntroNivel;
+    private int ultimoSegundoSonado = -1;
 
     private static final int FASE_DERROTA_NINGUNA = 0;
     private static final int FASE_DERROTA_ALARMA = 1;
@@ -244,6 +245,16 @@ public class VistaNivel extends ScreenAdapter {
                 progresoGuardado = false;
             }
 
+            if (nivel.getTiempoCircuitoActivo() > 0 && !nivel.estaGanado()) {
+                int segundoActual = (int) nivel.getTiempoCircuitoActivo();
+                if (segundoActual > ultimoSegundoSonado && segundoActual >= 1) {
+                    ultimoSegundoSonado = segundoActual;
+                    sonar(TipoEfecto.ELECTRON);
+                }
+            } else if (nivel.getTiempoCircuitoActivo() <= 0) {
+                ultimoSegundoSonado = 0;
+            }
+
             boolean hayError = false;
             for (Componente c : nivel.getComponentes()) {
                 if ("ERROR".equals(c.getEstadoActual())) {
@@ -304,6 +315,7 @@ public class VistaNivel extends ScreenAdapter {
         dibujarElectronesIntro();
         dibujarParticulas();
         dibujarBarraTemporizadorSuperior();
+        dibujarBarraValidacionCircuito();
         shapeRenderer.end();
 
         batch.begin();
@@ -709,6 +721,40 @@ public class VistaNivel extends ScreenAdapter {
         }
     }
 
+    private void dibujarBarraValidacionCircuito() {
+        if (nivel == null) return;
+        float bx = 40f;
+        float by = ALTO_VIRTUAL - 116f;
+        float bw = 460f;
+        float bh = 14f;
+
+        float activo = nivel.getTiempoCircuitoActivo();
+        float req = nivel.getTiempoRequeridoVictoria();
+        float ratio = MathUtils.clamp(activo / req, 0f, 1f);
+
+        shapeRenderer.setColor(0.04f, 0.07f, 0.11f, 0.90f);
+        shapeRenderer.rect(bx, by, bw, bh);
+
+        boolean ganado = nivel.estaGanado();
+        Color colorBorde = ganado ? new Color(0.20f, 0.95f, 0.45f, 0.95f) :
+                (activo > 0 ? COLOR_NEON_CELESTE : new Color(0.25f, 0.35f, 0.48f, 0.65f));
+        shapeRenderer.setColor(colorBorde);
+        shapeRenderer.rectLine(bx, by, bx + bw, by, 1.5f);
+        shapeRenderer.rectLine(bx + bw, by, bx + bw, by + bh, 1.5f);
+        shapeRenderer.rectLine(bx + bw, by + bh, bx, by + bh, 1.5f);
+        shapeRenderer.rectLine(bx, by + bh, bx, by, 1.5f);
+
+        if (ratio > 0f) {
+            Color colorRelleno = ganado ? new Color(0.20f, 0.95f, 0.45f, 0.90f) :
+                    new Color(0.00f, 0.85f, 1.00f, 0.85f);
+            shapeRenderer.setColor(colorRelleno);
+            shapeRenderer.rect(bx + 2f, by + 2f, (bw - 4f) * ratio, bh - 4f);
+
+            shapeRenderer.setColor(1f, 1f, 1f, 0.95f);
+            shapeRenderer.circle(bx + 2f + (bw - 4f) * ratio, by + bh / 2f, 3.5f);
+        }
+    }
+
     private void dibujarBarraLateralAlmacen() {
         float bx = 1620f;
         float by = 60f;
@@ -906,6 +952,13 @@ public class VistaNivel extends ScreenAdapter {
                 shapeRenderer.setColor(0.08f, 0.11f, 0.16f, 0.95f);
                 shapeRenderer.rect(sx, sy, swWidth, swHeight);
 
+                boolean conduciendo = "EXITO".equals(sw.getEstadoActual());
+                if (conduciendo) {
+                    float pulso = 0.85f + 0.15f * MathUtils.sin(tiempoTotal * 10f);
+                    shapeRenderer.setColor(0.15f, 0.95f, 0.45f, 0.32f * pulso);
+                    shapeRenderer.rect(sx - 4f, sy - 4f, swWidth + 8f, swHeight + 8f);
+                }
+
                 shapeRenderer.setColor(cerrado ? new Color(0.20f, 0.85f, 0.45f, 0.9f) : COLOR_GRIS_METAL);
                 shapeRenderer.rectLine(sx, sy, sx + swWidth, sy, 2.5f);
                 shapeRenderer.rectLine(sx + swWidth, sy, sx + swWidth, sy + swHeight, 2.5f);
@@ -937,6 +990,20 @@ public class VistaNivel extends ScreenAdapter {
 
                 shapeRenderer.setColor(0.25f, 0.30f, 0.40f, 1f);
                 shapeRenderer.circle(sx + 35f, cy, 5.5f);
+
+                float indX = sx + swWidth / 2f;
+                float indY = sy + swHeight - 20f;
+                if (cerrado) {
+                    shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 0.40f);
+                    shapeRenderer.circle(indX, indY, 7f);
+                    shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
+                    shapeRenderer.circle(indX, indY, 3.5f);
+                } else {
+                    shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 0.40f);
+                    shapeRenderer.circle(indX, indY, 7f);
+                    shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 1f);
+                    shapeRenderer.circle(indX, indY, 3.5f);
+                }
             }
         }
     }
@@ -1446,6 +1513,21 @@ public class VistaNivel extends ScreenAdapter {
                 font.setColor(0.95f, 0.98f, 1.00f, 1f);
             }
             font.draw(batch, mensaje, 40f, ALTO_VIRTUAL - 62f);
+
+            float vx = 40f;
+            float vy = ALTO_VIRTUAL - 116f;
+            float activo = nivel.getTiempoCircuitoActivo();
+            float req = nivel.getTiempoRequeridoVictoria();
+            if (nivel.estaGanado()) {
+                fontPequena.setColor(0.20f, 1.00f, 0.45f, 1f);
+                fontPequena.draw(batch, String.format("¡VALIDACIÓN COMPLETADA! (%.1f / %.1f s)", req, req), vx + 8f, vy + 27f);
+            } else if (activo > 0f) {
+                fontPequena.setColor(0.00f, 0.95f, 1.00f, 1f);
+                fontPequena.draw(batch, String.format("VALIDACIÓN CONTINUA: %.1f / %.1f s", activo, req), vx + 8f, vy + 27f);
+            } else {
+                fontPequena.setColor(0.65f, 0.75f, 0.85f, 0.85f);
+                fontPequena.draw(batch, String.format("VALIDACIÓN: En espera de corriente continua (0.0 / %.1f s)", req), vx + 8f, vy + 27f);
+            }
         }
 
         fontPequena.setColor(0.80f, 0.88f, 0.95f, 1f);
@@ -1622,8 +1704,12 @@ public class VistaNivel extends ScreenAdapter {
         }
     }
 
+    public boolean estaEnModalDerrota() {
+        return faseDerrota == FASE_DERROTA_MODAL;
+    }
+
     public boolean manejarClicUI(float mx, float my) {
-        boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL));
+        boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalActivo) {
             if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) {
                 sonar(TipoEfecto.CLICK_UI);
@@ -1684,7 +1770,7 @@ public class VistaNivel extends ScreenAdapter {
         this.ratonMundo.set(mx, my);
         this.terminalBajoRaton = obtenerTerminalBajoRaton(mx, my, 34f);
 
-        boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL));
+        boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalActivo) {
             int btnHover = -1;
             if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) btnHover = 1;
@@ -1733,6 +1819,7 @@ public class VistaNivel extends ScreenAdapter {
         this.sacudidaCamaraY = 0f;
         this.opacidadHollin = 0f;
         this.posicionLimpiadorX = -150f;
+        this.ultimoSegundoSonado = -1;
         cancelarCable();
     }
 
@@ -1757,6 +1844,7 @@ public class VistaNivel extends ScreenAdapter {
         this.sacudidaCamaraY = 0f;
         this.opacidadHollin = 0f;
         this.posicionLimpiadorX = -150f;
+        this.ultimoSegundoSonado = -1;
         cancelarCable();
     }
 

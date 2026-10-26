@@ -272,9 +272,15 @@ public class ControladorNivel extends InputAdapter {
                 } else if (componenteSeleccionado instanceof Switch) {
                     float distArrastre = Vector2.dst(clickInicioX, clickInicioY, mx, my);
                     if (distArrastre < 15f) {
-                        ((Switch) componenteSeleccionado).conmutar();
+                        Switch sw = (Switch) componenteSeleccionado;
+                        sw.conmutar();
                         nivel.actualizar(0f);
                         sonar(TipoEfecto.CONMUTAR_SWITCH);
+                        if (vista != null) {
+                            float contactX = sw.getPosicionX() + sw.getAncho() - 35f;
+                            float contactY = sw.getPosicionY() + sw.getAlto() / 2f;
+                            vista.generarChispasImpacto(contactX, contactY, 8);
+                        }
                     }
                 }
                 componenteSeleccionado = null;
@@ -310,6 +316,16 @@ public class ControladorNivel extends InputAdapter {
             if (vista != null) {
                 vista.saltarIntro();
                 return true;
+            }
+        } else if (keycode == Input.Keys.ENTER) {
+            if (vista != null) {
+                if (nivel != null && nivel.estaGanado()) {
+                    vista.siguienteNivel();
+                    return true;
+                } else if (vista.estaEnModalDerrota()) {
+                    vista.reiniciarNivel();
+                    return true;
+                }
             }
         }
         return false;
