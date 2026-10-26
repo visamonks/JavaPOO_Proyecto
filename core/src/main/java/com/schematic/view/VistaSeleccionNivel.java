@@ -206,11 +206,11 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         );
         datosNiveles[3] = new InfoNivel(
                 4,
-                "COMPUERTA OR",
+                "DOBLE SWITCH (OR)",
                 "LOGICA II",
                 "30s",
-                "Fuente - Compuerta OR 7432 - LEDs",
-                "Logica inclusiva: permite el flujo de energia con que AL MENOS UNA de las ramas este activa."
+                "Fuente DC - 2x Interruptores - Resistencia - LED",
+                "Logica inclusiva en paralelo: conecta dos interruptores en paralelo. Con que AL MENOS UNO este cerrado, el LED encendera."
         );
         datosNiveles[4] = new InfoNivel(
                 5,

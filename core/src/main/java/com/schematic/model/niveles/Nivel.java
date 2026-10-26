@@ -146,11 +146,15 @@ public abstract class Nivel {
         } else if ("RESISTENCIA_220".equals(tipo)) {
             return new Resistencia("R_1", x, y, 220, 220);
         } else if ("SWITCH".equals(tipo)) {
-            int num = 1;
+            boolean tieneSw1 = false;
             for (Componente c : componentes) {
-                if (c instanceof Switch) num++;
+                if (c instanceof Switch && "SW_1".equals(c.getIdentificador())) {
+                    tieneSw1 = true;
+                    break;
+                }
             }
-            return new Switch("SW_" + num, x, y, false);
+            String idSw = tieneSw1 ? "SW_2" : "SW_1";
+            return new Switch(idSw, x, y, false);
         } else if ("AND".equals(tipo)) {
             return new CompuertaAND("AND_1", x, y, false, false);
         } else if ("OR".equals(tipo)) {
@@ -235,8 +239,18 @@ public abstract class Nivel {
 
     public void eliminarCable(Cable cable) {
         if (cable != null) {
+            Terminal orig = cable.getTerminalOrigen();
+            Terminal dest = cable.getTerminalDestino();
             cable.desconectar();
             this.cables.remove(cable);
+            if (orig != null) {
+                Cable otro = buscarCableConTerminal(orig);
+                if (otro != null) orig.setCableConectado(otro);
+            }
+            if (dest != null) {
+                Cable otro = buscarCableConTerminal(dest);
+                if (otro != null) dest.setCableConectado(otro);
+            }
             actualizar(0f);
         }
     }

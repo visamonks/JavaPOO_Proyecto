@@ -1314,6 +1314,14 @@ public class VistaNivel extends ScreenAdapter {
                     shapeRenderer.setColor(0.00f, 0.95f, 1.00f, 0.35f);
                     shapeRenderer.circle(pos.x, pos.y, 20f);
                 }
+
+                int cantidadCables = nivel.buscarCablesConTerminal(t).size();
+                if (cantidadCables > 1) {
+                    shapeRenderer.setColor(1.00f, 0.85f, 0.20f, 0.40f);
+                    shapeRenderer.circle(pos.x, pos.y, 24f);
+                    shapeRenderer.setColor(1.00f, 0.90f, 0.30f, 0.85f);
+                    shapeRenderer.circle(pos.x, pos.y, 5f);
+                }
             }
         }
     }
