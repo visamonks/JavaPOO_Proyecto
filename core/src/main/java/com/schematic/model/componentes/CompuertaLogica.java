@@ -1,4 +1,4 @@
-package com.schematic.model;
+package com.schematic.model.componentes;
 
 public abstract class CompuertaLogica extends Componente {
 

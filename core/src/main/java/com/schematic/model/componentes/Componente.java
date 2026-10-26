@@ -1,4 +1,4 @@
-package com.schematic.model;
+package com.schematic.model.componentes;
 
 import java.awt.Point;
 import java.util.ArrayList;

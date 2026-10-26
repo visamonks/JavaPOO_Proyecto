@@ -17,12 +17,17 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.schematic.audio.GestorAudio;
+import com.schematic.audio.TipoEfecto;
 import com.schematic.constants.Constantes;
-import com.schematic.model.*;
+import com.schematic.model.componentes.*;
+import com.schematic.model.niveles.*;
+import com.schematic.model.progreso.*;
 
 public class VistaMenu extends ScreenAdapter {
 
     private Game juego;
+    private GestorAudio gestorAudio;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
     private BitmapFont fontTitulo;
@@ -43,9 +48,10 @@ public class VistaMenu extends ScreenAdapter {
     private static final float ANCHO = Constantes.ANCHO_VENTANA;
     private static final float ALTO = Constantes.ALTO_VENTANA;
 
-    private static final String[] TEXTOS_BOTONES = {"CONTINUAR", "GUÍA", "OPCIONES", "SALIR"};
+    private static final String[] TEXTOS_BOTONES = {"JUGAR / NIVELES", "GUÍA", "OPCIONES", "SALIR"};
     private final float[] animHover = new float[4];
     private int indiceSeleccionadoTeclado = -1;
+    private int ultimoBotonHover = -1;
     private boolean mouseActivo = true;
 
     private static final float BOTON_ANCHO = 510f;
@@ -74,6 +80,7 @@ public class VistaMenu extends ScreenAdapter {
 
     public VistaMenu(Game juego) {
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
         this.glyphLayout = new GlyphLayout();
@@ -148,6 +155,7 @@ public class VistaMenu extends ScreenAdapter {
                         if (indiceSeleccionadoTeclado < 0) {
                             indiceSeleccionadoTeclado = TEXTOS_BOTONES.length - 1;
                         }
+                        sonar(TipoEfecto.HOVER_UI);
                         return true;
                     }
                     if (keycode == Input.Keys.DOWN || keycode == Input.Keys.S) {
@@ -156,6 +164,7 @@ public class VistaMenu extends ScreenAdapter {
                         if (indiceSeleccionadoTeclado >= TEXTOS_BOTONES.length) {
                             indiceSeleccionadoTeclado = 0;
                         }
+                        sonar(TipoEfecto.HOVER_UI);
                         return true;
                     }
                     if (keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
@@ -190,9 +199,14 @@ public class VistaMenu extends ScreenAdapter {
     }
 
     private void activarOpcion(int indice) {
+        sonar(TipoEfecto.CLICK_UI);
         if (indice == 0) {
-            seccionActual = "CONTINUAR";
-            estadoActual = PANTALLA_TRABAJANDO;
+            if (juego != null) {
+                juego.setScreen(new VistaSeleccionNivel(juego));
+            } else {
+                seccionActual = "CONTINUAR";
+                estadoActual = PANTALLA_TRABAJANDO;
+            }
         } else if (indice == 1) {
             if (juego != null) {
                 juego.setScreen(new VistaGuia(juego));
@@ -201,15 +215,21 @@ public class VistaMenu extends ScreenAdapter {
                 estadoActual = PANTALLA_TRABAJANDO;
             }
         } else if (indice == 2) {
-            seccionActual = "OPCIONES";
-            estadoActual = PANTALLA_TRABAJANDO;
+            if (juego != null) {
+                juego.setScreen(new VistaConfiguraciones(juego));
+            } else {
+                seccionActual = "OPCIONES";
+                estadoActual = PANTALLA_TRABAJANDO;
+            }
         } else if (indice == 3) {
             Gdx.app.exit();
         }
     }
 
     private void iniciarNivelJuego() {
-        if (!enTransicionNivel) {
+        if (juego != null) {
+            juego.setScreen(new VistaSeleccionNivel(juego));
+        } else if (!enTransicionNivel) {
             enTransicionNivel = true;
             tiempoTransicionNivel = 0f;
         }
@@ -290,8 +310,8 @@ public class VistaMenu extends ScreenAdapter {
 
             if (tiempoTransicionNivel >= DURACION_TRANSICION) {
                 if (juego != null) {
-                    Minijuego minijuego = new Minijuego(1, "NIVEL 1: ENCIENDE EL LED", 30.0f);
-                    juego.setScreen(new VistaNivel(minijuego, juego));
+                    Nivel nivel = GestorNiveles.crearNivel(1);
+                    juego.setScreen(new VistaNivel(nivel, juego));
                 }
             }
         }
@@ -299,7 +319,14 @@ public class VistaMenu extends ScreenAdapter {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
+    private void sonar(TipoEfecto efecto) {
+        if (gestorAudio != null) {
+            gestorAudio.reproducirEfecto(efecto);
+        }
+    }
+
     private void actualizarAnimaciones(float delta, float mx, float my) {
+        int hoverActual = -1;
         if (estadoActual == PANTALLA_MENU) {
             for (int i = 0; i < TEXTOS_BOTONES.length; i++) {
                 boolean hover = false;
@@ -310,6 +337,7 @@ public class VistaMenu extends ScreenAdapter {
                     if (estaDentro(mx, my, bx, by, BOTON_ANCHO, BOTON_ALTO)) {
                         hover = true;
                         indiceSeleccionadoTeclado = i;
+                        hoverActual = i;
                     }
                 } else {
                     hover = (i == indiceSeleccionadoTeclado);
@@ -323,13 +351,22 @@ public class VistaMenu extends ScreenAdapter {
             float volverY = 320f;
             boolean hoverVolver = estaDentro(mx, my, volverX, volverY, 440f, 68f);
             animVolver = MathUtils.lerp(animVolver, hoverVolver ? 1f : 0f, delta * 18f);
+            if (hoverVolver) hoverActual = 10;
 
             if ("CONTINUAR".equals(seccionActual)) {
                 float probarX = (ANCHO - 500f) / 2f + (animProbar * 24f);
                 float probarY = 420f;
                 boolean hoverProbar = estaDentro(mx, my, probarX, probarY, 500f, 68f);
                 animProbar = MathUtils.lerp(animProbar, hoverProbar ? 1f : 0f, delta * 18f);
+                if (hoverProbar) hoverActual = 11;
             }
+        }
+
+        if (mouseActivo && hoverActual != ultimoBotonHover) {
+            if (hoverActual >= 0) {
+                sonar(TipoEfecto.HOVER_UI);
+            }
+            ultimoBotonHover = hoverActual;
         }
     }
 

@@ -1,4 +1,4 @@
-package com.schematic.model;
+package com.schematic.model.componentes;
 
 public class LED extends Componente {
 
@@ -12,14 +12,14 @@ public class LED extends Componente {
         this.polaridadCorrecta = polaridadCorrecta;
         this.quemado = false;
 
-        this.terminalAnodo = new Terminal(identificador + "_ANODO", this, 143f, 105f, true);
-        this.terminalCatodo = new Terminal(identificador + "_CATODO", this, 172f, 105f, false);
+        this.terminalAnodo = new Terminal(identificador + "_ANODO", this, 107.0f, 107.5f, true);
+        this.terminalCatodo = new Terminal(identificador + "_CATODO", this, 208.0f, 107.5f, false);
 
         this.terminales.add(terminalAnodo);
         this.terminales.add(terminalCatodo);
 
-        this.agregarPuntoConexion(143, 105);
-        this.agregarPuntoConexion(172, 105);
+        this.agregarPuntoConexion(107, 108);
+        this.agregarPuntoConexion(208, 108);
 
         this.evaluarEstado();
     }
@@ -55,7 +55,7 @@ public class LED extends Componente {
                 return false;
             }
         } else {
-            this.estadoActual = "NEUTRO";
+            this.estadoActual = "NEUTRO"; 
             if (terminalCatodo != null) {
                 terminalCatodo.setValorLogico(false);
             }
