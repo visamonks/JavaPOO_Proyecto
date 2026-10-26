@@ -21,6 +21,8 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.schematic.JuegoPrincipal;
+import com.schematic.audio.GestorAudio;
+import com.schematic.audio.TipoEfecto;
 import com.schematic.constants.Constantes;
 import com.schematic.model.progreso.GestorPersistenciaJSON;
 import com.schematic.model.progreso.ProgresoJugador;
@@ -31,6 +33,7 @@ import java.util.List;
 public class VistaConfiguraciones extends ScreenAdapter {
 
     private final Game juego;
+    private final GestorAudio gestorAudio;
     private final SpriteBatch batch;
     private final ShapeRenderer shapeRenderer;
     private final GlyphLayout layout;
@@ -79,6 +82,7 @@ public class VistaConfiguraciones extends ScreenAdapter {
 
     private float volumen = 0.8f;
     private boolean arrastrandoSlider = false;
+    private int ultimoElementoHover = -1;
 
     private boolean estadoConfirmacionBorrado = false;
     private float tiempoConfirmacionBorrado = 0f;
@@ -126,6 +130,7 @@ public class VistaConfiguraciones extends ScreenAdapter {
 
     public VistaConfiguraciones(Game juego) {
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
         this.batch = new SpriteBatch();
         this.shapeRenderer = new ShapeRenderer();
         this.layout = new GlyphLayout();
@@ -168,6 +173,9 @@ public class VistaConfiguraciones extends ScreenAdapter {
     }
 
     private void guardarPreferencias() {
+        if (gestorAudio != null) {
+            gestorAudio.setVolumen(volumen);
+        }
         try {
             Preferences prefs = Gdx.app.getPreferences("schematic_config");
             prefs.putFloat("volumen", volumen);
@@ -267,8 +275,9 @@ public class VistaConfiguraciones extends ScreenAdapter {
 
             @Override
             public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-                if (button == Input.Buttons.LEFT) {
+                if (button == Input.Buttons.LEFT && arrastrandoSlider) {
                     arrastrandoSlider = false;
+                    sonar(TipoEfecto.CLICK_UI);
                 }
                 return false;
             }
@@ -306,14 +315,22 @@ public class VistaConfiguraciones extends ScreenAdapter {
         }
     }
 
+    private void sonar(TipoEfecto efecto) {
+        if (gestorAudio != null) {
+            gestorAudio.reproducirEfecto(efecto);
+        }
+    }
+
     private void modificarVolumenPaso(float deltaVol) {
         volumen = MathUtils.clamp(volumen + deltaVol, 0.0f, 1.0f);
         guardarPreferencias();
+        sonar(TipoEfecto.HOVER_UI);
         saltoElectron = 8f;
         generarChispas(SLIDER_X + volumen * SLIDER_ANCHO, SLIDER_Y + SLIDER_ALTO / 2f, 6, COLOR_CELESTE_BRILLANTE);
     }
 
     private void alternarPantallaCompleta() {
+        sonar(TipoEfecto.CONMUTAR_SWITCH);
         if (Gdx.graphics.isFullscreen()) {
             Gdx.graphics.setWindowedMode(Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA);
         } else {
@@ -324,6 +341,7 @@ public class VistaConfiguraciones extends ScreenAdapter {
     }
 
     private void solicitarConfirmacionBorrado() {
+        sonar(TipoEfecto.ALARMA_TIEMPO);
         estadoConfirmacionBorrado = true;
         tiempoConfirmacionBorrado = 5.0f;
         saltoElectron = 12f;
@@ -331,11 +349,13 @@ public class VistaConfiguraciones extends ScreenAdapter {
     }
 
     private void cancelarBorradoDatos() {
+        sonar(TipoEfecto.CLICK_UI);
         estadoConfirmacionBorrado = false;
         tiempoConfirmacionBorrado = 0f;
     }
 
     private void ejecutarBorradoDatos() {
+        sonar(TipoEfecto.CLICK_UI);
         ProgresoJugador nuevo = new ProgresoJugador(1);
         GestorPersistenciaJSON.guardar(nuevo);
         if (juego instanceof JuegoPrincipal) {
@@ -349,12 +369,14 @@ public class VistaConfiguraciones extends ScreenAdapter {
     }
 
     private void acariciarElectron() {
+        sonar(TipoEfecto.ELECTRON);
         saltoElectron = 22f;
         giroElectron = 360f;
         generarChispas(electronX, electronY, 16, COLOR_CELESTE_BRILLANTE);
     }
 
     private void volverAlMenu() {
+        sonar(TipoEfecto.CLICK_UI);
         if (juego != null) {
             juego.setScreen(new VistaMenu(juego));
         }
@@ -461,6 +483,11 @@ public class VistaConfiguraciones extends ScreenAdapter {
         boolean hoverPantalla = estaDentro(mx, my, btnPantallaX, btnPantallaY, btnPantallaW, btnPantallaH);
         animPantalla = MathUtils.lerp(animPantalla, hoverPantalla ? 1f : 0f, delta * 9f);
 
+        int hoverActual = -1;
+        if (hoverVolver) hoverActual = 10;
+        else if (hoverPantalla) hoverActual = 11;
+        else if (Vector2.dst(mx, my, electronX, electronY) <= 60f) hoverActual = 15;
+
         if (!estadoConfirmacionBorrado) {
             float btnBorrarW = 340f;
             float btnBorrarH = 54f;
@@ -468,6 +495,7 @@ public class VistaConfiguraciones extends ScreenAdapter {
             float btnBorrarY = CARD3_Y + 53f;
             boolean hoverBorrar = estaDentro(mx, my, btnBorrarX, btnBorrarY, btnBorrarW, btnBorrarH);
             animBorrar = MathUtils.lerp(animBorrar, hoverBorrar ? 1f : 0f, delta * 9f);
+            if (hoverBorrar) hoverActual = 12;
         } else {
             float btnConfW = 200f;
             float btnCancW = 130f;
@@ -478,6 +506,15 @@ public class VistaConfiguraciones extends ScreenAdapter {
             boolean hoverCanc = estaDentro(mx, my, btnCancX, btnY, btnCancW, 54f);
             animBorrar = MathUtils.lerp(animBorrar, hoverConf ? 1f : 0f, delta * 9f);
             animCancelar = MathUtils.lerp(animCancelar, hoverCanc ? 1f : 0f, delta * 9f);
+            if (hoverConf) hoverActual = 13;
+            else if (hoverCanc) hoverActual = 14;
+        }
+
+        if (!arrastrandoSlider && hoverActual != ultimoElementoHover) {
+            if (hoverActual >= 0) {
+                sonar(TipoEfecto.HOVER_UI);
+            }
+            ultimoElementoHover = hoverActual;
         }
 
         tiempoChispasAmbiente += delta;

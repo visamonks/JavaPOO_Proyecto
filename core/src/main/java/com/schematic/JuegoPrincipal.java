@@ -1,6 +1,7 @@
 package com.schematic;
 
 import com.badlogic.gdx.Game;
+import com.schematic.audio.GestorAudio;
 import com.schematic.constants.Constantes;
 import com.schematic.model.progreso.GestorPersistenciaJSON;
 import com.schematic.model.progreso.ProgresoJugador;
@@ -10,12 +11,23 @@ public class JuegoPrincipal extends Game {
 
     private GestorPersistenciaJSON gestorPersistencia;
     private ProgresoJugador progreso;
+    private GestorAudio gestorAudio;
 
     @Override
     public void create() {
         this.gestorPersistencia = new GestorPersistenciaJSON();
         this.progreso = gestorPersistencia.cargarProgreso(Constantes.RUTA_PROGRESO);
+        this.gestorAudio = new GestorAudio();
+        this.gestorAudio.inicializar();
         setScreen(new VistaMenu(this));
+    }
+
+    public GestorAudio getGestorAudio() {
+        if (gestorAudio == null) {
+            gestorAudio = new GestorAudio();
+            gestorAudio.inicializar();
+        }
+        return gestorAudio;
     }
 
     public GestorPersistenciaJSON getGestorPersistencia() {
@@ -45,6 +57,9 @@ public class JuegoPrincipal extends Game {
     @Override
     public void dispose() {
         guardarProgreso();
+        if (gestorAudio != null) {
+            gestorAudio.dispose();
+        }
         super.dispose();
     }
 }

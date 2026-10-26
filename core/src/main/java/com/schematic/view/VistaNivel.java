@@ -19,6 +19,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.schematic.controller.ControladorNivel;
+import com.schematic.audio.GestorAudio;
+import com.schematic.audio.TipoEfecto;
 import com.schematic.model.componentes.*;
 import com.schematic.model.niveles.*;
 import com.schematic.model.progreso.GestorPersistenciaJSON;
@@ -34,6 +36,7 @@ public class VistaNivel extends ScreenAdapter {
     public static final float ALTO_VIRTUAL = 1080f;
 
     private Game juego;
+    private GestorAudio gestorAudio;
     private Nivel nivel;
     private OrthographicCamera camara;
     private FitViewport viewport;
@@ -81,6 +84,8 @@ public class VistaNivel extends ScreenAdapter {
     private Terminal terminalOrigenCable;
     private Vector2 ratonMundo;
     private Terminal terminalBajoRaton;
+    private Terminal ultimoTerminalHover;
+    private int ultimoUIHover = -1;
 
     private List<ParticulaChispa> particulas;
 
@@ -108,6 +113,7 @@ public class VistaNivel extends ScreenAdapter {
     public VistaNivel(Nivel nivel, Game juego) {
         this.nivel = nivel;
         this.juego = juego;
+        this.gestorAudio = GestorAudio.obtenerDesde(juego);
 
         this.camara = new OrthographicCamera();
         this.viewport = new FitViewport(ANCHO_VIRTUAL, ALTO_VIRTUAL, camara);
@@ -211,6 +217,7 @@ public class VistaNivel extends ScreenAdapter {
             if (nivel.estaGanado()) {
                 if (!progresoGuardado) {
                     progresoGuardado = true;
+                    sonar(TipoEfecto.EXITO_NIVEL);
                     int siguiente = nivel.getNumeroNivel() + 1;
                     if (juego instanceof JuegoPrincipal) {
                         JuegoPrincipal jp = (JuegoPrincipal) juego;
@@ -252,6 +259,7 @@ public class VistaNivel extends ScreenAdapter {
                     derrotaPorTiempo = tiempoAgotado && !hayError;
                     faseDerrota = FASE_DERROTA_ALARMA;
                     tiempoFaseDerrota = 0f;
+                    sonar(TipoEfecto.ALARMA_TIEMPO);
                     if (derrotaPorTiempo) {
                         centroExplosion.set(ANCHO_VIRTUAL / 2f, ALTO_VIRTUAL / 2f);
                     } else {
@@ -410,6 +418,7 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public void generarGranExplosion(float cx, float cy) {
+        sonar(TipoEfecto.CORTOCIRCUITO);
         for (int i = 0; i < 75; i++) {
             float ang = MathUtils.random(0f, MathUtils.PI2);
             float vel = MathUtils.random(100f, 550f);
@@ -1599,10 +1608,17 @@ public class VistaNivel extends ScreenAdapter {
         return null;
     }
 
+    private void sonar(TipoEfecto efecto) {
+        if (gestorAudio != null) {
+            gestorAudio.reproducirEfecto(efecto);
+        }
+    }
+
     public boolean manejarClicUI(float mx, float my) {
         boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalActivo) {
             if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) {
+                sonar(TipoEfecto.CLICK_UI);
                 if (nivel != null && nivel.estaGanado()) {
                     siguienteNivel();
                 } else {
@@ -1623,6 +1639,7 @@ public class VistaNivel extends ScreenAdapter {
         this.cableEnProgreso = true;
         this.terminalOrigenCable = term;
         this.ratonMundo.set(mx, my);
+        sonar(TipoEfecto.CLICK_UI);
     }
 
     public void actualizarCableEnProgreso(float mx, float my) {
@@ -1643,6 +1660,7 @@ public class VistaNivel extends ScreenAdapter {
                     Cable nuevo = new Cable(terminalOrigenCable, termDestino);
                     nivel.agregarCable(nuevo);
                     generarChispasImpacto(termDestino.getPosicionAbsoluta().x, termDestino.getPosicionAbsoluta().y, 12);
+                    sonar(TipoEfecto.CONECTAR_CABLE);
                 }
             }
         }
@@ -1657,6 +1675,37 @@ public class VistaNivel extends ScreenAdapter {
     public void actualizarPosicionCursor(float mx, float my) {
         this.ratonMundo.set(mx, my);
         this.terminalBajoRaton = obtenerTerminalBajoRaton(mx, my, 34f);
+
+        boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 3.0f) || faseDerrota == FASE_DERROTA_MODAL));
+        if (modalActivo) {
+            int btnHover = -1;
+            if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) btnHover = 1;
+            else if (mx >= 970f && mx <= 1270f && my >= 360f && my <= 420f) btnHover = 2;
+
+            if (btnHover != ultimoUIHover) {
+                if (btnHover > 0) sonar(TipoEfecto.HOVER_UI);
+                ultimoUIHover = btnHover;
+            }
+            return;
+        }
+
+        if (terminalBajoRaton != ultimoTerminalHover) {
+            if (terminalBajoRaton != null) {
+                sonar(TipoEfecto.HOVER_UI);
+            }
+            ultimoTerminalHover = terminalBajoRaton;
+        }
+
+        int slotHover = -1;
+        if (mx >= 1640f && mx <= 1890f) {
+            if (my >= 690f && my <= 890f) slotHover = 10;
+            else if (my >= 450f && my <= 650f) slotHover = 11;
+            else if (my >= 210f && my <= 410f) slotHover = 12;
+        }
+        if (slotHover != ultimoUIHover) {
+            if (slotHover > 0) sonar(TipoEfecto.HOVER_UI);
+            ultimoUIHover = slotHover;
+        }
     }
 
     public void reiniciarNivel() {
@@ -1711,6 +1760,7 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public void volverAlMenu() {
+        sonar(TipoEfecto.CLICK_UI);
         if (juego != null) {
             juego.setScreen(new VistaSeleccionNivel(juego));
         }
@@ -1720,6 +1770,10 @@ public class VistaNivel extends ScreenAdapter {
         this.tiempoIntro = 3f;
         this.introCompletada = true;
         this.voltajeMedidorDC = 5.0f;
+    }
+
+    public GestorAudio getGestorAudio() {
+        return gestorAudio;
     }
 
     public boolean estaCableEnProgreso() {
