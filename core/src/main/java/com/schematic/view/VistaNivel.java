@@ -35,6 +35,13 @@ public class VistaNivel extends ScreenAdapter {
     public static final float ANCHO_VIRTUAL = 1920f;
     public static final float ALTO_VIRTUAL = 1080f;
 
+    private static final float[] SLOTS_Y = {720f, 515f, 310f, 105f};
+    private static final int FASE_DERROTA_NINGUNA = 0;
+    private static final int FASE_DERROTA_ALARMA = 1;
+    private static final int FASE_DERROTA_EXPLOSION = 2;
+    private static final int FASE_DERROTA_LIMPIEZA = 3;
+    private static final int FASE_DERROTA_MODAL = 4;
+
     private Game juego;
     private GestorAudio gestorAudio;
     private Nivel nivel;
@@ -42,50 +49,29 @@ public class VistaNivel extends ScreenAdapter {
     private FitViewport viewport;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
-    private BitmapFont font;
-    private BitmapFont fontTitulo;
-    private BitmapFont fontPequena;
+    private BitmapFont font, fontTitulo, fontPequena;
     private GlyphLayout glyphLayout;
     private ControladorNivel controlador;
 
     private List<Texture> texturasCargadas;
-    private Animation<TextureRegion> animLedNormal;
-    private Animation<TextureRegion> animLedPrendiendo;
-    private Animation<TextureRegion> animLedMuriendo;
-    private Animation<TextureRegion> animResistenciaNormal;
-    private Animation<TextureRegion> animResistenciaFallo;
+    private Animation<TextureRegion> animLedNormal, animLedPrendiendo, animLedMuriendo;
+    private Animation<TextureRegion> animResistenciaNormal, animResistenciaFallo, animAnd, animOr;
 
-    private float tiempoTotal;
-    private float tiempoAnimError;
-    private float tiempoIntro;
-    private boolean introCompletada;
-    private float voltajeMedidorDC;
-    private float tiempoExitoAcumulado;
-    private boolean progresoGuardado;
-    private float offsetGridPerspectiva;
-    private float tiempoIntroNivel;
+    private boolean mostrandoGuiaNivel;
+    private float tiempoTotal, tiempoAnimError, tiempoIntro, voltajeMedidorDC, tiempoExitoAcumulado;
+    private boolean introCompletada, progresoGuardado, derrotaPorTiempo;
+    private float offsetGridPerspectiva, tiempoIntroNivel;
     private int ultimoSegundoSonado = -1;
-
-    private static final int FASE_DERROTA_NINGUNA = 0;
-    private static final int FASE_DERROTA_ALARMA = 1;
-    private static final int FASE_DERROTA_EXPLOSION = 2;
-    private static final int FASE_DERROTA_LIMPIEZA = 3;
-    private static final int FASE_DERROTA_MODAL = 4;
 
     private int faseDerrota = FASE_DERROTA_NINGUNA;
     private float tiempoFaseDerrota = 0f;
-    private float sacudidaCamaraX = 0f;
-    private float sacudidaCamaraY = 0f;
-    private float opacidadHollin = 0f;
-    private float posicionLimpiadorX = -150f;
+    private float sacudidaCamaraX = 0f, sacudidaCamaraY = 0f, opacidadHollin = 0f, posicionLimpiadorX = -150f;
     private Vector2 centroExplosion = new Vector2(950f, 500f);
-    private boolean derrotaPorTiempo = false;
 
     private boolean cableEnProgreso;
     private Terminal terminalOrigenCable;
     private Vector2 ratonMundo;
-    private Terminal terminalBajoRaton;
-    private Terminal ultimoTerminalHover;
+    private Terminal terminalBajoRaton, ultimoTerminalHover;
     private int ultimoUIHover = -1;
 
     private List<ParticulaChispa> particulas;
@@ -126,38 +112,24 @@ public class VistaNivel extends ScreenAdapter {
         this.shapeRenderer = new ShapeRenderer();
         this.glyphLayout = new GlyphLayout();
 
-        this.font = new BitmapFont();
-        this.font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.font.getData().setScale(1.25f);
-
-        this.fontTitulo = new BitmapFont();
-        this.fontTitulo.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.fontTitulo.getData().setScale(1.75f);
-
-        this.fontPequena = new BitmapFont();
-        this.fontPequena.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.fontPequena.getData().setScale(0.95f);
+        this.font = crearFont(1.25f);
+        this.fontTitulo = crearFont(1.75f);
+        this.fontPequena = crearFont(0.95f);
 
         this.texturasCargadas = new ArrayList<>();
         cargarAnimaciones();
 
-        this.tiempoTotal = 0f;
-        this.tiempoAnimError = 0f;
-        this.tiempoIntro = 0f;
-        this.introCompletada = false;
-        this.voltajeMedidorDC = 0f;
-        this.tiempoExitoAcumulado = 0f;
-        this.offsetGridPerspectiva = 0f;
-        this.tiempoIntroNivel = 0f;
-
-        this.cableEnProgreso = false;
-        this.terminalOrigenCable = null;
         this.ratonMundo = new Vector2();
-        this.terminalBajoRaton = null;
-
         this.particulas = new ArrayList<>();
-
+        this.mostrandoGuiaNivel = (nivel != null && (nivel.getNumeroNivel() == 3 || nivel.getNumeroNivel() == 4));
         this.controlador = new ControladorNivel(nivel, camara, viewport, this);
+    }
+
+    private BitmapFont crearFont(float escala) {
+        BitmapFont f = new BitmapFont();
+        f.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        f.getData().setScale(escala);
+        return f;
     }
 
     private void cargarAnimaciones() {
@@ -166,13 +138,14 @@ public class VistaNivel extends ScreenAdapter {
         animLedMuriendo = cargarAnimacion("led_muriendo", 10, 0.14f);
         animResistenciaNormal = cargarAnimacion("resistencia_normal", 8, 0.22f);
         animResistenciaFallo = cargarAnimacion("resistencia_fail", 15, 0.15f);
+        animAnd = cargarAnimacion("and", 12, 0.12f);
+        animOr = cargarAnimacion("or", 12, 0.12f);
     }
 
     private Animation<TextureRegion> cargarAnimacion(String carpeta, int cantidadFrames, float duracionFrame) {
         Array<TextureRegion> frames = new Array<>();
         for (int i = 0; i < cantidadFrames; i++) {
-            String path = String.format("sprites/%s/frame_%05d.png", carpeta, i);
-            FileHandle fh = Gdx.files.internal(path);
+            FileHandle fh = Gdx.files.internal(String.format("sprites/%s/frame_%05d.png", carpeta, i));
             if (fh.exists()) {
                 Texture tex = new Texture(fh);
                 tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
@@ -209,75 +182,8 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         if (nivel != null) {
-            if (introCompletada) {
-                nivel.actualizar(delta);
-            } else {
-                nivel.actualizar(0f);
-            }
-
-            if (nivel.estaGanado()) {
-                if (!progresoGuardado) {
-                    progresoGuardado = true;
-                    sonar(TipoEfecto.EXITO_NIVEL);
-                    int siguiente = nivel.getNumeroNivel() + 1;
-                    if (juego instanceof JuegoPrincipal) {
-                        JuegoPrincipal jp = (JuegoPrincipal) juego;
-                        if (jp.getProgreso() != null) {
-                            jp.getProgreso().desbloquearNivel(siguiente);
-                            jp.guardarProgreso();
-                        }
-                    } else {
-                        ProgresoJugador p = GestorPersistenciaJSON.cargar();
-                        p.desbloquearNivel(siguiente);
-                        GestorPersistenciaJSON.guardar(p);
-                    }
-                }
-                tiempoExitoAcumulado += delta;
-                if (MathUtils.randomBoolean(0.25f)) {
-                    for (Componente c : nivel.getComponentes()) {
-                        if (c instanceof LED) {
-                            generarChispasImpacto(c.getPosicionX() + c.getAncho() * 0.49f, c.getPosicionY() + c.getAlto() * 0.65f, 4);
-                        }
-                    }
-                }
-            } else {
-                tiempoExitoAcumulado = 0f;
-                progresoGuardado = false;
-            }
-
-            if (nivel.getTiempoCircuitoActivo() > 0 && !nivel.estaGanado()) {
-                int segundoActual = (int) nivel.getTiempoCircuitoActivo();
-                if (segundoActual > ultimoSegundoSonado && segundoActual >= 1) {
-                    ultimoSegundoSonado = segundoActual;
-                    sonar(TipoEfecto.ELECTRON);
-                }
-            } else if (nivel.getTiempoCircuitoActivo() <= 0) {
-                ultimoSegundoSonado = 0;
-            }
-
-            boolean hayError = false;
-            for (Componente c : nivel.getComponentes()) {
-                if ("ERROR".equals(c.getEstadoActual())) {
-                    hayError = true;
-                    break;
-                }
-            }
-
-            boolean tiempoAgotado = (introCompletada && nivel.getTiempoRestante() <= 0f && !nivel.estaGanado());
-
-            if (hayError || tiempoAgotado) {
-                if (faseDerrota == FASE_DERROTA_NINGUNA) {
-                    derrotaPorTiempo = tiempoAgotado && !hayError;
-                    faseDerrota = FASE_DERROTA_ALARMA;
-                    tiempoFaseDerrota = 0f;
-                    sonar(TipoEfecto.ALARMA_TIEMPO);
-                    if (derrotaPorTiempo) {
-                        centroExplosion.set(ANCHO_VIRTUAL / 2f, ALTO_VIRTUAL / 2f);
-                    } else {
-                        localizarCentroFallo();
-                    }
-                }
-            }
+            nivel.actualizar((introCompletada && !mostrandoGuiaNivel) ? delta : 0f);
+            actualizarEstadoNivel(delta);
         }
 
         if (faseDerrota != FASE_DERROTA_NINGUNA) {
@@ -288,7 +194,6 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         actualizarParticulas(delta);
-
         camara.position.set(ANCHO_VIRTUAL / 2f + sacudidaCamaraX, ALTO_VIRTUAL / 2f + sacudidaCamaraY, 0);
         camara.update();
 
@@ -298,7 +203,6 @@ public class VistaNivel extends ScreenAdapter {
 
         Gdx.gl.glClearColor(COLOR_FONDO_NEGRO.r, COLOR_FONDO_NEGRO.g, COLOR_FONDO_NEGRO.b, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
@@ -316,12 +220,15 @@ public class VistaNivel extends ScreenAdapter {
         dibujarParticulas();
         dibujarBarraTemporizadorSuperior();
         dibujarBarraValidacionCircuito();
+        dibujarBotonGuiaSuperiorShape();
+        dibujarPasosGuiaHUDShapes();
         shapeRenderer.end();
 
         batch.begin();
         dibujarComponentesSprites();
         dibujarContenidoBarraLateral();
         dibujarTextosHUD();
+        dibujarPasosGuiaHUDTextos();
         if (controlador != null && controlador.estaArrastrandoDesdeBarra()) {
             dibujarVistaPreviaArrastre();
         }
@@ -329,39 +236,108 @@ public class VistaNivel extends ScreenAdapter {
 
         dibujarEfectosDerrota();
 
-        if (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL)) {
+        boolean modalFinActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL));
+        if (modalFinActivo) {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             dibujarFondoModal();
             shapeRenderer.end();
-
             batch.begin();
             dibujarContenidoModal();
+            batch.end();
+        } else if (mostrandoGuiaNivel) {
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            dibujarGuiaNivelShapes();
+            shapeRenderer.end();
+            batch.begin();
+            dibujarGuiaNivelTextos();
             batch.end();
         }
 
         tiempoIntroNivel += delta;
         if (tiempoIntroNivel < 0.5f) {
-            float alfa = MathUtils.clamp(1f - (tiempoIntroNivel / 0.5f), 0f, 1f);
-            Gdx.gl.glEnable(GL20.GL_BLEND);
-            Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(COLOR_FONDO_NEGRO.r, COLOR_FONDO_NEGRO.g, COLOR_FONDO_NEGRO.b, alfa);
-            shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
-            float barraY = ALTO_VIRTUAL * (1f - alfa);
-            shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, alfa * 0.85f);
-            shapeRenderer.rectLine(0, barraY, ANCHO_VIRTUAL, barraY, 4f);
-            shapeRenderer.end();
+            dibujarCortinaIntro();
+        }
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+    }
+
+    private void actualizarEstadoNivel(float delta) {
+        if (nivel.estaGanado()) {
+            if (!progresoGuardado) {
+                progresoGuardado = true;
+                sonar(TipoEfecto.EXITO_NIVEL);
+                guardarProgresoSiguiente();
+            }
+            tiempoExitoAcumulado += delta;
+            if (MathUtils.randomBoolean(0.25f)) {
+                for (Componente c : nivel.getComponentes()) {
+                    if (c instanceof LED) {
+                        generarChispasImpacto(c.getPosicionX() + c.getAncho() * 0.49f, c.getPosicionY() + c.getAlto() * 0.65f, 4);
+                    }
+                }
+            }
+        } else {
+            tiempoExitoAcumulado = 0f;
+            progresoGuardado = false;
         }
 
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+        if (nivel.getTiempoCircuitoActivo() > 0 && !nivel.estaGanado()) {
+            int seg = (int) nivel.getTiempoCircuitoActivo();
+            if (seg > ultimoSegundoSonado && seg >= 1) {
+                ultimoSegundoSonado = seg;
+                sonar(TipoEfecto.ELECTRON);
+            }
+        } else if (nivel.getTiempoCircuitoActivo() <= 0) {
+            ultimoSegundoSonado = 0;
+        }
+
+        boolean hayError = false;
+        for (Componente c : nivel.getComponentes()) {
+            if ("ERROR".equals(c.getEstadoActual())) {
+                hayError = true;
+                break;
+            }
+        }
+        boolean tiempoAgotado = (introCompletada && nivel.getTiempoRestante() <= 0f && !nivel.estaGanado());
+        if ((hayError || tiempoAgotado) && faseDerrota == FASE_DERROTA_NINGUNA) {
+            derrotaPorTiempo = tiempoAgotado && !hayError;
+            faseDerrota = FASE_DERROTA_ALARMA;
+            tiempoFaseDerrota = 0f;
+            sonar(TipoEfecto.ALARMA_TIEMPO);
+            if (derrotaPorTiempo) centroExplosion.set(ANCHO_VIRTUAL / 2f, ALTO_VIRTUAL / 2f);
+            else localizarCentroFallo();
+        }
+    }
+
+    private void guardarProgresoSiguiente() {
+        int siguiente = nivel.getNumeroNivel() + 1;
+        if (juego instanceof JuegoPrincipal) {
+            JuegoPrincipal jp = (JuegoPrincipal) juego;
+            if (jp.getProgreso() != null) {
+                jp.getProgreso().desbloquearNivel(siguiente);
+                jp.guardarProgreso();
+            }
+        } else {
+            ProgresoJugador p = GestorPersistenciaJSON.cargar();
+            p.desbloquearNivel(siguiente);
+            GestorPersistenciaJSON.guardar(p);
+        }
+    }
+
+    private void dibujarCortinaIntro() {
+        float alfa = MathUtils.clamp(1f - (tiempoIntroNivel / 0.5f), 0f, 1f);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(COLOR_FONDO_NEGRO.r, COLOR_FONDO_NEGRO.g, COLOR_FONDO_NEGRO.b, alfa);
+        shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
+        float barraY = ALTO_VIRTUAL * (1f - alfa);
+        shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, alfa * 0.85f);
+        shapeRenderer.rectLine(0, barraY, ANCHO_VIRTUAL, barraY, 4f);
+        shapeRenderer.end();
     }
 
     private boolean hayErrorLED() {
         if (nivel == null) return false;
         for (Componente c : nivel.getComponentes()) {
-            if (c instanceof LED && ((LED) c).estaQuemado()) {
-                return true;
-            }
+            if (c instanceof LED && ((LED) c).estaQuemado()) return true;
         }
         return false;
     }
@@ -381,11 +357,9 @@ public class VistaNivel extends ScreenAdapter {
         tiempoAnimError += delta;
 
         if (faseDerrota == FASE_DERROTA_ALARMA) {
-            sacudidaCamaraX = MathUtils.random(-3.0f, 3.0f);
-            sacudidaCamaraY = MathUtils.random(-3.0f, 3.0f);
-            if (MathUtils.randomBoolean(0.4f)) {
-                generarChispasImpacto(centroExplosion.x, centroExplosion.y, 4);
-            }
+            sacudidaCamaraX = MathUtils.random(-3f, 3f);
+            sacudidaCamaraY = MathUtils.random(-3f, 3f);
+            if (MathUtils.randomBoolean(0.4f)) generarChispasImpacto(centroExplosion.x, centroExplosion.y, 4);
             if (tiempoFaseDerrota >= 1.0f) {
                 faseDerrota = FASE_DERROTA_EXPLOSION;
                 tiempoFaseDerrota = 0f;
@@ -397,11 +371,9 @@ public class VistaNivel extends ScreenAdapter {
             sacudidaCamaraX = MathUtils.random(-fuerza, fuerza);
             sacudidaCamaraY = MathUtils.random(-fuerza, fuerza);
             opacidadHollin = Math.min(1.0f, progreso * 1.8f);
-
             if (MathUtils.randomBoolean(0.45f)) {
                 generarChispasImpacto(centroExplosion.x + MathUtils.random(-80f, 80f), centroExplosion.y + MathUtils.random(-80f, 80f), 5);
             }
-
             if (tiempoFaseDerrota >= 1.1f) {
                 faseDerrota = FASE_DERROTA_LIMPIEZA;
                 tiempoFaseDerrota = 0f;
@@ -412,16 +384,14 @@ public class VistaNivel extends ScreenAdapter {
         } else if (faseDerrota == FASE_DERROTA_LIMPIEZA) {
             sacudidaCamaraX = 0f;
             sacudidaCamaraY = 0f;
-            float duracionLimpieza = 2.2f;
-            float progreso = MathUtils.clamp(tiempoFaseDerrota / duracionLimpieza, 0f, 1f);
+            float duracion = 2.2f;
+            float progreso = MathUtils.clamp(tiempoFaseDerrota / duracion, 0f, 1f);
             posicionLimpiadorX = MathUtils.lerp(-140f, ANCHO_VIRTUAL + 180f, progreso);
-
             if (MathUtils.randomBoolean(0.4f) && posicionLimpiadorX > 0 && posicionLimpiadorX < ANCHO_VIRTUAL) {
                 float yParticula = 540f + MathUtils.sin(tiempoFaseDerrota * 6.5f) * 230f;
                 generarChispasImpacto(posicionLimpiadorX - 25f, yParticula, 3);
             }
-
-            if (tiempoFaseDerrota >= duracionLimpieza) {
+            if (tiempoFaseDerrota >= duracion) {
                 faseDerrota = FASE_DERROTA_MODAL;
                 tiempoFaseDerrota = 0f;
                 opacidadHollin = 0f;
@@ -434,29 +404,19 @@ public class VistaNivel extends ScreenAdapter {
         for (int i = 0; i < 75; i++) {
             float ang = MathUtils.random(0f, MathUtils.PI2);
             float vel = MathUtils.random(100f, 550f);
-            float vx = MathUtils.cos(ang) * vel;
-            float vy = MathUtils.sin(ang) * vel;
-            float vida = MathUtils.random(0.5f, 1.4f);
-            float r = MathUtils.random(0.9f, 1f);
-            float g = MathUtils.random(0.2f, 0.8f);
-            float b = MathUtils.random(0.0f, 0.2f);
-            particulas.add(new ParticulaChispa(cx, cy, vx, vy, vida, r, g, b));
+            particulas.add(new ParticulaChispa(cx, cy, MathUtils.cos(ang) * vel, MathUtils.sin(ang) * vel,
+                    MathUtils.random(0.5f, 1.4f), MathUtils.random(0.9f, 1f), MathUtils.random(0.2f, 0.8f), 0f));
         }
         for (int i = 0; i < 35; i++) {
             float ang = MathUtils.random(0f, MathUtils.PI2);
             float vel = MathUtils.random(40f, 240f);
-            float vx = MathUtils.cos(ang) * vel;
-            float vy = MathUtils.sin(ang) * vel;
-            float vida = MathUtils.random(0.8f, 2.0f);
-            particulas.add(new ParticulaChispa(cx, cy, vx, vy, vida, 0.12f, 0.12f, 0.16f));
+            particulas.add(new ParticulaChispa(cx, cy, MathUtils.cos(ang) * vel, MathUtils.sin(ang) * vel,
+                    MathUtils.random(0.8f, 2.0f), 0.12f, 0.12f, 0.16f));
         }
     }
 
     private void dibujarEfectosDerrota() {
         if (faseDerrota == FASE_DERROTA_NINGUNA) return;
-
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
 
         if (faseDerrota == FASE_DERROTA_ALARMA) {
             float pulso = 0.22f + 0.18f * MathUtils.sin(tiempoFaseDerrota * 18f);
@@ -474,19 +434,17 @@ public class VistaNivel extends ScreenAdapter {
                 shapeRenderer.setColor(1f, 0.95f, 0.85f, alfaFlash);
                 shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
             }
-
             float onda = tiempoFaseDerrota * 950f;
             float alfaOnda = Math.max(0f, 1f - (tiempoFaseDerrota / 0.75f));
             shapeRenderer.setColor(1f, 0.50f, 0.10f, alfaOnda * 0.55f);
             shapeRenderer.circle(centroExplosion.x, centroExplosion.y, onda);
 
             float alfaNegroPuro = MathUtils.clamp(opacidadHollin, 0f, 1f);
-            shapeRenderer.setColor(0.00f, 0.00f, 0.00f, alfaNegroPuro);
+            shapeRenderer.setColor(0f, 0f, 0f, alfaNegroPuro);
             shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
-
             if (alfaNegroPuro < 0.95f) {
                 float radioHollin = Math.min(1200f, tiempoFaseDerrota * 1100f);
-                shapeRenderer.setColor(0.00f, 0.00f, 0.00f, 0.95f);
+                shapeRenderer.setColor(0f, 0f, 0f, 0.95f);
                 shapeRenderer.circle(centroExplosion.x, centroExplosion.y, radioHollin);
                 shapeRenderer.circle(centroExplosion.x - 180f, centroExplosion.y + 80f, radioHollin * 0.8f);
                 shapeRenderer.circle(centroExplosion.x + 200f, centroExplosion.y - 70f, radioHollin * 0.85f);
@@ -496,11 +454,9 @@ public class VistaNivel extends ScreenAdapter {
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             if (posicionLimpiadorX < ANCHO_VIRTUAL) {
                 float xInicio = Math.max(0f, posicionLimpiadorX);
-                float anchoRestante = ANCHO_VIRTUAL - xInicio;
-                shapeRenderer.setColor(0.00f, 0.00f, 0.00f, 1.0f);
-                shapeRenderer.rect(xInicio, 0, anchoRestante, ALTO_VIRTUAL);
+                shapeRenderer.setColor(0f, 0f, 0f, 1f);
+                shapeRenderer.rect(xInicio, 0, ANCHO_VIRTUAL - xInicio, ALTO_VIRTUAL);
             }
-
             shapeRenderer.setColor(0.00f, 0.95f, 1.00f, 0.35f);
             shapeRenderer.rectLine(posicionLimpiadorX, 0, posicionLimpiadorX, ALTO_VIRTUAL, 16f);
             shapeRenderer.setColor(0.25f, 0.95f, 1.00f, 0.85f);
@@ -513,117 +469,132 @@ public class VistaNivel extends ScreenAdapter {
                 shapeRenderer.setColor(0.6f, 0.95f, 1f, 0.75f);
                 shapeRenderer.circle(posicionLimpiadorX - 4f, gotaY, 3.5f);
             }
-            shapeRenderer.end();
-
             float yElectron = 540f + MathUtils.sin(tiempoFaseDerrota * 6.5f) * 230f;
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             dibujarElectronLimpiador(posicionLimpiadorX, yElectron, tiempoFaseDerrota);
             shapeRenderer.end();
         }
     }
 
-    private void dibujarElectronLimpiador(float ex, float ey, float tiempo) {
-        float escala = 3.4f;
-
-        shapeRenderer.setColor(0.0f, 0.88f, 1.0f, 0.40f);
-        shapeRenderer.circle(ex, ey, 25f * escala);
-
-        shapeRenderer.setColor(0.0f, 0.95f, 1.0f, 0.95f);
-        shapeRenderer.circle(ex, ey, 18f * escala);
-
-        shapeRenderer.setColor(0.80f, 1.00f, 1.00f, 1f);
-        shapeRenderer.circle(ex, ey, 12.5f * escala);
-
+    private void dibujarCuerpoElectron(float x, float y, float escala, float dirX, float dirY, boolean parpadeo) {
+        shapeRenderer.setColor(0.00f, 0.85f, 1.00f, 0.30f);
+        shapeRenderer.circle(x, y, 22f * escala);
+        shapeRenderer.setColor(0.00f, 0.95f, 1.00f, 0.85f);
+        shapeRenderer.circle(x, y, 16f * escala);
+        shapeRenderer.setColor(0.75f, 1.00f, 1.00f, 1f);
+        shapeRenderer.circle(x, y, 11f * escala);
         shapeRenderer.setColor(1f, 1f, 1f, 0.95f);
-        shapeRenderer.circle(ex - 4.5f * escala, ey + 4.5f * escala, 4.2f * escala);
+        shapeRenderer.circle(x - 4f * escala, y + 4f * escala, 3.5f * escala);
 
         shapeRenderer.setColor(1.0f, 0.45f, 0.65f, 0.45f);
-        shapeRenderer.circle(ex - 8f * escala, ey - 2f * escala, 3f * escala);
-        shapeRenderer.circle(ex + 8f * escala, ey - 2f * escala, 3f * escala);
+        shapeRenderer.circle(x - 7.5f * escala, y - 2f * escala, 3f * escala);
+        shapeRenderer.circle(x + 7.5f * escala, y - 2f * escala, 3f * escala);
 
-        float oscilacionBrazo = MathUtils.sin(tiempo * 16f) * 12f;
-        float bx1 = ex + (10f * escala);
-        float by1 = ey - (16f * escala) + oscilacionBrazo;
-        float bx2 = bx1;
-        float by2 = by1 + (38f * escala);
+        float ojoX = 5.2f * escala;
+        float ojoY = 3.2f * escala;
+        if (parpadeo) {
+            shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
+            shapeRenderer.rectLine(x - ojoX - 5f, y + ojoY, x - ojoX + 5f, y + ojoY, 3.5f);
+            shapeRenderer.rectLine(x + ojoX - 5f, y + ojoY, x + ojoX + 5f, y + ojoY, 3.5f);
+        } else {
+            shapeRenderer.setColor(1f, 1f, 1f, 1f);
+            shapeRenderer.circle(x - ojoX, y + ojoY, 5f * escala);
+            shapeRenderer.circle(x + ojoX, y + ojoY, 5f * escala);
+            shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
+            shapeRenderer.circle(x - ojoX + dirX * 1.5f * escala, y + ojoY + dirY * 1.5f * escala, 2.6f * escala);
+            shapeRenderer.circle(x + ojoX + dirX * 1.5f * escala, y + ojoY + dirY * 1.5f * escala, 2.6f * escala);
+            shapeRenderer.setColor(1f, 1f, 1f, 1f);
+            shapeRenderer.circle(x - ojoX + 1.2f * escala, y + ojoY + 1.2f * escala, 1f * escala);
+            shapeRenderer.circle(x + ojoX + 1.2f * escala, y + ojoY + 1.2f * escala, 1f * escala);
+        }
+        shapeRenderer.setColor(0.10f, 0.15f, 0.30f, 1f);
+        shapeRenderer.ellipse(x - 2.5f * escala, y - 6f * escala, 5f * escala, 3f * escala);
+        shapeRenderer.setColor(1.00f, 0.40f, 0.60f, 1f);
+        shapeRenderer.circle(x, y - 6.5f * escala, 1.5f * escala);
+    }
 
+    private void dibujarElectronLimpiador(float ex, float ey, float tiempo) {
+        float escala = 3.4f;
+        dibujarCuerpoElectron(ex, ey, escala, 1f, 0f, (tiempo % 1.3f) > 1.15f);
+
+        float osc = MathUtils.sin(tiempo * 16f) * 12f;
+        float bx1 = ex + 34f, by1 = ey - 54f + osc;
+        float bx2 = bx1, by2 = by1 + 130f;
+
+        shapeRenderer.setColor(0.15f, 0.25f, 0.40f, 1f);
+        shapeRenderer.rectLine(ex + 14f, ey - 7f, bx1, by1 + 60f, 4f);
         shapeRenderer.setColor(0.0f, 0.90f, 1.0f, 0.95f);
         shapeRenderer.rectLine(bx1, by1 - 35f, bx2, by2 + 35f, 7f);
         shapeRenderer.setColor(1f, 1f, 1f, 1f);
         shapeRenderer.rectLine(bx1, by1 - 35f, bx2, by2 + 35f, 2.5f);
+    }
 
-        shapeRenderer.setColor(0.15f, 0.25f, 0.40f, 1f);
-        shapeRenderer.rectLine(ex + 4f * escala, ey - 2f * escala, bx1, by1 + 18f * escala, 4f);
+    private void dibujarElectronCaricatura(float x, float y, float angulo, float escala, float tiempoAnim) {
+        float dirX = MathUtils.cos(angulo), dirY = MathUtils.sin(angulo);
+        dibujarCuerpoElectron(x, y, escala, dirX, dirY, false);
 
-        boolean parpadeo = (tiempo % 1.3f) > 1.15f;
-        float ojoDistX = 5.5f * escala;
-        float ojoDistY = 3.5f * escala;
+        float estela1 = MathUtils.sin(tiempoAnim * 20f) * 4f * escala;
+        float estela2 = MathUtils.cos(tiempoAnim * 18f) * 4f * escala;
+        shapeRenderer.setColor(0.20f, 0.90f, 1.00f, 0.6f);
+        shapeRenderer.circle(x - dirX * 20f * escala - dirY * estela1, y - dirY * 20f * escala + dirX * estela1, 3.5f * escala);
+        shapeRenderer.circle(x - dirX * 30f * escala - dirY * estela2, y - dirY * 30f * escala + dirX * estela2, 2.2f * escala);
+    }
 
-        if (parpadeo) {
-            shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
-            shapeRenderer.rectLine(ex - ojoDistX - 5f, ey + ojoDistY, ex - ojoDistX + 5f, ey + ojoDistY, 3.5f);
-            shapeRenderer.rectLine(ex + ojoDistX - 5f, ey + ojoDistY, ex + ojoDistX + 5f, ey + ojoDistY, 3.5f);
-        } else {
-            shapeRenderer.setColor(1f, 1f, 1f, 1f);
-            shapeRenderer.circle(ex - ojoDistX, ey + ojoDistY, 5.8f * escala);
-            shapeRenderer.circle(ex + ojoDistX, ey + ojoDistY, 5.8f * escala);
+    private void dibujarBordeRect(float x, float y, float w, float h, Color borde, float grosor) {
+        shapeRenderer.setColor(borde);
+        shapeRenderer.rectLine(x, y, x + w, y, grosor);
+        shapeRenderer.rectLine(x + w, y, x + w, y + h, grosor);
+        shapeRenderer.rectLine(x + w, y + h, x, y + h, grosor);
+        shapeRenderer.rectLine(x, y + h, x, y, grosor);
+    }
 
-            shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
-            shapeRenderer.circle(ex - ojoDistX + 1.8f * escala, ey + ojoDistY, 3.0f * escala);
-            shapeRenderer.circle(ex + ojoDistX + 1.8f * escala, ey + ojoDistY, 3.0f * escala);
+    private void dibujarCajaBorde(float x, float y, float w, float h, Color relleno, Color borde, float grosor) {
+        shapeRenderer.setColor(relleno);
+        shapeRenderer.rect(x, y, w, h);
+        dibujarBordeRect(x, y, w, h, borde, grosor);
+    }
 
-            shapeRenderer.setColor(1f, 1f, 1f, 1f);
-            shapeRenderer.circle(ex - ojoDistX + 2.2f * escala, ey + ojoDistY + 1.2f * escala, 1.2f * escala);
-            shapeRenderer.circle(ex + ojoDistX + 2.2f * escala, ey + ojoDistY + 1.2f * escala, 1.2f * escala);
-        }
+    private void dibujarFlechaHorizontal(float x1, float x2, float y, Color col) {
+        shapeRenderer.setColor(col);
+        shapeRenderer.rectLine(x1, y, x2 - 8f, y, 3.5f);
+        shapeRenderer.triangle(x2, y, x2 - 11f, y + 6.5f, x2 - 11f, y - 6.5f);
+    }
 
-        shapeRenderer.setColor(0.05f, 0.10f, 0.20f, 1f);
-        shapeRenderer.ellipse(ex - 2f * escala, ey - 7f * escala, 5f * escala, 3f * escala);
-        shapeRenderer.setColor(1.00f, 0.45f, 0.65f, 1f);
-        shapeRenderer.circle(ex + 0.5f * escala, ey - 7.5f * escala, 1.5f * escala);
+    private void dibujarPulsoCableGuia(float x1, float y1, float x2, float y2, float desfase) {
+        float t = (tiempoTotal * 0.85f + desfase) % 1.0f;
+        float px = MathUtils.lerp(x1, x2, t);
+        float py = MathUtils.lerp(y1, y2, t);
+        shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.35f);
+        shapeRenderer.circle(px, py, 5.5f);
+        shapeRenderer.setColor(1f, 1f, 1f, 0.95f);
+        shapeRenderer.circle(px, py, 2.5f);
     }
 
     private void dibujarMesaDeTrabajo() {
         for (float y = 60f; y < ALTO_VIRTUAL - 90f; y += 35f) {
             float t = (y - 60f) / (ALTO_VIRTUAL - 150f);
-            float r = MathUtils.lerp(0.015f, 0.038f, t);
-            float g = MathUtils.lerp(0.024f, 0.052f, t);
-            float b = MathUtils.lerp(0.045f, 0.100f, t);
-            shapeRenderer.setColor(r, g, b, 1f);
+            shapeRenderer.setColor(MathUtils.lerp(0.015f, 0.038f, t), MathUtils.lerp(0.024f, 0.052f, t), MathUtils.lerp(0.045f, 0.100f, t), 1f);
             shapeRenderer.rect(0, y, 1620f, 36f);
         }
 
         shapeRenderer.setColor(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.08f);
-        for (float x = 0; x <= 1620f; x += 60f) {
-            shapeRenderer.rectLine(x, 60f, x, ALTO_VIRTUAL - 90f, 1.0f);
-        }
-        for (float y = 60f; y <= ALTO_VIRTUAL - 90f; y += 60f) {
-            shapeRenderer.rectLine(0, y, 1620f, y, 1.0f);
-        }
+        for (float x = 0; x <= 1620f; x += 60f) shapeRenderer.rectLine(x, 60f, x, ALTO_VIRTUAL - 90f, 1.0f);
+        for (float y = 60f; y <= ALTO_VIRTUAL - 90f; y += 60f) shapeRenderer.rectLine(0, y, 1620f, y, 1.0f);
 
         shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.12f);
-        for (float x = 0; x <= 1620f; x += 300f) {
-            shapeRenderer.rectLine(x, 60f, x, ALTO_VIRTUAL - 90f, 1.5f);
-        }
-        for (float y = 60f; y <= ALTO_VIRTUAL - 90f; y += 300f) {
-            shapeRenderer.rectLine(0, y, 1620f, y, 1.5f);
-        }
+        for (float x = 0; x <= 1620f; x += 300f) shapeRenderer.rectLine(x, 60f, x, ALTO_VIRTUAL - 90f, 1.5f);
+        for (float y = 60f; y <= ALTO_VIRTUAL - 90f; y += 300f) shapeRenderer.rectLine(0, y, 1620f, y, 1.5f);
 
         float[] pistasY = {240f, 500f, 780f};
         for (int i = 0; i < pistasY.length; i++) {
             float py = pistasY[i];
             shapeRenderer.setColor(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.14f);
             shapeRenderer.rectLine(0, py, 1620f, py, 1.5f);
-
-            float velocidadX = 140f + (i * 35f);
-            float pulsoX = ((tiempoTotal * velocidadX) + i * 450f) % (1620f + 200f) - 100f;
+            float pulsoX = ((tiempoTotal * (140f + i * 35f)) + i * 450f) % 1820f - 100f;
             if (pulsoX >= -40f && pulsoX <= 1660f) {
                 shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.28f);
                 shapeRenderer.rectLine(Math.max(0, pulsoX - 35f), py, Math.min(1620f, pulsoX + 35f), py, 2.5f);
                 shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE.r, COLOR_CELESTE_BRILLANTE.g, COLOR_CELESTE_BRILLANTE.b, 0.55f);
-                if (pulsoX >= 0 && pulsoX <= 1620f) {
-                    shapeRenderer.circle(pulsoX, py, 2.5f);
-                }
+                if (pulsoX >= 0 && pulsoX <= 1620f) shapeRenderer.circle(pulsoX, py, 2.5f);
             }
         }
 
@@ -641,19 +612,13 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void dibujarOndaOsciloscopioMesa() {
-        float centroY = 220f;
-        float paso = 20f;
-        float prevX = 0f;
+        float centroY = 220f, paso = 20f, prevX = 0f;
         float prevY = centroY + MathUtils.sin(tiempoTotal * 2.5f) * 12f;
-
         for (float x = paso; x <= 1620f; x += paso) {
-            float onda1 = MathUtils.sin(x * 0.006f + tiempoTotal * 2.2f) * 16f;
-            float y = centroY + onda1;
-
+            float y = centroY + MathUtils.sin(x * 0.006f + tiempoTotal * 2.2f) * 16f;
             float alpha = 0.08f + MathUtils.sin(tiempoTotal * 2f + x * 0.005f) * 0.03f;
             shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, alpha);
             shapeRenderer.rectLine(prevX, prevY, x, y, 2.0f);
-
             prevX = x;
             prevY = y;
         }
@@ -661,228 +626,162 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarBarraTemporizadorSuperior() {
         if (nivel == null) return;
-
-        float limite = nivel.getTiempoLimite();
-        if (limite <= 0f) limite = 60f;
-        float restante = nivel.getTiempoRestante();
-        float ratio = MathUtils.clamp(restante / limite, 0f, 1f);
-
-        float altoBarra = 9f;
-        float yBarra = ALTO_VIRTUAL - altoBarra;
-        float anchoTotal = ANCHO_VIRTUAL;
-        float anchoActual = anchoTotal * ratio;
+        float limite = nivel.getTiempoLimite() <= 0f ? 60f : nivel.getTiempoLimite();
+        float ratio = MathUtils.clamp(nivel.getTiempoRestante() / limite, 0f, 1f);
+        float altoBarra = 9f, yBarra = ALTO_VIRTUAL - altoBarra;
+        float anchoActual = ANCHO_VIRTUAL * ratio;
 
         shapeRenderer.setColor(0.03f, 0.05f, 0.08f, 0.95f);
-        shapeRenderer.rect(0f, yBarra, anchoTotal, altoBarra);
-
+        shapeRenderer.rect(0f, yBarra, ANCHO_VIRTUAL, altoBarra);
         shapeRenderer.setColor(0.15f, 0.22f, 0.32f, 0.85f);
-        shapeRenderer.rectLine(0f, yBarra, anchoTotal, yBarra, 1.5f);
+        shapeRenderer.rectLine(0f, yBarra, ANCHO_VIRTUAL, yBarra, 1.5f);
 
-        for (float xTick = 120f; xTick < anchoTotal; xTick += 120f) {
+        for (float xTick = 120f; xTick < ANCHO_VIRTUAL; xTick += 120f) {
             shapeRenderer.setColor(0.20f, 0.30f, 0.42f, 0.35f);
             shapeRenderer.rectLine(xTick, yBarra, xTick, yBarra + altoBarra, 1f);
         }
 
         if (anchoActual > 0f) {
-            Color colorPrincipal;
-            Color colorNucleo;
-            float pulsoAlerta = 1.0f;
+            Color colP = ratio > 0.45f ? COLOR_NEON_CELESTE : (ratio > 0.20f ? new Color(1f, 0.78f, 0.15f, 1f) : new Color(1f, 0.20f, 0.25f, 1f));
+            Color colN = ratio > 0.45f ? COLOR_CELESTE_BRILLANTE : (ratio > 0.20f ? new Color(1f, 0.95f, 0.60f, 1f) : new Color(1f, 0.85f, 0.85f, 1f));
+            float pulso = ratio <= 0.20f ? (0.65f + 0.35f * MathUtils.sin(tiempoTotal * 16f)) : 1f;
 
-            if (ratio > 0.45f) {
-                colorPrincipal = COLOR_NEON_CELESTE;
-                colorNucleo = COLOR_CELESTE_BRILLANTE;
-            } else if (ratio > 0.20f) {
-                colorPrincipal = new Color(1.00f, 0.78f, 0.15f, 1f);
-                colorNucleo = new Color(1.00f, 0.95f, 0.60f, 1f);
-            } else {
-                colorPrincipal = new Color(1.00f, 0.20f, 0.25f, 1f);
-                colorNucleo = new Color(1.00f, 0.85f, 0.85f, 1f);
-                pulsoAlerta = 0.65f + 0.35f * MathUtils.sin(tiempoTotal * 16f);
-            }
-
-            shapeRenderer.setColor(colorPrincipal.r, colorPrincipal.g, colorPrincipal.b, colorPrincipal.a * pulsoAlerta);
+            shapeRenderer.setColor(colP.r, colP.g, colP.b, colP.a * pulso);
             shapeRenderer.rect(0f, yBarra, anchoActual, altoBarra);
-
-            shapeRenderer.setColor(colorNucleo.r, colorNucleo.g, colorNucleo.b, 0.85f * pulsoAlerta);
+            shapeRenderer.setColor(colN.r, colN.g, colN.b, 0.85f * pulso);
             shapeRenderer.rect(0f, yBarra + altoBarra * 0.30f, anchoActual, altoBarra * 0.40f);
-
-            shapeRenderer.setColor(colorPrincipal.r, colorPrincipal.g, colorPrincipal.b, 0.45f * pulsoAlerta);
+            shapeRenderer.setColor(colP.r, colP.g, colP.b, 0.45f * pulso);
             shapeRenderer.circle(anchoActual, yBarra + altoBarra / 2f, 7f);
-            shapeRenderer.setColor(1f, 1f, 1f, 0.95f * pulsoAlerta);
+            shapeRenderer.setColor(1f, 1f, 1f, 0.95f * pulso);
             shapeRenderer.circle(anchoActual, yBarra + altoBarra / 2f, 3.5f);
-
-            if (introCompletada && !nivel.estaGanado()) {
-                if (ratio <= 0.20f && MathUtils.randomBoolean(0.35f)) {
-                    generarChispasImpacto(anchoActual, yBarra + altoBarra / 2f, 1);
-                } else if (MathUtils.randomBoolean(0.08f)) {
-                    generarChispasImpacto(anchoActual, yBarra + altoBarra / 2f, 1);
-                }
-            }
         }
     }
 
     private void dibujarBarraValidacionCircuito() {
         if (nivel == null) return;
-        float bx = 40f;
-        float by = ALTO_VIRTUAL - 116f;
-        float bw = 460f;
-        float bh = 14f;
-
+        float bx = 40f, by = ALTO_VIRTUAL - 110f, bw = 260f, bh = 10f;
         float activo = nivel.getTiempoCircuitoActivo();
         float req = nivel.getTiempoRequeridoVictoria();
         float ratio = MathUtils.clamp(activo / req, 0f, 1f);
+        boolean ganado = nivel.estaGanado();
 
         shapeRenderer.setColor(0.04f, 0.07f, 0.11f, 0.90f);
         shapeRenderer.rect(bx, by, bw, bh);
-
-        boolean ganado = nivel.estaGanado();
-        Color colorBorde = ganado ? new Color(0.20f, 0.95f, 0.45f, 0.95f) :
-                (activo > 0 ? COLOR_NEON_CELESTE : new Color(0.25f, 0.35f, 0.48f, 0.65f));
-        shapeRenderer.setColor(colorBorde);
-        shapeRenderer.rectLine(bx, by, bx + bw, by, 1.5f);
-        shapeRenderer.rectLine(bx + bw, by, bx + bw, by + bh, 1.5f);
-        shapeRenderer.rectLine(bx + bw, by + bh, bx, by + bh, 1.5f);
-        shapeRenderer.rectLine(bx, by + bh, bx, by, 1.5f);
+        Color borde = ganado ? new Color(0.20f, 0.95f, 0.65f, 0.95f) : (activo > 0 ? COLOR_NEON_CELESTE : new Color(0.25f, 0.35f, 0.48f, 0.55f));
+        dibujarBordeRect(bx, by, bw, bh, borde, 1.4f);
 
         if (ratio > 0f) {
-            Color colorRelleno = ganado ? new Color(0.20f, 0.95f, 0.45f, 0.90f) :
-                    new Color(0.00f, 0.85f, 1.00f, 0.85f);
-            shapeRenderer.setColor(colorRelleno);
+            shapeRenderer.setColor(ganado ? new Color(0.20f, 0.95f, 0.65f, 0.90f) : new Color(0.00f, 0.85f, 1.00f, 0.85f));
             shapeRenderer.rect(bx + 2f, by + 2f, (bw - 4f) * ratio, bh - 4f);
-
             shapeRenderer.setColor(1f, 1f, 1f, 0.95f);
-            shapeRenderer.circle(bx + 2f + (bw - 4f) * ratio, by + bh / 2f, 3.5f);
+            shapeRenderer.circle(bx + 2f + (bw - 4f) * ratio, by + bh / 2f, 3.0f);
         }
     }
 
-    private void dibujarBarraLateralAlmacen() {
-        float bx = 1620f;
-        float by = 60f;
-        float bw = 300f;
-        float bh = ALTO_VIRTUAL - 150f;
+    private void dibujarTarjetaAlmacen(float cx, float cy, float ancho, float alto, boolean puedeUsar) {
+        dibujarCajaBorde(cx, cy, ancho, alto, puedeUsar ? COLOR_SLATE_OSCURO : COLOR_CAJA_OSCURA,
+                puedeUsar ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL, 2.5f);
+        shapeRenderer.setColor(COLOR_FONDO_NEGRO);
+        shapeRenderer.rect(cx + ancho - 55f, cy + 8f, 48f, 32f);
+    }
 
+    private void dibujarBarraLateralAlmacen() {
+        float bx = 1620f, by = 60f, bw = 300f, bh = ALTO_VIRTUAL - 150f;
         shapeRenderer.setColor(COLOR_CAJA_OSCURA);
         shapeRenderer.rect(bx, by, bw, bh);
-
         shapeRenderer.setColor(COLOR_NEON_CELESTE);
         shapeRenderer.rectLine(bx, by, bx, by + bh, 3.8f);
 
-        float anchoTarjeta = 250f;
-        float altoTarjeta = 200f;
+        float anchoT = 250f, altoT = 185f, cx = 1645f;
+        boolean puedeLed = nivel != null && nivel.buscarCasilla("LED") != null && nivel.buscarCasilla("LED").puedeUsar();
+        dibujarTarjetaAlmacen(cx, SLOTS_Y[0], anchoT, altoT, puedeLed);
 
-        float c1x = 1645f;
-        float c1y = 690f;
-        boolean puedeUsarLed = (nivel != null && nivel.buscarCasilla("LED") != null && nivel.buscarCasilla("LED").puedeUsar());
-        shapeRenderer.setColor(puedeUsarLed ? COLOR_SLATE_OSCURO : COLOR_CAJA_OSCURA);
-        shapeRenderer.rect(c1x, c1y, anchoTarjeta, altoTarjeta);
-        shapeRenderer.setColor(puedeUsarLed ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
-        shapeRenderer.rectLine(c1x, c1y, c1x + anchoTarjeta, c1y, 2.5f);
-        shapeRenderer.rectLine(c1x + anchoTarjeta, c1y, c1x + anchoTarjeta, c1y + altoTarjeta, 2.5f);
-        shapeRenderer.rectLine(c1x + anchoTarjeta, c1y + altoTarjeta, c1x, c1y + altoTarjeta, 2.5f);
-        shapeRenderer.rectLine(c1x, c1y + altoTarjeta, c1x, c1y, 2.5f);
+        boolean puedeRes = nivel != null && nivel.buscarCasilla("RESISTENCIA_220") != null && nivel.buscarCasilla("RESISTENCIA_220").puedeUsar();
+        dibujarTarjetaAlmacen(cx, SLOTS_Y[1], anchoT, altoT, puedeRes);
 
-        float c2x = 1645f;
-        float c2y = 450f;
-        boolean puedeUsarRes = (nivel != null && nivel.buscarCasilla("RESISTENCIA_220") != null && nivel.buscarCasilla("RESISTENCIA_220").puedeUsar());
-        shapeRenderer.setColor(puedeUsarRes ? COLOR_SLATE_OSCURO : COLOR_CAJA_OSCURA);
-        shapeRenderer.rect(c2x, c2y, anchoTarjeta, altoTarjeta);
-        shapeRenderer.setColor(puedeUsarRes ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
-        shapeRenderer.rectLine(c2x, c2y, c2x + anchoTarjeta, c2y, 2.5f);
-        shapeRenderer.rectLine(c2x + anchoTarjeta, c2y, c2x + anchoTarjeta, c2y + altoTarjeta, 2.5f);
-        shapeRenderer.rectLine(c2x + anchoTarjeta, c2y + altoTarjeta, c2x, c2y + altoTarjeta, 2.5f);
-        shapeRenderer.rectLine(c2x, c2y + altoTarjeta, c2x, c2y, 2.5f);
+        Nivel.CasillaInventario casSw = (nivel != null) ? nivel.buscarCasilla("SWITCH") : null;
+        if (casSw != null) {
+            dibujarTarjetaAlmacen(cx, SLOTS_Y[2], anchoT, altoT, casSw.puedeUsar());
+            boolean esDoble = nivel.getNumeroNivel() >= 3;
+            shapeRenderer.setColor(0.10f, 0.14f, 0.22f, 1f);
+            shapeRenderer.rect(cx + 38f, SLOTS_Y[2] + 46f, 170f, 90f);
+            if (esDoble) {
+                shapeRenderer.setColor(COLOR_NEON_CELESTE);
+                shapeRenderer.rectLine(cx + 52f, SLOTS_Y[2] + 91f, cx + 82f, SLOTS_Y[2] + 91f, 3.5f);
+                shapeRenderer.rectLine(cx + 82f, SLOTS_Y[2] + 68f, cx + 82f, SLOTS_Y[2] + 114f, 3.5f);
+                shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
+                shapeRenderer.rectLine(cx + 82f, SLOTS_Y[2] + 114f, cx + 188f, SLOTS_Y[2] + 114f, 4f);
+                shapeRenderer.rectLine(cx + 82f, SLOTS_Y[2] + 68f, cx + 188f, SLOTS_Y[2] + 68f, 4f);
+                shapeRenderer.circle(cx + 52f, SLOTS_Y[2] + 91f, 5f);
+                shapeRenderer.circle(cx + 188f, SLOTS_Y[2] + 114f, 5f);
+                shapeRenderer.circle(cx + 188f, SLOTS_Y[2] + 68f, 5f);
+            } else {
+                shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
+                shapeRenderer.rectLine(cx + 60f, SLOTS_Y[2] + 91f, cx + 185f, SLOTS_Y[2] + 91f, 5f);
+                shapeRenderer.circle(cx + 60f, SLOTS_Y[2] + 91f, 6f);
+                shapeRenderer.circle(cx + 185f, SLOTS_Y[2] + 91f, 6f);
+            }
+        }
 
-        shapeRenderer.setColor(COLOR_FONDO_NEGRO);
-        shapeRenderer.rect(c1x + anchoTarjeta - 55f, c1y + 8f, 48f, 32f);
-        shapeRenderer.rect(c2x + anchoTarjeta - 55f, c2y + 8f, 48f, 32f);
-
-        float c3x = 1645f;
-        float c3y = 210f;
-        Nivel.CasillaInventario casillaSw = (nivel != null) ? nivel.buscarCasilla("SWITCH") : null;
-        if (casillaSw != null) {
-            boolean puedeUsarSw = casillaSw.puedeUsar();
-            shapeRenderer.setColor(puedeUsarSw ? COLOR_SLATE_OSCURO : COLOR_CAJA_OSCURA);
-            shapeRenderer.rect(c3x, c3y, anchoTarjeta, altoTarjeta);
-            shapeRenderer.setColor(puedeUsarSw ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
-            shapeRenderer.rectLine(c3x, c3y, c3x + anchoTarjeta, c3y, 2.5f);
-            shapeRenderer.rectLine(c3x + anchoTarjeta, c3y, c3x + anchoTarjeta, c3y + altoTarjeta, 2.5f);
-            shapeRenderer.rectLine(c3x + anchoTarjeta, c3y + altoTarjeta, c3x, c3y + altoTarjeta, 2.5f);
-            shapeRenderer.rectLine(c3x, c3y + altoTarjeta, c3x, c3y, 2.5f);
-
-            shapeRenderer.setColor(0.12f, 0.16f, 0.24f, 1f);
-            shapeRenderer.rect(c3x + 35f, c3y + 60f, 180f, 80f);
-            shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
-            shapeRenderer.rectLine(c3x + 60f, c3y + 100f, c3x + 190f, c3y + 100f, 5f);
-            shapeRenderer.circle(c3x + 60f, c3y + 100f, 6f);
-            shapeRenderer.circle(c3x + 190f, c3y + 100f, 6f);
-
-            shapeRenderer.setColor(COLOR_FONDO_NEGRO);
-            shapeRenderer.rect(c3x + anchoTarjeta - 55f, c3y + 8f, 48f, 32f);
+        Nivel.CasillaInventario casComp = (nivel != null) ? (nivel.buscarCasilla("AND") != null ? nivel.buscarCasilla("AND") : nivel.buscarCasilla("OR")) : null;
+        if (casComp != null) {
+            dibujarTarjetaAlmacen(cx, SLOTS_Y[3], anchoT, altoT, casComp.puedeUsar());
         }
     }
 
     private void dibujarContenidoBarraLateral() {
         fontTitulo.setColor(0.00f, 0.85f, 1.00f, 1f);
         glyphLayout.setText(fontTitulo, "COMPONENTES");
-        fontTitulo.draw(batch, glyphLayout, 1620f + (300f - glyphLayout.width) / 2f, 950f);
+        fontTitulo.draw(batch, glyphLayout, 1620f + (300f - glyphLayout.width) / 2f, 955f);
 
-        Nivel.CasillaInventario casillaLed = (nivel != null) ? nivel.buscarCasilla("LED") : null;
-        Nivel.CasillaInventario casillaRes = (nivel != null) ? nivel.buscarCasilla("RESISTENCIA_220") : null;
-        Nivel.CasillaInventario casillaSw = (nivel != null) ? nivel.buscarCasilla("SWITCH") : null;
+        dibujarSlotInventario(SLOTS_Y[0], "LED", "LED", animLedNormal.getKeyFrame(tiempoTotal, true), 1705f, 742f, 130f, 130f);
+        dibujarSlotInventario(SLOTS_Y[1], "RESISTENCIA_220", "220 Ohm", animResistenciaNormal.getKeyFrame(tiempoTotal, true), 1682f, 548f, 175f, 112f);
 
-        int cantLed = (casillaLed != null) ? casillaLed.getCantidadDisponible() : 0;
-        int cantRes = (casillaRes != null) ? casillaRes.getCantidadDisponible() : 0;
-
-        TextureRegion frameLed = animLedNormal.getKeyFrame(tiempoTotal, true);
-        if (cantLed == 0) batch.setColor(0.5f, 0.5f, 0.5f, 0.45f);
-        batch.draw(frameLed, 1700f, 725f, 140f, 140f);
-        batch.setColor(Color.WHITE);
-
-        font.setColor(cantLed > 0 ? Color.WHITE : Color.GRAY);
-        font.draw(batch, "LED", 1660f, 875f);
-        fontTitulo.setColor(cantLed > 0 ? new Color(0.2f, 0.95f, 0.4f, 1f) : Color.DARK_GRAY);
-        fontTitulo.draw(batch, "x" + cantLed, 1645f + 250f - 50f, 725f);
-
-        TextureRegion frameRes = animResistenciaNormal.getKeyFrame(tiempoTotal, true);
-        if (cantRes == 0) batch.setColor(0.5f, 0.5f, 0.5f, 0.45f);
-        batch.draw(frameRes, 1680f, 495f, 180f, 115f);
-        batch.setColor(Color.WHITE);
-
-        font.setColor(cantRes > 0 ? Color.WHITE : Color.GRAY);
-        font.draw(batch, "220 Ω", 1660f, 635f);
-        fontTitulo.setColor(cantRes > 0 ? new Color(0.2f, 0.95f, 0.4f, 1f) : Color.DARK_GRAY);
-        fontTitulo.draw(batch, "x" + cantRes, 1645f + 250f - 50f, 485f);
-
-        if (casillaSw != null) {
-            int cantSw = casillaSw.getCantidadDisponible();
-            font.setColor(cantSw > 0 ? Color.WHITE : Color.GRAY);
-            font.draw(batch, "INTERRUPTOR", 1660f, 395f);
-            fontTitulo.setColor(cantSw > 0 ? new Color(0.2f, 0.95f, 0.4f, 1f) : Color.DARK_GRAY);
-            fontTitulo.draw(batch, "x" + cantSw, 1645f + 250f - 50f, 245f);
+        Nivel.CasillaInventario casSw = (nivel != null) ? nivel.buscarCasilla("SWITCH") : null;
+        if (casSw != null) {
+            int c = casSw.getCantidadDisponible();
+            font.setColor(c > 0 ? Color.WHITE : COLOR_GRIS_METAL);
+            font.draw(batch, "SWITCH", 1660f, SLOTS_Y[2] + 172f);
+            fontTitulo.setColor(c > 0 ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
+            fontTitulo.draw(batch, "x" + c, 1845f, SLOTS_Y[2] + 32f);
         }
+
+        Nivel.CasillaInventario casComp = (nivel != null) ? (nivel.buscarCasilla("AND") != null ? nivel.buscarCasilla("AND") : nivel.buscarCasilla("OR")) : null;
+        if (casComp != null) {
+            boolean esAnd = (nivel.buscarCasilla("AND") != null);
+            TextureRegion f = (esAnd ? animAnd : animOr).getKeyFrame(tiempoTotal, true);
+            dibujarSlotInventario(SLOTS_Y[3], esAnd ? "AND" : "OR", esAnd ? "AND" : "OR", f, 1702f, 122f, 136f, 136f);
+        }
+    }
+
+    private void dibujarSlotInventario(float ySlot, String idCasilla, String nombre, TextureRegion frame, float fx, float fy, float fw, float fh) {
+        Nivel.CasillaInventario cas = (nivel != null) ? nivel.buscarCasilla(idCasilla) : null;
+        int cant = (cas != null) ? cas.getCantidadDisponible() : 0;
+        if (cant == 0) batch.setColor(0.5f, 0.5f, 0.5f, 0.45f);
+        batch.draw(frame, fx, fy, fw, fh);
+        batch.setColor(Color.WHITE);
+
+        font.setColor(cant > 0 ? Color.WHITE : COLOR_GRIS_METAL);
+        font.draw(batch, nombre, 1660f, ySlot + 172f);
+        fontTitulo.setColor(cant > 0 ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
+        fontTitulo.draw(batch, "x" + cant, 1845f, ySlot + 32f);
     }
 
     private void dibujarVistaPreviaArrastre() {
         if (controlador == null || !controlador.estaArrastrandoDesdeBarra()) return;
         String tipo = controlador.getTipoComponenteArrastrado();
         Vector2 pos = controlador.getPosicionArrastre();
-
         batch.setColor(1f, 1f, 1f, 0.85f);
-        if ("LED".equals(tipo)) {
-            TextureRegion frame = animLedNormal.getKeyFrame(tiempoTotal, true);
-            batch.draw(frame, pos.x - 170f, pos.y - 170f, 340f, 340f);
-        } else if ("RESISTENCIA_220".equals(tipo)) {
-            TextureRegion frame = animResistenciaNormal.getKeyFrame(tiempoTotal, true);
-            batch.draw(frame, pos.x - 180f, pos.y - 115f, 360f, 230f);
-        } else if ("SWITCH".equals(tipo)) {
+        if ("LED".equals(tipo)) batch.draw(animLedNormal.getKeyFrame(tiempoTotal, true), pos.x - 120f, pos.y - 120f, 240f, 240f);
+        else if ("RESISTENCIA_220".equals(tipo)) batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), pos.x - 135f, pos.y - 86f, 270f, 172f);
+        else if ("AND".equals(tipo)) batch.draw(animAnd.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
+        else if ("OR".equals(tipo)) batch.draw(animOr.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
+        else if ("SWITCH".equals(tipo)) {
+            boolean esDoble = (nivel != null && nivel.getNumeroNivel() >= 3);
             batch.end();
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(0.10f, 0.14f, 0.20f, 0.90f);
-            shapeRenderer.rect(pos.x - 120f, pos.y - 70f, 240f, 140f);
-            shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 0.95f);
-            shapeRenderer.rectLine(pos.x - 80f, pos.y, pos.x + 80f, pos.y, 6f);
-            shapeRenderer.circle(pos.x - 80f, pos.y, 8f);
-            shapeRenderer.circle(pos.x + 80f, pos.y, 8f);
+            dibujarCajaBorde(pos.x - (esDoble ? 115f : 95f), pos.y - (esDoble ? 90f : 55f), esDoble ? 230f : 190f, esDoble ? 180f : 110f,
+                    new Color(0.10f, 0.14f, 0.20f, 0.90f), new Color(0.20f, 0.95f, 0.45f, 0.95f), 3f);
             shapeRenderer.end();
             batch.begin();
         }
@@ -893,127 +792,98 @@ public class VistaNivel extends ScreenAdapter {
         FuenteAlimentacion fuente = null;
         if (nivel != null) {
             for (Componente c : nivel.getComponentes()) {
-                if (c instanceof FuenteAlimentacion) {
-                    fuente = (FuenteAlimentacion) c;
-                    break;
-                }
+                if (c instanceof FuenteAlimentacion) { fuente = (FuenteAlimentacion) c; break; }
             }
         }
         if (fuente == null) return;
-
-        float fx = fuente.getPosicionX();
-        float fy = fuente.getPosicionY();
-        float fw = fuente.getAncho();
-        float fh = fuente.getAlto();
+        float fx = fuente.getPosicionX(), fy = fuente.getPosicionY(), fw = fuente.getAncho(), fh = fuente.getAlto();
 
         shapeRenderer.setColor(0.12f, 0.14f, 0.18f, 1f);
         shapeRenderer.rect(fx - 140f, fy + fh * 0.5f - 14f, 140f, 28f);
-        shapeRenderer.setColor(0.05f, 0.06f, 0.08f, 1f);
-        shapeRenderer.rectLine(fx - 140f, fy + fh * 0.5f + 14f, fx, fy + fh * 0.5f + 14f, 2f);
-        shapeRenderer.rectLine(fx - 140f, fy + fh * 0.5f - 14f, fx, fy + fh * 0.5f - 14f, 2f);
-
-        shapeRenderer.setColor(0.09f, 0.11f, 0.15f, 1f);
-        shapeRenderer.rect(fx - 8f, fy - 8f, fw + 16f, fh + 16f);
-
-        shapeRenderer.setColor(0.16f, 0.19f, 0.25f, 1f);
-        shapeRenderer.rect(fx, fy, fw, fh);
-
-        shapeRenderer.setColor(0.28f, 0.35f, 0.46f, 1f);
-        shapeRenderer.rectLine(fx, fy, fx + fw, fy, 3f);
-        shapeRenderer.rectLine(fx + fw, fy, fx + fw, fy + fh, 3f);
-        shapeRenderer.rectLine(fx + fw, fy + fh, fx, fy + fh, 3f);
-        shapeRenderer.rectLine(fx, fy + fh, fx, fy, 3f);
+        dibujarBordeRect(fx - 8f, fy - 8f, fw + 16f, fh + 16f, new Color(0.09f, 0.11f, 0.15f, 1f), 2f);
+        dibujarCajaBorde(fx, fy, fw, fh, new Color(0.16f, 0.19f, 0.25f, 1f), new Color(0.28f, 0.35f, 0.46f, 1f), 3f);
 
         shapeRenderer.setColor(0.08f, 0.10f, 0.14f, 1f);
         shapeRenderer.rect(fx + 20f, fy + fh - 130f, fw - 40f, 95f);
 
-        float rLed = 0.2f, gLed = 0.8f, bLed = 0.2f;
-        if (!introCompletada) {
-            rLed = 0.8f; gLed = 0.7f; bLed = 0.1f;
-        }
+        float rLed = introCompletada ? 0.2f : 0.8f, gLed = introCompletada ? 0.8f : 0.7f, bLed = introCompletada ? 0.2f : 0.1f;
         shapeRenderer.setColor(rLed, gLed, bLed, 0.35f);
         shapeRenderer.circle(fx + 38f, fy + fh - 165f, 16f);
         shapeRenderer.setColor(rLed, gLed, bLed, 1f);
         shapeRenderer.circle(fx + 38f, fy + fh - 165f, 9f);
     }
 
+    private void dibujarPalancaSwitch(float x1, float y1, float x2, float y2, boolean cerrada, float anguloY) {
+        shapeRenderer.setColor(0.85f, 0.92f, 1.0f, 1f);
+        shapeRenderer.circle(x1, y1, 7.0f);
+        shapeRenderer.circle(x2, y2, 7.0f);
+        if (cerrada) {
+            shapeRenderer.setColor(0.15f, 0.95f, 0.70f, 1f);
+            shapeRenderer.rectLine(x1, y1, x2, y2, 6.0f);
+            shapeRenderer.setColor(1f, 1f, 1f, 0.85f);
+            shapeRenderer.rectLine(x1, y1, x2, y2, 1.8f);
+        } else {
+            shapeRenderer.setColor(0.50f, 0.60f, 0.74f, 1f);
+            shapeRenderer.rectLine(x1, y1, x2 - 22f, y2 + anguloY, 5.5f);
+            shapeRenderer.setColor(0.85f, 0.92f, 1f, 0.65f);
+            shapeRenderer.rectLine(x1, y1, x2 - 22f, y2 + anguloY, 1.6f);
+        }
+    }
+
     private void dibujarSwitches() {
         if (nivel == null) return;
         for (Componente comp : nivel.getComponentes()) {
-            if (comp instanceof Switch) {
-                Switch sw = (Switch) comp;
-                float sx = sw.getPosicionX();
-                float sy = sw.getPosicionY();
-                float swWidth = sw.getAncho();
-                float swHeight = sw.getAlto();
-                float cy = sy + swHeight / 2f;
-                boolean cerrado = sw.isCerrado();
+            if (!(comp instanceof Switch)) continue;
+            Switch sw = (Switch) comp;
+            float sx = sw.getPosicionX(), sy = sw.getPosicionY(), swW = sw.getAncho(), swH = sw.getAlto();
+            boolean conduciendo = "EXITO".equals(sw.getEstadoActual());
 
-                shapeRenderer.setColor(0.08f, 0.11f, 0.16f, 0.95f);
-                shapeRenderer.rect(sx, sy, swWidth, swHeight);
+            dibujarCajaBorde(sx, sy, swW, swH, new Color(0.08f, 0.11f, 0.16f, 0.95f),
+                    conduciendo ? new Color(0.20f, 0.85f, 0.45f, 0.9f) : COLOR_GRIS_METAL, 2.5f);
 
-                boolean conduciendo = "EXITO".equals(sw.getEstadoActual());
-                if (conduciendo) {
-                    float pulso = 0.85f + 0.15f * MathUtils.sin(tiempoTotal * 10f);
-                    shapeRenderer.setColor(0.15f, 0.95f, 0.45f, 0.32f * pulso);
-                    shapeRenderer.rect(sx - 4f, sy - 4f, swWidth + 8f, swHeight + 8f);
-                }
+            if (conduciendo) {
+                float pulso = 0.85f + 0.15f * MathUtils.sin(tiempoTotal * 10f);
+                shapeRenderer.setColor(0.15f, 0.95f, 0.45f, 0.30f * pulso);
+                shapeRenderer.rect(sx - 4f, sy - 4f, swW + 8f, swH + 8f);
+            }
 
-                shapeRenderer.setColor(cerrado ? new Color(0.20f, 0.85f, 0.45f, 0.9f) : COLOR_GRIS_METAL);
-                shapeRenderer.rectLine(sx, sy, sx + swWidth, sy, 2.5f);
-                shapeRenderer.rectLine(sx + swWidth, sy, sx + swWidth, sy + swHeight, 2.5f);
-                shapeRenderer.rectLine(sx + swWidth, sy + swHeight, sx, sy + swHeight, 2.5f);
-                shapeRenderer.rectLine(sx, sy + swHeight, sx, sy, 2.5f);
+            shapeRenderer.setColor(0.04f, 0.06f, 0.09f, 1f);
+            shapeRenderer.rect(sx + 12f, sy + 12f, swW - 24f, swH - 24f);
 
-                shapeRenderer.setColor(0.04f, 0.06f, 0.09f, 1f);
-                shapeRenderer.rect(sx + 14f, sy + 14f, swWidth - 28f, swHeight - 28f);
+            if (sw.isDoble()) {
+                float yIn = sy + 90f, yA = sy + 136f, yB = sy + 44f;
+                float xIn = sx + 28f, xFork = sx + 60f, xPivote = sx + 88f, xOut = sx + 202f;
 
-                shapeRenderer.setColor(0.68f, 0.75f, 0.85f, 1f);
-                shapeRenderer.rect(sx + 16f, cy - 10f, 24f, 20f);
-                shapeRenderer.rect(sx + swWidth - 40f, cy - 10f, 24f, 20f);
+                shapeRenderer.setColor(0.18f, 0.25f, 0.36f, 0.55f);
+                shapeRenderer.rectLine(sx + 74f, yIn, sx + swW - 16f, yIn, 1.5f);
 
-                shapeRenderer.setColor(0.85f, 0.92f, 1.0f, 1f);
-                shapeRenderer.circle(sx + 35f, cy, 9f);
-                shapeRenderer.circle(sx + swWidth - 35f, cy, 9f);
+                boolean energiaEntrada = sw.getTerminalEntrada() != null && sw.getTerminalEntrada().getValorLogico();
+                shapeRenderer.setColor(energiaEntrada ? COLOR_NEON_CELESTE : new Color(0.45f, 0.54f, 0.66f, 1f));
+                shapeRenderer.rectLine(xIn, yIn, xFork, yIn, 4.5f);
+                shapeRenderer.rectLine(xFork, yB, xFork, yA, 4.5f);
+                shapeRenderer.rectLine(xFork, yA, xPivote, yA, 4.5f);
+                shapeRenderer.rectLine(xFork, yB, xPivote, yB, 4.5f);
+                shapeRenderer.circle(xFork, yIn, 5f);
 
-                if (cerrado) {
-                    shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
-                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 35f, cy, 7.5f);
-                    shapeRenderer.setColor(1f, 1f, 1f, 0.85f);
-                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 35f, cy, 2.5f);
-                } else {
-                    shapeRenderer.setColor(0.95f, 0.32f, 0.32f, 1f);
-                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 55f, cy + 45f, 7.5f);
-                    shapeRenderer.setColor(1f, 1f, 1f, 0.75f);
-                    shapeRenderer.rectLine(sx + 35f, cy, sx + swWidth - 55f, cy + 45f, 2.5f);
-                }
+                dibujarPalancaSwitch(xPivote, yA, xOut, yA, sw.isCerradoA(), 16f);
+                dibujarPalancaSwitch(xPivote, yB, xOut, yB, sw.isCerradoB(), 16f);
+            } else {
+                float cy = sy + swH / 2f, xPivote = sx + 28f, xOut = sx + swW - 28f;
+                dibujarPalancaSwitch(xPivote, cy, xOut, cy, sw.isCerrado(), 32f);
 
-                shapeRenderer.setColor(0.25f, 0.30f, 0.40f, 1f);
-                shapeRenderer.circle(sx + 35f, cy, 5.5f);
-
-                float indX = sx + swWidth / 2f;
-                float indY = sy + swHeight - 20f;
-                if (cerrado) {
-                    shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 0.40f);
-                    shapeRenderer.circle(indX, indY, 7f);
-                    shapeRenderer.setColor(0.20f, 0.95f, 0.45f, 1f);
-                    shapeRenderer.circle(indX, indY, 3.5f);
-                } else {
-                    shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 0.40f);
-                    shapeRenderer.circle(indX, indY, 7f);
-                    shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 1f);
-                    shapeRenderer.circle(indX, indY, 3.5f);
-                }
+                float indX = sx + swW / 2f, indY = sy + swH - 18f;
+                Color colInd = sw.isCerrado() ? new Color(0.20f, 0.95f, 0.45f, 1f) : new Color(0.95f, 0.25f, 0.25f, 1f);
+                shapeRenderer.setColor(colInd.r, colInd.g, colInd.b, 0.40f);
+                shapeRenderer.circle(indX, indY, 7f);
+                shapeRenderer.setColor(colInd);
+                shapeRenderer.circle(indX, indY, 3.5f);
             }
         }
     }
 
     private void dibujarElectronesIntro() {
         if (introCompletada) return;
-
-        float yCable = 530f;
-        float xFin = 80f;
-
+        float yCable = 530f, xFin = 80f;
         for (int i = 0; i < 6; i++) {
             float retraso = i * 0.35f;
             if (tiempoIntro > retraso) {
@@ -1022,94 +892,43 @@ public class VistaNivel extends ScreenAdapter {
                     float x = MathUtils.lerp(-120f, xFin, progreso);
                     float y = yCable + MathUtils.sin(x * 0.05f + tiempoTotal * 12f) * 10f;
                     dibujarElectronCaricatura(x, y, 0f, 1.15f, tiempoTotal + i);
-                } else if (progreso >= 1.0f && progreso <= 1.05f) {
+                } else if (progreso <= 1.05f) {
                     generarChispasImpacto(xFin, yCable, 3);
                 }
             }
         }
     }
 
-    private void dibujarElectronCaricatura(float x, float y, float angulo, float escala, float tiempoAnim) {
-        shapeRenderer.setColor(0.00f, 0.85f, 1.00f, 0.30f);
-        shapeRenderer.circle(x, y, 22f * escala);
-
-        shapeRenderer.setColor(0.00f, 0.95f, 1.00f, 0.85f);
-        shapeRenderer.circle(x, y, 16f * escala);
-
-        shapeRenderer.setColor(0.75f, 1.00f, 1.00f, 1f);
-        shapeRenderer.circle(x, y, 11f * escala);
-
-        shapeRenderer.setColor(1f, 1f, 1f, 0.95f);
-        shapeRenderer.circle(x - 4f * escala, y + 4f * escala, 3.5f * escala);
-
-        float dirX = MathUtils.cos(angulo);
-        float dirY = MathUtils.sin(angulo);
-        float ojoDistX = 5f * escala;
-        float ojoDistY = 3f * escala;
-
-        shapeRenderer.setColor(1f, 1f, 1f, 1f);
-        shapeRenderer.circle(x - ojoDistX, y + ojoDistY, 5f * escala);
-        shapeRenderer.circle(x + ojoDistX, y + ojoDistY, 5f * escala);
-
-        shapeRenderer.setColor(0.05f, 0.08f, 0.15f, 1f);
-        shapeRenderer.circle(x - ojoDistX + dirX * 1.5f * escala, y + ojoDistY + dirY * 1.5f * escala, 2.5f * escala);
-        shapeRenderer.circle(x + ojoDistX + dirX * 1.5f * escala, y + ojoDistY + dirY * 1.5f * escala, 2.5f * escala);
-
-        shapeRenderer.setColor(1f, 1f, 1f, 1f);
-        shapeRenderer.circle(x - ojoDistX + 1.2f * escala, y + ojoDistY + 1.2f * escala, 1f * escala);
-        shapeRenderer.circle(x + ojoDistX + 1.2f * escala, y + ojoDistY + 1.2f * escala, 1f * escala);
-
-        shapeRenderer.setColor(0.10f, 0.15f, 0.30f, 1f);
-        shapeRenderer.ellipse(x - 3f * escala, y - 6f * escala, 6f * escala, 4f * escala);
-        shapeRenderer.setColor(1.00f, 0.40f, 0.60f, 1f);
-        shapeRenderer.circle(x, y - 6.5f * escala, 1.6f * escala);
-
-        float estela1 = MathUtils.sin(tiempoAnim * 20f) * 4f * escala;
-        float estela2 = MathUtils.cos(tiempoAnim * 18f) * 4f * escala;
-        shapeRenderer.setColor(0.20f, 0.90f, 1.00f, 0.6f);
-        shapeRenderer.circle(x - dirX * 20f * escala - dirY * estela1, y - dirY * 20f * escala + dirX * estela1, 3.5f * escala);
-        shapeRenderer.circle(x - dirX * 30f * escala - dirY * estela2, y - dirY * 30f * escala + dirX * estela2, 2.2f * escala);
-    }
-
     private void dibujarCablesConectadosRectos() {
         if (nivel == null) return;
-
         Color colFondo = new Color(0.08f, 0.10f, 0.14f, 1f);
         Color colActivo = new Color(0.00f, 0.95f, 1.00f, 1f);
-        Color colActivoBrillante = new Color(1f, 1f, 1f, 0.92f);
+        Color colBrillante = new Color(1f, 1f, 1f, 0.92f);
         Color colInactivo = new Color(0.95f, 0.60f, 0.15f, 1f);
 
         for (Cable cable : nivel.getCables()) {
-            Terminal t1 = cable.getTerminalOrigen();
-            Terminal t2 = cable.getTerminalDestino();
+            Terminal t1 = cable.getTerminalOrigen(), t2 = cable.getTerminalDestino();
             if (t1 == null || t2 == null) continue;
 
             List<Vector2> ruta = calcularRutaOrtogonal(cable, t1, t2);
             boolean tieneEnergia = cable.isTieneEnergia();
+            dibujarLineaCableOrtogonal(ruta, colFondo, 10f, tieneEnergia ? colActivo : colInactivo, tieneEnergia ? 5.5f : 5.0f);
 
             if (tieneEnergia) {
-                dibujarLineaCableOrtogonal(ruta, colFondo, 10f, colActivo, 5.5f);
                 for (int i = 0; i < ruta.size() - 1; i++) {
-                    Vector2 va = ruta.get(i);
-                    Vector2 vb = ruta.get(i + 1);
-                    shapeRenderer.setColor(colActivoBrillante);
-                    shapeRenderer.rectLine(va.x, va.y, vb.x, vb.y, 2.0f);
+                    shapeRenderer.setColor(colBrillante);
+                    shapeRenderer.rectLine(ruta.get(i).x, ruta.get(i).y, ruta.get(i + 1).x, ruta.get(i + 1).y, 2.0f);
                 }
                 dibujarElectronesEnRuta(ruta, tiempoTotal);
-            } else {
-                dibujarLineaCableOrtogonal(ruta, colFondo, 10f, colInactivo, 5.0f);
             }
 
             for (int i = 1; i < ruta.size() - 1; i++) {
                 Vector2 codo = ruta.get(i);
                 boolean codoHover = (ratonMundo.dst(codo.x, codo.y) <= 22f);
-
                 shapeRenderer.setColor(COLOR_CAJA_OSCURA);
                 shapeRenderer.circle(codo.x, codo.y, 10f);
-
                 shapeRenderer.setColor(codoHover ? Color.WHITE : COLOR_CELESTE_BRILLANTE);
                 shapeRenderer.circle(codo.x, codo.y, 6f);
-
                 if (codoHover) {
                     float pulso = 1f + 0.25f * MathUtils.sin(tiempoTotal * 14f);
                     shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.55f);
@@ -1121,13 +940,8 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarCableArrastreRecto() {
         if (terminalOrigenCable == null) return;
-
         List<Vector2> ruta = calcularRutaOrtogonalArrastre(terminalOrigenCable, ratonMundo);
-        Color colFondo = new Color(0.08f, 0.10f, 0.14f, 0.95f);
-        Color colGuia = new Color(1.00f, 0.85f, 0.20f, 1f);
-
-        dibujarLineaCableOrtogonal(ruta, colFondo, 9f, colGuia, 4.5f);
-
+        dibujarLineaCableOrtogonal(ruta, new Color(0.08f, 0.10f, 0.14f, 0.95f), 9f, new Color(1.00f, 0.85f, 0.20f, 1f), 4.5f);
         Vector2 extremo = ruta.get(ruta.size() - 1);
         shapeRenderer.setColor(1.00f, 0.85f, 0.20f, 0.5f);
         shapeRenderer.circle(extremo.x, extremo.y, 14f);
@@ -1135,93 +949,72 @@ public class VistaNivel extends ScreenAdapter {
         shapeRenderer.circle(extremo.x, extremo.y, 7f);
     }
 
-    private void dibujarLineaCableOrtogonal(List<Vector2> ruta, Color colorFondo, float grosorFondo, Color colorFrente, float grosorFrente) {
+    private void dibujarLineaCableOrtogonal(List<Vector2> ruta, Color colorFondo, float gFondo, Color colorFrente, float gFrente) {
         if (ruta == null || ruta.size() < 2) return;
         for (int i = 0; i < ruta.size() - 1; i++) {
-            Vector2 va = ruta.get(i);
-            Vector2 vb = ruta.get(i + 1);
             shapeRenderer.setColor(colorFondo);
-            shapeRenderer.rectLine(va.x, va.y, vb.x, vb.y, grosorFondo);
+            shapeRenderer.rectLine(ruta.get(i).x, ruta.get(i).y, ruta.get(i + 1).x, ruta.get(i + 1).y, gFondo);
         }
         for (int i = 0; i < ruta.size() - 1; i++) {
-            Vector2 va = ruta.get(i);
-            Vector2 vb = ruta.get(i + 1);
             shapeRenderer.setColor(colorFrente);
-            shapeRenderer.rectLine(va.x, va.y, vb.x, vb.y, grosorFrente);
+            shapeRenderer.rectLine(ruta.get(i).x, ruta.get(i).y, ruta.get(i + 1).x, ruta.get(i + 1).y, gFrente);
         }
         for (int i = 1; i < ruta.size() - 1; i++) {
-            Vector2 codo = ruta.get(i);
+            Vector2 c = ruta.get(i);
             shapeRenderer.setColor(colorFondo);
-            shapeRenderer.circle(codo.x, codo.y, grosorFondo * 0.55f);
+            shapeRenderer.circle(c.x, c.y, gFondo * 0.55f);
             shapeRenderer.setColor(colorFrente);
-            shapeRenderer.circle(codo.x, codo.y, grosorFrente * 0.55f);
+            shapeRenderer.circle(c.x, c.y, gFrente * 0.55f);
         }
     }
 
     private void dibujarElectronesEnRuta(List<Vector2> ruta, float tiempo) {
         if (ruta == null || ruta.size() < 2) return;
-        float longitudTotal = 0f;
-        float[] distancias = new float[ruta.size() - 1];
+        float total = 0f;
+        float[] dists = new float[ruta.size() - 1];
         for (int i = 0; i < ruta.size() - 1; i++) {
-            distancias[i] = ruta.get(i).dst(ruta.get(i + 1));
-            longitudTotal += distancias[i];
+            dists[i] = ruta.get(i).dst(ruta.get(i + 1));
+            total += dists[i];
         }
-        if (longitudTotal <= 1f) return;
+        if (total <= 1f) return;
 
         for (int e = 0; e < 2; e++) {
-            float tElect = (tiempo * 0.6f + e * 0.5f) % 1.0f;
-            float distDeseada = tElect * longitudTotal;
-            float acumulado = 0f;
-
-            Vector2 posElectron = ruta.get(0);
-            float anguloElectron = 0f;
+            float distDeseada = ((tiempo * 0.6f + e * 0.5f) % 1.0f) * total;
+            float acum = 0f;
+            Vector2 pos = ruta.get(0);
+            float ang = 0f;
 
             for (int i = 0; i < ruta.size() - 1; i++) {
-                float segLen = distancias[i];
-                if (distDeseada <= acumulado + segLen || i == ruta.size() - 2) {
-                    float factor = (segLen > 0.001f) ? (distDeseada - acumulado) / segLen : 0f;
-                    factor = MathUtils.clamp(factor, 0f, 1f);
-                    Vector2 va = ruta.get(i);
-                    Vector2 vb = ruta.get(i + 1);
-                    posElectron = va.cpy().lerp(vb, factor);
-                    anguloElectron = MathUtils.atan2(vb.y - va.y, vb.x - va.x);
+                if (distDeseada <= acum + dists[i] || i == ruta.size() - 2) {
+                    float f = dists[i] > 0.001f ? MathUtils.clamp((distDeseada - acum) / dists[i], 0f, 1f) : 0f;
+                    Vector2 va = ruta.get(i), vb = ruta.get(i + 1);
+                    pos = va.cpy().lerp(vb, f);
+                    ang = MathUtils.atan2(vb.y - va.y, vb.x - va.x);
                     break;
                 }
-                acumulado += segLen;
+                acum += dists[i];
             }
-
-            dibujarElectronCaricatura(posElectron.x, posElectron.y, anguloElectron, 0.9f, tiempo + e);
+            dibujarElectronCaricatura(pos.x, pos.y, ang, 0.9f, tiempo + e);
         }
     }
 
     public List<Vector2> calcularRutaOrtogonal(Cable cable, Terminal tOrigen, Terminal tDestino) {
-        List<Vector2> vertices = new ArrayList<>();
-        if (tOrigen == null || tDestino == null) return vertices;
-        Vector2 p1 = tOrigen.getPosicionAbsoluta();
-        Vector2 p2 = tDestino.getPosicionAbsoluta();
-
-        boolean origenEsLed = (tOrigen.getComponentePadre() instanceof LED);
-        boolean destinoEsLed = (tDestino.getComponentePadre() instanceof LED);
+        if (tOrigen == null || tDestino == null) return new ArrayList<>();
+        Vector2 p1 = tOrigen.getPosicionAbsoluta(), p2 = tDestino.getPosicionAbsoluta();
+        boolean origLed = (tOrigen.getComponentePadre() instanceof LED), destLed = (tDestino.getComponentePadre() instanceof LED);
 
         if (cable != null && cable.tieneCodoPersonalizado()) {
-            float cx = cable.getCodoPersonalizadoX();
-            float cy = cable.getCodoPersonalizadoY();
-            return calcularPuntosOrtogonalesConCodoManual(p1, p2, cx, cy, origenEsLed, destinoEsLed);
+            return calcularPuntosOrtogonalesConCodoManual(p1, p2, cable.getCodoPersonalizadoX(), cable.getCodoPersonalizadoY(), origLed, destLed);
         }
 
-        int indiceCable = (nivel != null && cable != null) ? nivel.getCables().indexOf(cable) : 0;
-        float desfaseCanal = 0f;
-        if (!origenEsLed && !destinoEsLed) {
-            if (indiceCable == 1) {
-                desfaseCanal = 32f;
-            } else if (indiceCable == 2) {
-                desfaseCanal = -32f;
-            } else if (indiceCable > 2) {
-                desfaseCanal = ((indiceCable % 2 == 0) ? -1f : 1f) * (32f + (indiceCable / 2) * 16f);
-            }
+        int idx = (nivel != null && cable != null) ? nivel.getCables().indexOf(cable) : 0;
+        float desfase = 0f;
+        if (!origLed && !destLed) {
+            if (idx == 1) desfase = 32f;
+            else if (idx == 2) desfase = -32f;
+            else if (idx > 2) desfase = ((idx % 2 == 0) ? -1f : 1f) * (32f + (idx / 2) * 16f);
         }
-
-        return calcularPuntosOrtogonales(p1, p2, origenEsLed, destinoEsLed, desfaseCanal);
+        return calcularPuntosOrtogonales(p1, p2, origLed, destLed, desfase);
     }
 
     public List<Vector2> calcularRutaOrtogonal(Terminal tOrigen, Terminal tDestino) {
@@ -1229,88 +1022,68 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public List<Vector2> calcularRutaOrtogonalArrastre(Terminal tOrigen, Vector2 pDestino) {
-        List<Vector2> vertices = new ArrayList<>();
-        if (tOrigen == null || pDestino == null) return vertices;
-        Vector2 p1 = tOrigen.getPosicionAbsoluta();
-
-        boolean origenEsLed = (tOrigen.getComponentePadre() instanceof LED);
-        boolean destinoEsLed = (terminalBajoRaton != null && terminalBajoRaton.getComponentePadre() instanceof LED);
-
-        return calcularPuntosOrtogonales(p1, pDestino, origenEsLed, destinoEsLed, 0f);
+        if (tOrigen == null || pDestino == null) return new ArrayList<>();
+        boolean origLed = (tOrigen.getComponentePadre() instanceof LED);
+        boolean destLed = (terminalBajoRaton != null && terminalBajoRaton.getComponentePadre() instanceof LED);
+        return calcularPuntosOrtogonales(tOrigen.getPosicionAbsoluta(), pDestino, origLed, destLed, 0f);
     }
 
-    private List<Vector2> calcularPuntosOrtogonalesConCodoManual(Vector2 p1, Vector2 p2, float cx, float cy, boolean origenEsVertical, boolean destinoEsVertical) {
+    private List<Vector2> calcularPuntosOrtogonalesConCodoManual(Vector2 p1, Vector2 p2, float cx, float cy, boolean origVert, boolean destVert) {
         List<Vector2> ruta = new ArrayList<>();
         ruta.add(new Vector2(p1.x, p1.y));
-
-        if (origenEsVertical) {
+        if (origVert) {
             ruta.add(new Vector2(p1.x, cy));
-            if (Math.abs(p2.x - p1.x) > 1f) {
-                ruta.add(new Vector2(p2.x, cy));
-            }
+            if (Math.abs(p2.x - p1.x) > 1f) ruta.add(new Vector2(p2.x, cy));
             ruta.add(new Vector2(p2.x, p2.y));
         } else {
             ruta.add(new Vector2(cx, p1.y));
-            if (Math.abs(p2.y - p1.y) > 1f) {
-                ruta.add(new Vector2(cx, p2.y));
-            }
+            if (Math.abs(p2.y - p1.y) > 1f) ruta.add(new Vector2(cx, p2.y));
             ruta.add(new Vector2(p2.x, p2.y));
         }
-
         return simplificarPuntosConsecutivos(ruta);
     }
 
-    private List<Vector2> calcularPuntosOrtogonales(Vector2 p1, Vector2 p2, boolean origenEsVertical, boolean destinoEsVertical, float desfaseCanal) {
+    private List<Vector2> calcularPuntosOrtogonales(Vector2 p1, Vector2 p2, boolean origVert, boolean destVert, float desfase) {
         List<Vector2> ruta = new ArrayList<>();
         ruta.add(new Vector2(p1.x, p1.y));
-
-        float dx = p2.x - p1.x;
-        float dy = p2.y - p1.y;
-        float distManhattan = Math.abs(dx) + Math.abs(dy);
-        if (distManhattan < 1f) {
+        float dx = p2.x - p1.x, dy = p2.y - p1.y;
+        if (Math.abs(dx) + Math.abs(dy) < 1f) {
             ruta.add(new Vector2(p2.x, p2.y));
             return ruta;
         }
 
-        float anguloGrados = Math.abs(MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees);
-        if (anguloGrados > 90f) {
-            anguloGrados = 180f - anguloGrados;
-        }
+        float ang = Math.abs(MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees);
+        if (ang > 90f) ang = 180f - ang;
 
-        if (anguloGrados <= 6f || Math.abs(dy) <= 8f) {
+        if (ang <= 6f || Math.abs(dy) <= 8f) {
             ruta.add(new Vector2(p2.x, p1.y));
             return ruta;
         }
-
-        if (anguloGrados >= 84f || Math.abs(dx) <= 8f) {
+        if (ang >= 84f || Math.abs(dx) <= 8f) {
             ruta.add(new Vector2(p1.x, p2.y));
             return ruta;
         }
 
-        if (origenEsVertical) {
-            float codoY = p2.y + desfaseCanal;
+        if (origVert) {
+            float codoY = p2.y + desfase;
             ruta.add(new Vector2(p1.x, codoY));
             ruta.add(new Vector2(p2.x, codoY));
-            ruta.add(new Vector2(p2.x, p2.y));
-        } else if (destinoEsVertical) {
-            float codoX = p2.x + desfaseCanal;
+        } else if (destVert) {
+            float codoX = p2.x + desfase;
             ruta.add(new Vector2(codoX, p1.y));
             ruta.add(new Vector2(codoX, p2.y));
-            ruta.add(new Vector2(p2.x, p2.y));
         } else {
             if (Math.abs(dx) >= Math.abs(dy)) {
-                float codoX = (p1.x + p2.x) * 0.5f + desfaseCanal;
+                float codoX = (p1.x + p2.x) * 0.5f + desfase;
                 ruta.add(new Vector2(codoX, p1.y));
                 ruta.add(new Vector2(codoX, p2.y));
-                ruta.add(new Vector2(p2.x, p2.y));
             } else {
-                float codoY = (p1.y + p2.y) * 0.5f + desfaseCanal;
+                float codoY = (p1.y + p2.y) * 0.5f + desfase;
                 ruta.add(new Vector2(p1.x, codoY));
                 ruta.add(new Vector2(p2.x, codoY));
-                ruta.add(new Vector2(p2.x, p2.y));
             }
         }
-
+        ruta.add(new Vector2(p2.x, p2.y));
         return simplificarPuntosConsecutivos(ruta);
     }
 
@@ -1320,10 +1093,7 @@ public class VistaNivel extends ScreenAdapter {
         limpia.add(entrada.get(0));
         for (int i = 1; i < entrada.size(); i++) {
             Vector2 actual = entrada.get(i);
-            Vector2 anterior = limpia.get(limpia.size() - 1);
-            if (actual.dst(anterior) > 1f) {
-                limpia.add(actual);
-            }
+            if (actual.dst(limpia.get(limpia.size() - 1)) > 1f) limpia.add(actual);
         }
         return limpia;
     }
@@ -1331,15 +1101,11 @@ public class VistaNivel extends ScreenAdapter {
     public Cable obtenerCableCodoBajoRaton(float mx, float my, float radio) {
         if (nivel == null) return null;
         for (Cable cable : nivel.getCables()) {
-            Terminal t1 = cable.getTerminalOrigen();
-            Terminal t2 = cable.getTerminalDestino();
+            Terminal t1 = cable.getTerminalOrigen(), t2 = cable.getTerminalDestino();
             if (t1 == null || t2 == null) continue;
             List<Vector2> ruta = calcularRutaOrtogonal(cable, t1, t2);
             for (int i = 1; i < ruta.size() - 1; i++) {
-                Vector2 codo = ruta.get(i);
-                if (codo.dst(mx, my) <= radio) {
-                    return cable;
-                }
+                if (ruta.get(i).dst(mx, my) <= radio) return cable;
             }
         }
         return null;
@@ -1347,47 +1113,42 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarTerminalesFisicos() {
         if (nivel == null) return;
-
         for (Componente comp : nivel.getComponentes()) {
+            boolean esComp = (comp instanceof CompuertaLogica);
+            float rExt = esComp ? 11.5f : 14.5f, rCol = esComp ? 8.5f : 11f, rCen = esComp ? 4.0f : 5.0f;
+
             for (Terminal t : comp.getTerminales()) {
                 Vector2 pos = t.getPosicionAbsoluta();
-                boolean hovered = (terminalBajoRaton == t);
-                boolean conectado = t.estaConectado();
-                boolean esPositivo = t.getIdentificador().contains("POSITIVO") || t.getIdentificador().contains("ANODO");
-                boolean esNegativo = t.getIdentificador().contains("NEGATIVO") || t.getIdentificador().contains("CATODO");
+                boolean hov = (terminalBajoRaton == t);
+                boolean posId = t.getIdentificador().contains("POSITIVO") || t.getIdentificador().contains("ANODO");
+                boolean negId = t.getIdentificador().contains("NEGATIVO") || t.getIdentificador().contains("CATODO");
 
                 shapeRenderer.setColor(0.12f, 0.15f, 0.20f, 1f);
-                shapeRenderer.circle(pos.x, pos.y, 17f);
+                shapeRenderer.circle(pos.x, pos.y, rExt);
 
-                if (esPositivo) {
-                    shapeRenderer.setColor(0.95f, 0.20f, 0.20f, 1f);
-                } else if (esNegativo) {
-                    shapeRenderer.setColor(0.20f, 0.55f, 0.95f, 1f);
-                } else {
-                    shapeRenderer.setColor(0.80f, 0.85f, 0.95f, 1f);
-                }
-                shapeRenderer.circle(pos.x, pos.y, 13f);
+                if (posId) shapeRenderer.setColor(0.95f, 0.20f, 0.20f, 1f);
+                else if (negId) shapeRenderer.setColor(0.20f, 0.55f, 0.95f, 1f);
+                else if (t.getValorLogico()) shapeRenderer.setColor(0.20f, 0.95f, 0.50f, 1f);
+                else shapeRenderer.setColor(0.80f, 0.85f, 0.95f, 1f);
+                shapeRenderer.circle(pos.x, pos.y, rCol);
 
                 shapeRenderer.setColor(0.05f, 0.07f, 0.10f, 1f);
-                shapeRenderer.circle(pos.x, pos.y, 6f);
+                shapeRenderer.circle(pos.x, pos.y, rCen);
 
-                if (hovered) {
-                    float pulso = 1f + 0.25f * MathUtils.sin(tiempoTotal * 12f);
+                if (hov) {
+                    float pulso = 1f + 0.22f * MathUtils.sin(tiempoTotal * 12f);
                     shapeRenderer.setColor(0.20f, 1.00f, 0.40f, 0.45f);
-                    shapeRenderer.circle(pos.x, pos.y, 28f * pulso);
+                    shapeRenderer.circle(pos.x, pos.y, (rExt + 9f) * pulso);
                 }
-
-                if (conectado) {
-                    shapeRenderer.setColor(0.00f, 0.95f, 1.00f, 0.35f);
-                    shapeRenderer.circle(pos.x, pos.y, 20f);
+                if (t.estaConectado()) {
+                    shapeRenderer.setColor(0.00f, 0.95f, 1.00f, 0.30f);
+                    shapeRenderer.circle(pos.x, pos.y, rExt + 3f);
                 }
-
-                int cantidadCables = nivel.buscarCablesConTerminal(t).size();
-                if (cantidadCables > 1) {
+                if (nivel.buscarCablesConTerminal(t).size() > 1) {
                     shapeRenderer.setColor(1.00f, 0.85f, 0.20f, 0.40f);
-                    shapeRenderer.circle(pos.x, pos.y, 24f);
+                    shapeRenderer.circle(pos.x, pos.y, rExt + 5f);
                     shapeRenderer.setColor(1.00f, 0.90f, 0.30f, 0.85f);
-                    shapeRenderer.circle(pos.x, pos.y, 5f);
+                    shapeRenderer.circle(pos.x, pos.y, 4f);
                 }
             }
         }
@@ -1395,71 +1156,126 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarComponentesSprites() {
         if (nivel == null) return;
-
         for (Componente comp : nivel.getComponentes()) {
-            float x = comp.getPosicionX();
-            float y = comp.getPosicionY();
-            float w = comp.getAncho();
-            float h = comp.getAlto();
+            float x = comp.getPosicionX(), y = comp.getPosicionY(), w = comp.getAncho(), h = comp.getAlto();
 
             if (comp instanceof LED) {
                 LED led = (LED) comp;
-                TextureRegion frame;
-                if (led.estaQuemado()) {
-                    frame = animLedMuriendo.getKeyFrame(tiempoAnimError, false);
-                } else if ("EXITO".equals(led.getEstadoActual())) {
-                    frame = animLedPrendiendo.getKeyFrame(tiempoTotal, true);
-                } else {
-                    frame = animLedNormal.getKeyFrame(tiempoTotal, true);
-                }
-                batch.draw(frame, x, y, w, h);
-
-                fontPequena.setColor(1f, 0.3f, 0.3f, 1f);
-                fontPequena.draw(batch, "+", x + 107f - 4f, y + 80f);
-                fontPequena.setColor(0.3f, 0.7f, 1f, 1f);
-                fontPequena.draw(batch, "-", x + 208f - 4f, y + 80f);
-
-                font.setColor(1f, 1f, 1f, 1f);
-                font.draw(batch, "LED", x + 145f, y + h + 24f);
+                TextureRegion f = led.estaQuemado() ? animLedMuriendo.getKeyFrame(tiempoAnimError, false)
+                        : ("EXITO".equals(led.getEstadoActual()) ? animLedPrendiendo.getKeyFrame(tiempoTotal, true) : animLedNormal.getKeyFrame(tiempoTotal, true));
+                batch.draw(f, x, y, w, h);
+                fontPequena.setColor(1f, 0.42f, 0.42f, 0.90f); fontPequena.draw(batch, "+", x + 54f, y + 88f);
+                fontPequena.setColor(0.42f, 0.78f, 1f, 0.90f); fontPequena.draw(batch, "-", x + 174f, y + 88f);
+                fontPequena.setColor(COLOR_GRIS_CLARO); glyphLayout.setText(fontPequena, "LED");
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h - 6f);
             } else if (comp instanceof Resistencia) {
                 Resistencia res = (Resistencia) comp;
-                TextureRegion frame;
-                if ("ERROR".equals(res.getEstadoActual())) {
-                    frame = animResistenciaFallo.getKeyFrame(tiempoAnimError, true);
-                } else {
-                    frame = animResistenciaNormal.getKeyFrame(tiempoTotal, true);
-                }
-                batch.draw(frame, x, y, w, h);
-
-                fontPequena.setColor(1f, 1f, 1f, 1f);
-                fontPequena.draw(batch, "ENT", x + 36f, y + 145f);
-                fontPequena.draw(batch, "SAL", x + 300f, y + 145f);
-
-                font.setColor(1f, 1f, 1f, 1f);
-                font.draw(batch, res.getTextoEtiqueta(), x + 150f, y + h + 22f);
+                TextureRegion f = "ERROR".equals(res.getEstadoActual()) ? animResistenciaFallo.getKeyFrame(tiempoAnimError, true) : animResistenciaNormal.getKeyFrame(tiempoTotal, true);
+                batch.draw(f, x, y, w, h);
+                fontPequena.setColor(COLOR_GRIS_CLARO); glyphLayout.setText(fontPequena, res.getTextoEtiqueta());
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h + 8f);
+            } else if (comp instanceof CompuertaLogica) {
+                CompuertaLogica gate = (CompuertaLogica) comp;
+                boolean esAnd = (comp instanceof CompuertaAND);
+                batch.draw((esAnd ? animAnd : animOr).getKeyFrame(tiempoTotal, true), x, y, w, h);
+                boolean valA = gate.getTerminalEntradaA() != null && gate.getTerminalEntradaA().getValorLogico();
+                boolean valB = gate.getTerminalEntradaB() != null && gate.getTerminalEntradaB().getValorLogico();
+                boolean valSal = gate.getTerminalSalida() != null && gate.getTerminalSalida().getValorLogico();
+                fontPequena.setColor(valA ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO); fontPequena.draw(batch, "A", x + 14f, y + 172f);
+                fontPequena.setColor(valB ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO); fontPequena.draw(batch, "B", x + 14f, y + 134f);
+                fontPequena.setColor(valSal ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO);
+                glyphLayout.setText(fontPequena, esAnd ? "AND" : "OR");
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h - 8f);
             } else if (comp instanceof Switch) {
                 Switch sw = (Switch) comp;
-                boolean cerrado = sw.isCerrado();
-                fontPequena.setColor(1f, 1f, 1f, 1f);
-                fontPequena.draw(batch, "IN", x + 15f, y + h - 18f);
-                fontPequena.draw(batch, "OUT", x + w - 45f, y + h - 18f);
-
-                font.setColor(cerrado ? new Color(0.2f, 0.95f, 0.4f, 1f) : new Color(0.95f, 0.35f, 0.35f, 1f));
-                String nombreSw = "SWITCH";
-                if ("SW_1".equals(sw.getIdentificador()) && nivel != null && nivel.getNumeroNivel() >= 3) {
-                    nombreSw = "SWITCH A";
-                } else if ("SW_2".equals(sw.getIdentificador())) {
-                    nombreSw = "SWITCH B";
+                if (sw.isDoble()) {
+                    fontPequena.setColor(sw.isCerradoA() ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO); fontPequena.draw(batch, "A", x + w - 22f, y + 164f);
+                    fontPequena.setColor(sw.isCerradoB() ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO); fontPequena.draw(batch, "B", x + w - 22f, y + 26f);
+                    fontPequena.setColor((sw.isCerradoA() || sw.isCerradoB()) ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO);
+                } else {
+                    fontPequena.setColor(sw.isCerrado() ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO);
                 }
-                String estadoStr = nombreSw + (cerrado ? " [CERRADO / ON]" : " [ABIERTO / OFF]");
-                glyphLayout.setText(font, estadoStr);
-                font.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h + 24f);
-
-                fontPequena.setColor(0.6f, 0.85f, 1f, 0.85f);
-                String subStr = "(Clic al centro para alternar)";
-                glyphLayout.setText(fontPequena, subStr);
-                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y - 8f);
+                glyphLayout.setText(fontPequena, "SWITCH");
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h + 18f);
             }
+        }
+    }
+
+    private void dibujarBotonGuiaSuperiorShape() {
+        float bx = 1430f, by = ALTO_VIRTUAL - 66f, bw = 160f, bh = 38f;
+        boolean hov = (ratonMundo.x >= bx && ratonMundo.x <= bx + bw && ratonMundo.y >= by && ratonMundo.y <= by + bh);
+        dibujarCajaBorde(bx, by, bw, bh, hov ? new Color(0.08f, 0.16f, 0.26f, 0.98f) : COLOR_SLATE_OSCURO,
+                hov ? COLOR_CELESTE_BRILLANTE : COLOR_NEON_CELESTE, hov ? 2.2f : 1.6f);
+    }
+
+    private float calcularXPasoGuia(int i, int n) {
+        float wPill = 162f, gap = 22f;
+        float xInicio = (1620f - (n * wPill + (n - 1) * gap)) * 0.5f;
+        return xInicio + i * (wPill + gap);
+    }
+
+    private void dibujarPasosGuiaHUDShapes() {
+        if (nivel == null) return;
+        String[] pasos = nivel.obtenerPasosGuia();
+        boolean[] estados = nivel.obtenerEstadoPasosGuia();
+        if (pasos == null || estados == null || pasos.length == 0) return;
+
+        int n = pasos.length, pasoActual = -1;
+        for (int i = 0; i < estados.length; i++) {
+            if (!estados[i]) { pasoActual = i; break; }
+        }
+        float wPill = 162f, hPill = 28f, gap = 22f, yPill = 72f, cyPill = yPill + hPill * 0.5f;
+
+        for (int i = 0; i < n; i++) {
+            float px = calcularXPasoGuia(i, n);
+            boolean listo = (i < estados.length && estados[i]);
+            boolean esSig = (i == pasoActual);
+
+            if (i < n - 1) {
+                shapeRenderer.setColor(listo ? COLOR_NEON_CELESTE : COLOR_GRIS_METAL);
+                shapeRenderer.rectLine(px + wPill, cyPill, px + wPill + gap, cyPill, 1.8f);
+            }
+
+            Color fondo = esSig ? new Color(0.06f, 0.11f, 0.19f, 0.95f) : new Color(0.035f, 0.055f, 0.095f, 0.90f);
+            Color borde = listo ? COLOR_NEON_CELESTE : (esSig ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
+            dibujarCajaBorde(px, yPill, wPill, hPill, fondo, borde, esSig ? 1.9f : 1.2f);
+
+            float dotX = px + 14f;
+            if (listo) {
+                shapeRenderer.setColor(0.15f, 0.95f, 0.72f, 1f);
+                shapeRenderer.circle(dotX, cyPill, 4.2f);
+            } else if (esSig) {
+                shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.28f);
+                shapeRenderer.circle(dotX, cyPill, 7.2f);
+                shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE);
+                shapeRenderer.circle(dotX, cyPill, 4.0f);
+            } else {
+                shapeRenderer.setColor(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.45f);
+                shapeRenderer.circle(dotX, cyPill, 3.2f);
+            }
+        }
+    }
+
+    private void dibujarPasosGuiaHUDTextos() {
+        if (nivel == null) return;
+        String[] pasos = nivel.obtenerPasosGuia();
+        boolean[] estados = nivel.obtenerEstadoPasosGuia();
+        if (pasos == null || estados == null || pasos.length == 0) return;
+
+        int n = pasos.length, pasoActual = -1;
+        for (int i = 0; i < estados.length; i++) {
+            if (!estados[i]) { pasoActual = i; break; }
+        }
+        float wPill = 162f, hPill = 28f, yPill = 72f;
+
+        for (int i = 0; i < n; i++) {
+            float px = calcularXPasoGuia(i, n);
+            boolean listo = (i < estados.length && estados[i]);
+            boolean esSig = (i == pasoActual);
+
+            fontPequena.setColor(listo ? COLOR_CELESTE_BRILLANTE : (esSig ? Color.WHITE : new Color(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.55f)));
+            glyphLayout.setText(fontPequena, pasos[i]);
+            fontPequena.draw(batch, pasos[i], px + 26f + Math.max(0f, (wPill - 32f - glyphLayout.width) * 0.5f), yPill + (hPill + glyphLayout.height) * 0.5f);
         }
     }
 
@@ -1467,95 +1283,294 @@ public class VistaNivel extends ScreenAdapter {
         FuenteAlimentacion fuente = null;
         if (nivel != null) {
             for (Componente c : nivel.getComponentes()) {
-                if (c instanceof FuenteAlimentacion) {
-                    fuente = (FuenteAlimentacion) c;
-                    break;
-                }
+                if (c instanceof FuenteAlimentacion) { fuente = (FuenteAlimentacion) c; break; }
             }
         }
-
         if (fuente != null) {
-            float fx = fuente.getPosicionX();
-            float fy = fuente.getPosicionY();
-            float fw = fuente.getAncho();
-            float fh = fuente.getAlto();
-
+            float fx = fuente.getPosicionX(), fy = fuente.getPosicionY(), fw = fuente.getAncho(), fh = fuente.getAlto();
             fontTitulo.setColor(0.00f, 0.95f, 1.00f, 1f);
             fontTitulo.draw(batch, String.format("%.2f V", voltajeMedidorDC), fx + 38f, fy + fh - 52f);
-
             float corriente = (nivel != null && (nivel.estaGanado() || nivel.getTiempoCircuitoActivo() > 0)) ? 0.02f : 0.00f;
-            font.setColor(0.95f, 0.80f, 0.20f, 1f);
+            font.setColor(COLOR_GRIS_CLARO);
             font.draw(batch, String.format("%.2f A", corriente), fx + 42f, fy + fh - 95f);
-
-            fontPequena.setColor(0.85f, 0.90f, 0.98f, 1f);
-            fontPequena.draw(batch, "FUENTE DE PODER", fx + 32f, fy + fh - 152f);
-
-            fontTitulo.setColor(1.0f, 0.25f, 0.25f, 1f);
-            fontTitulo.draw(batch, "+", fx + fw - 58f, fy + fh * 0.70f + 12f);
-
-            fontTitulo.setColor(0.25f, 0.65f, 1.0f, 1f);
-            fontTitulo.draw(batch, "-", fx + fw - 54f, fy + fh * 0.30f + 12f);
+            fontPequena.setColor(COLOR_GRIS_CLARO);
+            fontPequena.draw(batch, "FUENTE DC", fx + 62f, fy + fh - 159f);
+            fontTitulo.setColor(0.95f, 0.30f, 0.30f, 1f); fontTitulo.draw(batch, "+", fx + fw - 56f, fy + fh * 0.70f + 12f);
+            fontTitulo.setColor(0.30f, 0.68f, 1.0f, 1f); fontTitulo.draw(batch, "-", fx + fw - 52f, fy + fh * 0.30f + 12f);
         }
 
-        fontTitulo.setColor(0.00f, 0.90f, 1.00f, 1f);
-        String tituloNivel = (nivel != null) ? "NIVEL " + nivel.getNumeroNivel() : "NIVEL 1";
-        fontTitulo.draw(batch, tituloNivel, 40f, ALTO_VIRTUAL - 30f);
+        fontTitulo.setColor(COLOR_CELESTE_BRILLANTE);
+        fontTitulo.draw(batch, nivel != null ? nivel.getTituloReto() : "NIVEL 1", 40f, ALTO_VIRTUAL - 24f);
 
         if (nivel != null) {
-            String mensaje = nivel.getMensajeEstado();
-            if (nivel.estaGanado()) {
-                font.setColor(0.20f, 1.00f, 0.40f, 1f);
-            } else if (nivel.getTiempoCircuitoActivo() > 0) {
-                font.setColor(0.00f, 0.95f, 1.00f, 1f);
-            } else if (hayErrorLED()) {
-                font.setColor(1.00f, 0.30f, 0.30f, 1f);
-            } else {
-                font.setColor(0.95f, 0.98f, 1.00f, 1f);
-            }
-            font.draw(batch, mensaje, 40f, ALTO_VIRTUAL - 62f);
+            float tRest = nivel.getTiempoRestante();
+            fontTitulo.setColor(tRest <= 10f ? new Color(1f, 0.32f, 0.32f, 1f) : COLOR_CELESTE_BRILLANTE);
+            String txtT = String.format("%.1fs", tRest);
+            glyphLayout.setText(fontTitulo, txtT);
+            fontTitulo.draw(batch, txtT, 1405f - glyphLayout.width, ALTO_VIRTUAL - 34f);
 
-            float vx = 40f;
-            float vy = ALTO_VIRTUAL - 116f;
+            font.setColor(nivel.estaGanado() ? new Color(0.20f, 0.95f, 0.70f, 1f) : (nivel.getTiempoCircuitoActivo() > 0 ? COLOR_CELESTE_BRILLANTE : (hayErrorLED() ? new Color(1f, 0.35f, 0.35f, 1f) : COLOR_GRIS_CLARO)));
+            font.draw(batch, nivel.getMensajeEstado(), 40f, ALTO_VIRTUAL - 60f);
+
             float activo = nivel.getTiempoCircuitoActivo();
-            float req = nivel.getTiempoRequeridoVictoria();
-            if (nivel.estaGanado()) {
-                fontPequena.setColor(0.20f, 1.00f, 0.45f, 1f);
-                fontPequena.draw(batch, String.format("¡VALIDACIÓN COMPLETADA! (%.1f / %.1f s)", req, req), vx + 8f, vy + 27f);
-            } else if (activo > 0f) {
-                fontPequena.setColor(0.00f, 0.95f, 1.00f, 1f);
-                fontPequena.draw(batch, String.format("VALIDACIÓN CONTINUA: %.1f / %.1f s", activo, req), vx + 8f, vy + 27f);
-            } else {
-                fontPequena.setColor(0.65f, 0.75f, 0.85f, 0.85f);
-                fontPequena.draw(batch, String.format("VALIDACIÓN: En espera de corriente continua (0.0 / %.1f s)", req), vx + 8f, vy + 27f);
-            }
+            fontPequena.setColor(nivel.estaGanado() ? new Color(0.20f, 0.95f, 0.70f, 1f) : (activo > 0 ? COLOR_CELESTE_BRILLANTE : new Color(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.65f)));
+            fontPequena.draw(batch, String.format("%.1f / %.0fs", activo, nivel.getTiempoRequeridoVictoria()), 312f, ALTO_VIRTUAL - 101f);
         }
 
-        fontPequena.setColor(0.80f, 0.88f, 0.95f, 1f);
-        fontPequena.draw(batch, "Clic Izq: Conectar | Clic Der: Quitar cable | R: Reiniciar | ESC: Salir", 40f, 38f);
+        fontPequena.setColor(COLOR_CELESTE_BRILLANTE);
+        glyphLayout.setText(fontPequena, "?  GUÍA (H)");
+        fontPequena.draw(batch, glyphLayout, 1430f + (160f - glyphLayout.width) / 2f, ALTO_VIRTUAL - 66f + (38f + glyphLayout.height) / 2f);
+        fontPequena.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.68f);
+        fontPequena.draw(batch, "Clic Izq: Conectar / Switch   ·   Clic Der: Borrar   ·   H: Guía   ·   R: Reiniciar   ·   ESC: Menú", 40f, 36f);
+    }
+
+    private void dibujarGuiaNivelShapes() {
+        shapeRenderer.setColor(0.01f, 0.02f, 0.04f, 0.84f);
+        shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
+
+        float mx = 500f, my = 270f, mw = 920f, mh = 540f;
+        shapeRenderer.setColor(0f, 0f, 0f, 0.72f);
+        shapeRenderer.rect(mx + 10f, my - 10f, mw, mh);
+        dibujarCajaBorde(mx, my, mw, mh, new Color(0.04f, 0.06f, 0.10f, 0.98f), COLOR_NEON_CELESTE, 2.4f);
+
+        shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE);
+        float brk = 18f;
+        shapeRenderer.rectLine(mx, my, mx + brk, my, 3.8f);
+        shapeRenderer.rectLine(mx, my, mx, my + brk, 3.8f);
+        shapeRenderer.rectLine(mx + mw, my, mx + mw - brk, my, 3.8f);
+        shapeRenderer.rectLine(mx + mw, my, mx + mw, my + brk, 3.8f);
+        shapeRenderer.rectLine(mx, my + mh, mx + brk, my + mh, 3.8f);
+        shapeRenderer.rectLine(mx, my + mh, mx, my + mh - brk, 3.8f);
+        shapeRenderer.rectLine(mx + mw, my + mh, mx + mw - brk, my + mh, 3.8f);
+        shapeRenderer.rectLine(mx + mw, my + mh, mx + mw, my + mh - brk, 3.8f);
+
+        shapeRenderer.setColor(0.06f, 0.10f, 0.16f, 0.95f);
+        shapeRenderer.rect(mx + 2f, my + mh - 56f, mw - 4f, 54f);
+        shapeRenderer.setColor(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.45f);
+        shapeRenderer.rectLine(mx + 2f, my + mh - 56f, mx + mw - 2f, my + mh - 56f, 1.4f);
+
+        float vx = mx + 36f, vy = my + 226f, vw = mw - 72f, vh = 236f;
+        dibujarCajaBorde(vx, vy, vw, vh, new Color(0.018f, 0.030f, 0.055f, 0.98f),
+                new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.55f), 1.5f);
+
+        shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.06f);
+        for (float gx = vx + 28f; gx < vx + vw; gx += 28f) shapeRenderer.rectLine(gx, vy, gx, vy + vh, 1f);
+        for (float gy = vy + 28f; gy < vy + vh; gy += 28f) shapeRenderer.rectLine(vx, gy, vx + vw, gy, 1f);
+
+        int num = (nivel != null) ? nivel.getNumeroNivel() : 1;
+        float cy = vy + 128f, yRet = vy + 28f;
+        float fx = vx + 44f, fy = vy + 46f, fw = 68f, fh = 148f;
+        dibujarCajaBorde(fx, fy, fw, fh, new Color(0.11f, 0.15f, 0.22f, 1f), COLOR_GRIS_METAL, 1.8f);
+        shapeRenderer.setColor(0.04f, 0.06f, 0.09f, 1f);
+        shapeRenderer.rect(fx + 10f, fy + fh - 40f, fw - 20f, 26f);
+
+        float posPinX = fx + fw, posPinY = cy + 24f, negPinY = vy + 66f;
+
+        if (num >= 3) {
+            float swX = vx + 166f, swY = vy + 80f, swW = 90f, swH = 96f, yA = cy + 22f, yB = cy - 22f;
+            shapeRenderer.setColor(COLOR_NEON_CELESTE);
+            shapeRenderer.rectLine(posPinX, posPinY, vx + 138f, posPinY, 3.2f);
+            shapeRenderer.rectLine(vx + 138f, posPinY, vx + 138f, cy, 3.2f);
+            shapeRenderer.rectLine(vx + 138f, cy, swX, cy, 3.2f);
+
+            dibujarCajaBorde(swX, swY, swW, swH, new Color(0.06f, 0.09f, 0.14f, 1f), COLOR_GRIS_METAL, 1.6f);
+            shapeRenderer.setColor(COLOR_NEON_CELESTE);
+            shapeRenderer.rectLine(swX, cy, swX + 24f, cy, 2.8f);
+            shapeRenderer.rectLine(swX + 24f, yB, swX + 24f, yA, 2.8f);
+            shapeRenderer.setColor(0.15f, 0.95f, 0.72f, 1f);
+            shapeRenderer.rectLine(swX + 24f, yA, swX + swW, yA, 3.2f);
+            boolean cerrBGuia = (num == 3);
+            if (cerrBGuia) {
+                shapeRenderer.rectLine(swX + 24f, yB, swX + swW, yB, 3.2f);
+            } else {
+                shapeRenderer.setColor(0.50f, 0.62f, 0.76f, 1f);
+                shapeRenderer.rectLine(swX + 24f, yB, swX + swW - 14f, yB + 11f, 3.0f);
+            }
+
+            float gateInX = vx + 325f, gateInAY = vy + 138f, gateInBY = vy + 121f, gateOutX = vx + 411f, gateOutY = vy + 130f;
+            shapeRenderer.setColor(COLOR_NEON_CELESTE);
+            shapeRenderer.rectLine(swX + swW, yA, vx + 290f, yA, 3.0f);
+            shapeRenderer.rectLine(vx + 290f, yA, vx + 290f, gateInAY, 3.0f);
+            shapeRenderer.rectLine(vx + 290f, gateInAY, gateInX, gateInAY, 3.0f);
+
+            shapeRenderer.setColor(cerrBGuia ? COLOR_NEON_CELESTE : new Color(0.32f, 0.48f, 0.64f, 0.9f));
+            shapeRenderer.rectLine(swX + swW, yB, vx + 282f, yB, 3.0f);
+            shapeRenderer.rectLine(vx + 282f, yB, vx + 282f, gateInBY, 3.0f);
+            shapeRenderer.rectLine(vx + 282f, gateInBY, gateInX, gateInBY, 3.0f);
+
+            float resInX = vx + 488f, resOutX = vx + 584f, resY = vy + 132f, ledAnodoX = vx + 696f, ledCatodoX = vx + 728f, ledLegY = vy + 97f;
+            shapeRenderer.setColor(COLOR_NEON_CELESTE);
+            shapeRenderer.rectLine(gateOutX, gateOutY, resInX, resY, 3.2f);
+            shapeRenderer.rectLine(resOutX, resY, vx + 636f, resY, 3.2f);
+            shapeRenderer.rectLine(vx + 636f, resY, vx + 636f, ledLegY, 3.2f);
+            shapeRenderer.rectLine(vx + 636f, ledLegY, ledAnodoX, ledLegY, 3.2f);
+
+            shapeRenderer.setColor(0.20f, 0.68f, 1.0f, 0.90f);
+            shapeRenderer.rectLine(ledCatodoX, ledLegY, ledCatodoX, yRet, 3.0f);
+            shapeRenderer.rectLine(ledCatodoX, yRet, vx + 138f, yRet, 3.0f);
+            shapeRenderer.rectLine(vx + 138f, yRet, vx + 138f, negPinY, 3.0f);
+            shapeRenderer.rectLine(vx + 138f, negPinY, posPinX, negPinY, 3.0f);
+
+            dibujarPulsoCableGuia(posPinX, posPinY, swX, cy, 0.0f);
+            dibujarPulsoCableGuia(swX + swW, yA, gateInX, gateInAY, 0.25f);
+            dibujarPulsoCableGuia(gateOutX, gateOutY, resInX, resY, 0.50f);
+            dibujarPulsoCableGuia(resOutX, resY, ledAnodoX, ledLegY, 0.72f);
+            dibujarPulsoCableGuia(ledCatodoX, yRet, vx + 138f, yRet, 0.40f);
+        } else {
+            float resInX = (num == 2) ? vx + 390f : vx + 290f, resOutX = resInX + 96f, resY = vy + 132f, ledAnodoX = vx + 656f, ledCatodoX = vx + 688f, ledLegY = vy + 97f;
+            shapeRenderer.setColor(COLOR_NEON_CELESTE);
+            if (num == 2) {
+                float swX = vx + 195f, swY = cy - 26f;
+                dibujarCajaBorde(swX, swY, 100f, 52f, new Color(0.06f, 0.09f, 0.14f, 1f), COLOR_GRIS_METAL, 1.6f);
+                shapeRenderer.setColor(0.15f, 0.95f, 0.72f, 1f);
+                shapeRenderer.rectLine(swX + 16f, cy, swX + 84f, cy, 4.0f);
+                shapeRenderer.setColor(COLOR_NEON_CELESTE);
+                shapeRenderer.rectLine(posPinX, posPinY, vx + 150f, posPinY, 3.2f);
+                shapeRenderer.rectLine(vx + 150f, posPinY, vx + 150f, cy, 3.2f);
+                shapeRenderer.rectLine(vx + 150f, cy, swX, cy, 3.2f);
+                shapeRenderer.rectLine(swX + 100f, cy, resInX, resY, 3.2f);
+            } else {
+                shapeRenderer.rectLine(posPinX, posPinY, vx + 185f, posPinY, 3.2f);
+                shapeRenderer.rectLine(vx + 185f, posPinY, vx + 185f, resY, 3.2f);
+                shapeRenderer.rectLine(vx + 185f, resY, resInX, resY, 3.2f);
+            }
+
+            shapeRenderer.rectLine(resOutX, resY, vx + 585f, resY, 3.2f);
+            shapeRenderer.rectLine(vx + 585f, resY, vx + 585f, ledLegY, 3.2f);
+            shapeRenderer.rectLine(vx + 585f, ledLegY, ledAnodoX, ledLegY, 3.2f);
+
+            shapeRenderer.setColor(0.20f, 0.68f, 1.0f, 0.90f);
+            shapeRenderer.rectLine(ledCatodoX, ledLegY, ledCatodoX, yRet, 3.0f);
+            shapeRenderer.rectLine(ledCatodoX, yRet, vx + 138f, yRet, 3.0f);
+            shapeRenderer.rectLine(vx + 138f, yRet, vx + 138f, negPinY, 3.0f);
+            shapeRenderer.rectLine(vx + 138f, negPinY, posPinX, negPinY, 3.0f);
+
+            dibujarPulsoCableGuia(posPinX, posPinY, resInX, resY, 0.1f);
+            dibujarPulsoCableGuia(resOutX, resY, ledAnodoX, ledLegY, 0.55f);
+            dibujarPulsoCableGuia(ledCatodoX, yRet, vx + 138f, yRet, 0.35f);
+        }
+
+        shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 1f); shapeRenderer.circle(posPinX, posPinY, 5.5f);
+        shapeRenderer.setColor(0.25f, 0.62f, 1.0f, 1f); shapeRenderer.circle(posPinX, negPinY, 5.5f);
+
+        if (num == 3 || num == 4) {
+            boolean esOr = (num == 4);
+            boolean[][] filas = {{false, false, false}, {true, false, esOr}, {false, true, esOr}, {true, true, true}};
+            float pw = 198f, ph = 62f, gap = (vw - 4f * pw) / 3f, py = my + 102f;
+            for (int r = 0; r < 4; r++) {
+                float px = vx + r * (pw + gap), dotY = py + ph * 0.5f;
+                boolean a = filas[r][0], b = filas[r][1], enc = filas[r][2];
+                dibujarCajaBorde(px, py, pw, ph, enc ? new Color(0.05f, 0.12f, 0.19f, 0.96f) : new Color(0.025f, 0.04f, 0.07f, 0.92f),
+                        enc ? COLOR_NEON_CELESTE : new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.45f), enc ? 1.9f : 1.1f);
+                shapeRenderer.setColor(a ? new Color(0.15f, 0.95f, 0.72f, 1f) : new Color(0.22f, 0.28f, 0.38f, 1f)); shapeRenderer.circle(px + 38f, dotY, 6f);
+                shapeRenderer.setColor(b ? new Color(0.15f, 0.95f, 0.72f, 1f) : new Color(0.22f, 0.28f, 0.38f, 1f)); shapeRenderer.circle(px + 84f, dotY, 6f);
+                dibujarFlechaHorizontal(px + 104f, px + 128f, dotY, enc ? COLOR_CELESTE_BRILLANTE : new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.65f));
+                if (enc) {
+                    shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.28f); shapeRenderer.circle(px + 145f, dotY, 10.5f);
+                    shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE); shapeRenderer.circle(px + 145f, dotY, 6f);
+                } else {
+                    shapeRenderer.setColor(0.20f, 0.26f, 0.35f, 1f); shapeRenderer.circle(px + 145f, dotY, 5.5f);
+                }
+            }
+        } else {
+            float pw = 408f, ph = 54f, py = my + 106f;
+            dibujarCajaBorde(vx, py, pw, ph, new Color(0.03f, 0.06f, 0.11f, 0.95f), new Color(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.65f), 1.4f);
+            dibujarCajaBorde(vx + pw + 32f, py, pw, ph, new Color(0.03f, 0.06f, 0.11f, 0.95f), new Color(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.65f), 1.4f);
+        }
+
+        float btnW = 250f, btnH = 46f, btnX = mx + (mw - btnW) / 2f, btnY = my + 24f;
+        boolean hovBtn = (ratonMundo.x >= btnX && ratonMundo.x <= btnX + btnW && ratonMundo.y >= btnY && ratonMundo.y <= btnY + btnH);
+        dibujarCajaBorde(btnX, btnY, btnW, btnH, hovBtn ? new Color(0.08f, 0.17f, 0.28f, 1f) : COLOR_SLATE_OSCURO,
+                hovBtn ? COLOR_CELESTE_BRILLANTE : COLOR_NEON_CELESTE, hovBtn ? 2.4f : 1.8f);
+    }
+
+    private void dibujarGuiaNivelTextos() {
+        float mx = 500f, my = 270f, mw = 920f, mh = 540f;
+        int num = (nivel != null) ? nivel.getNumeroNivel() : 1;
+
+        String tituloGuia = num == 3 ? "NIVEL 3  ·  COMPUERTA AND" : (num == 4 ? "NIVEL 4  ·  COMPUERTA OR" : (num == 2 ? "NIVEL 2  ·  INTERRUPTOR" : "NIVEL 1  ·  CIRCUITO LED"));
+        fontTitulo.setColor(COLOR_CELESTE_BRILLANTE);
+        fontTitulo.draw(batch, tituloGuia, mx + 28f, my + mh - 18f);
+
+        fontPequena.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.78f);
+        glyphLayout.setText(fontPequena, "PAUSA");
+        fontPequena.draw(batch, "PAUSA", mx + mw - glyphLayout.width - 28f, my + mh - 23f);
+
+        float vx = mx + 36f, vy = my + 226f, vw = mw - 72f;
+        fontPequena.setColor(COLOR_CELESTE_BRILLANTE); fontPequena.draw(batch, "5V", vx + 64f, vy + 172f);
+        fontPequena.setColor(1f, 0.45f, 0.45f, 1f); fontPequena.draw(batch, "+", vx + 94f, vy + 166f);
+        fontPequena.setColor(0.45f, 0.78f, 1f, 1f); fontPequena.draw(batch, "-", vx + 96f, vy + 78f);
+
+        if (num >= 3) {
+            boolean esOr = (num == 4);
+            batch.draw((esOr ? animOr : animAnd).getKeyFrame(tiempoTotal, true), vx + 304f, vy + 64f, 128f, 128f);
+            batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), vx + 470f, vy + 90f, 132f, 84f);
+            batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), vx + 650f, vy + 66f, 126f, 126f);
+
+            fontPequena.setColor(COLOR_GRIS_CLARO);
+            fontPequena.draw(batch, "SWITCH", vx + 183f, vy + 194f);
+            fontPequena.draw(batch, esOr ? "OR" : "AND", vx + 354f, vy + 202f);
+            fontPequena.draw(batch, "220 Ohm", vx + 506f, vy + 190f);
+            fontPequena.draw(batch, "LED", vx + 699f, vy + 202f);
+
+            fontPequena.setColor(COLOR_CELESTE_BRILLANTE);
+            fontPequena.draw(batch, "A", vx + 260f, vy + 165f);
+            fontPequena.draw(batch, "B", vx + 260f, vy + 100f);
+            fontPequena.setColor(1f, 0.45f, 0.45f, 0.9f); fontPequena.draw(batch, "+", vx + 676f, vy + 106f);
+            fontPequena.setColor(0.45f, 0.78f, 1f, 0.9f); fontPequena.draw(batch, "-", vx + 738f, vy + 106f);
+        } else {
+            float resX = (num == 2) ? vx + 372f : vx + 272f;
+            batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), resX, vy + 90f, 132f, 84f);
+            batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), vx + 610f, vy + 66f, 126f, 126f);
+            fontPequena.setColor(COLOR_GRIS_CLARO);
+            if (num == 2) fontPequena.draw(batch, "SWITCH", vx + 216f, vy + 172f);
+            fontPequena.draw(batch, "220 Ohm", resX + 36f, vy + 190f);
+            fontPequena.draw(batch, "LED", vx + 659f, vy + 202f);
+        }
+
+        String regla = num == 3 ? "Conecta el esquema y activa AMBAS palancas (A y B) por 5s"
+                : (num == 4 ? "Conecta el esquema y activa AL MENOS UNA palanca (A o B) por 5s"
+                : (num == 2 ? "Conecta en serie y cierra el Switch (ON) por 5s" : "Conecta en serie usando la resistencia de 220 Ohm por 5s"));
+        font.setColor(Color.WHITE);
+        glyphLayout.setText(font, regla);
+        font.draw(batch, regla, mx + (mw - glyphLayout.width) / 2f, my + 204f);
+
+        if (num == 3 || num == 4) {
+            boolean esOr = (num == 4);
+            boolean[][] filas = {{false, false, false}, {true, false, esOr}, {false, true, esOr}, {true, true, true}};
+            float pw = 198f, ph = 62f, gap = (vw - 4f * pw) / 3f, py = my + 102f;
+            for (int r = 0; r < 4; r++) {
+                float px = vx + r * (pw + gap), ty = py + ph * 0.5f + 5f;
+                fontPequena.setColor(COLOR_GRIS_CLARO);
+                fontPequena.draw(batch, "A", px + 16f, ty);
+                fontPequena.draw(batch, "B", px + 62f, ty);
+                fontPequena.setColor(filas[r][2] ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
+                fontPequena.draw(batch, filas[r][2] ? "ON" : "OFF", px + 160f, ty);
+            }
+        } else {
+            float pw = 408f, py = my + 106f;
+            fontPequena.setColor(COLOR_CELESTE_BRILLANTE);
+            String t1 = "Polaridad LED: entra por (+) y sale por (-)";
+            glyphLayout.setText(fontPequena, t1);
+            fontPequena.draw(batch, t1, vx + (pw - glyphLayout.width) / 2f, py + 33f);
+            String t2 = "Protege siempre el LED con 220 Ohm";
+            glyphLayout.setText(fontPequena, t2);
+            fontPequena.draw(batch, t2, vx + pw + 32f + (pw - glyphLayout.width) / 2f, py + 33f);
+        }
+
+        float btnW = 250f, btnH = 46f, btnX = mx + (mw - btnW) / 2f, btnY = my + 24f;
+        boolean hovBtn = (ratonMundo.x >= btnX && ratonMundo.x <= btnX + btnW && ratonMundo.y >= btnY && ratonMundo.y <= btnY + btnH);
+        font.setColor(hovBtn ? Color.WHITE : COLOR_CELESTE_BRILLANTE);
+        glyphLayout.setText(font, "ENTENDIDO");
+        font.draw(batch, glyphLayout, btnX + (btnW - glyphLayout.width) / 2f, btnY + (btnH + glyphLayout.height) / 2f);
     }
 
     private void dibujarFondoModal() {
         shapeRenderer.setColor(0.04f, 0.05f, 0.07f, 0.80f);
         shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
-
-        float mx = 560f;
-        float my = 320f;
-        float mw = 800f;
-        float mh = 440f;
-
-        shapeRenderer.setColor(0.12f, 0.15f, 0.20f, 0.98f);
-        shapeRenderer.rect(mx, my, mw, mh);
-
-        if (nivel != null && nivel.estaGanado()) {
-            shapeRenderer.setColor(0.15f, 0.85f, 0.45f, 1f);
-        } else {
-            shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 1f);
-        }
-        shapeRenderer.rectLine(mx, my, mx + mw, my, 4f);
-        shapeRenderer.rectLine(mx + mw, my, mx + mw, my + mh, 4f);
-        shapeRenderer.rectLine(mx + mw, my + mh, mx, my + mh, 4f);
-        shapeRenderer.rectLine(mx, my + mh, mx, my, 4f);
-
+        float mx = 560f, my = 320f, mw = 800f, mh = 440f;
+        dibujarCajaBorde(mx, my, mw, mh, new Color(0.12f, 0.15f, 0.20f, 0.98f),
+                (nivel != null && nivel.estaGanado()) ? new Color(0.15f, 0.85f, 0.45f, 1f) : new Color(0.95f, 0.25f, 0.25f, 1f), 4f);
         shapeRenderer.setColor(0.20f, 0.26f, 0.36f, 1f);
         shapeRenderer.rect(630f, 360f, 300f, 60f);
         shapeRenderer.rect(970f, 360f, 300f, 60f);
@@ -1563,49 +1578,32 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarContenidoModal() {
         boolean ganado = (nivel != null && nivel.estaGanado());
-
         if (ganado) {
             fontTitulo.setColor(0.20f, 1.00f, 0.50f, 1f);
             glyphLayout.setText(fontTitulo, "¡NIVEL COMPLETADO!");
             fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
-
             font.setColor(0.95f, 0.95f, 1f, 1f);
             glyphLayout.setText(font, "¡Circuito completado con éxito!");
             font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
-
             font.setColor(0.20f, 0.95f, 0.45f, 1f);
             glyphLayout.setText(font, "SIGUIENTE");
             font.draw(batch, glyphLayout, 630f + (300f - glyphLayout.width) / 2f, 398f);
-
-            font.setColor(0.95f, 0.85f, 0.30f, 1f);
-            glyphLayout.setText(font, "MENÚ");
-            font.draw(batch, glyphLayout, 970f + (300f - glyphLayout.width) / 2f, 398f);
         } else {
             fontTitulo.setColor(1.00f, 0.25f, 0.25f, 1f);
-            if (derrotaPorTiempo) {
-                glyphLayout.setText(fontTitulo, "¡TIEMPO AGOTADO!");
-                fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
-
-                font.setColor(0.95f, 0.95f, 1f, 1f);
-                glyphLayout.setText(font, "Se acabó el tiempo.");
-                font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
-            } else {
-                glyphLayout.setText(fontTitulo, "¡CIRCUITO QUEMADO!");
-                fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
-
-                font.setColor(0.95f, 0.95f, 1f, 1f);
-                glyphLayout.setText(font, "El LED se quemó sin resistencia.");
-                font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
-            }
-
+            String tit = derrotaPorTiempo ? "¡TIEMPO AGOTADO!" : "¡CIRCUITO QUEMADO!";
+            glyphLayout.setText(fontTitulo, tit);
+            fontTitulo.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 660f);
+            font.setColor(0.95f, 0.95f, 1f, 1f);
+            String desc = derrotaPorTiempo ? "Se acabó el tiempo." : "El LED se quemó sin resistencia.";
+            glyphLayout.setText(font, desc);
+            font.draw(batch, glyphLayout, (ANCHO_VIRTUAL - glyphLayout.width) / 2f, 560f);
             font.setColor(1.00f, 0.40f, 0.40f, 1f);
             glyphLayout.setText(font, "REINTENTAR");
             font.draw(batch, glyphLayout, 630f + (300f - glyphLayout.width) / 2f, 398f);
-
-            font.setColor(0.85f, 0.90f, 0.95f, 1f);
-            glyphLayout.setText(font, "MENÚ");
-            font.draw(batch, glyphLayout, 970f + (300f - glyphLayout.width) / 2f, 398f);
         }
+        font.setColor(ganado ? new Color(0.95f, 0.85f, 0.30f, 1f) : new Color(0.85f, 0.90f, 0.95f, 1f));
+        glyphLayout.setText(font, "MENÚ");
+        font.draw(batch, glyphLayout, 970f + (300f - glyphLayout.width) / 2f, 398f);
     }
 
     private void actualizarParticulas(float delta) {
@@ -1632,36 +1630,35 @@ public class VistaNivel extends ScreenAdapter {
 
     public void generarChispasImpacto(float cx, float cy, int cantidad) {
         for (int i = 0; i < cantidad; i++) {
-            float ang = MathUtils.random(0f, MathUtils.PI2);
-            float vel = MathUtils.random(60f, 260f);
-            float vx = MathUtils.cos(ang) * vel;
-            float vy = MathUtils.sin(ang) * vel;
-            float vida = MathUtils.random(0.3f, 0.8f);
-            particulas.add(new ParticulaChispa(cx, cy, vx, vy, vida, 0.1f, 0.9f, 1f));
+            float ang = MathUtils.random(0f, MathUtils.PI2), vel = MathUtils.random(60f, 260f);
+            particulas.add(new ParticulaChispa(cx, cy, MathUtils.cos(ang) * vel, MathUtils.sin(ang) * vel,
+                    MathUtils.random(0.3f, 0.8f), 0.1f, 0.9f, 1f));
         }
     }
 
     public Terminal obtenerTerminalBajoRaton(float mx, float my, float radio) {
         if (nivel == null) return null;
+        Terminal masCercano = null;
+        float menorDist = radio;
         for (Componente comp : nivel.getComponentes()) {
             for (Terminal t : comp.getTerminales()) {
-                Vector2 pos = t.getPosicionAbsoluta();
-                if (pos.dst(mx, my) <= radio) {
-                    return t;
+                float dist = t.getPosicionAbsoluta().dst(mx, my);
+                if (dist <= menorDist) {
+                    menorDist = dist;
+                    masCercano = t;
                 }
             }
         }
-        return null;
+        return masCercano;
     }
 
     public Componente obtenerComponenteBajoRaton(float mx, float my) {
         if (nivel == null) return null;
-        for (Componente comp : nivel.getComponentes()) {
-            float cx = comp.getPosicionX();
-            float cy = comp.getPosicionY();
-            float cw = comp.getAncho();
-            float ch = comp.getAlto();
-            if (mx >= cx && mx <= cx + cw && my >= cy && my <= cy + ch) {
+        List<Componente> lista = nivel.getComponentes();
+        for (int i = lista.size() - 1; i >= 0; i--) {
+            Componente comp = lista.get(i);
+            if (mx >= comp.getPosicionX() && mx <= comp.getPosicionX() + comp.getAncho()
+                    && my >= comp.getPosicionY() && my <= comp.getPosicionY() + comp.getAlto()) {
                 return comp;
             }
         }
@@ -1672,40 +1669,54 @@ public class VistaNivel extends ScreenAdapter {
         float l2 = a.dst2(b);
         if (l2 == 0f) return a.dst(px, py);
         float t = Math.max(0f, Math.min(1f, ((px - a.x) * (b.x - a.x) + (py - a.y) * (b.y - a.y)) / l2));
-        float projX = a.x + t * (b.x - a.x);
-        float projY = a.y + t * (b.y - a.y);
-        float dx = px - projX;
-        float dy = py - projY;
-        return (float) Math.sqrt(dx * dx + dy * dy);
+        float projX = a.x + t * (b.x - a.x), projY = a.y + t * (b.y - a.y);
+        return Vector2.dst(px, py, projX, projY);
     }
 
     public Cable obtenerCableBajoRaton(float mx, float my, float tolerancia) {
         if (nivel == null) return null;
+        Cable mejorCable = null;
+        float menorDist = tolerancia;
         for (Cable cable : nivel.getCables()) {
-            Terminal t1 = cable.getTerminalOrigen();
-            Terminal t2 = cable.getTerminalDestino();
+            Terminal t1 = cable.getTerminalOrigen(), t2 = cable.getTerminalDestino();
             if (t1 == null || t2 == null) continue;
-            List<Vector2> ruta = calcularRutaOrtogonal(t1, t2);
+            List<Vector2> ruta = calcularRutaOrtogonal(cable, t1, t2);
             for (int i = 0; i < ruta.size() - 1; i++) {
-                Vector2 va = ruta.get(i);
-                Vector2 vb = ruta.get(i + 1);
-                float d = distanciaPuntoASegmento(va, vb, mx, my);
-                if (d <= tolerancia) {
-                    return cable;
+                float d = distanciaPuntoASegmento(ruta.get(i), ruta.get(i + 1), mx, my);
+                if (d <= menorDist) {
+                    menorDist = d;
+                    mejorCable = cable;
                 }
             }
         }
-        return null;
+        return mejorCable;
     }
 
     private void sonar(TipoEfecto efecto) {
-        if (gestorAudio != null) {
-            gestorAudio.reproducirEfecto(efecto);
-        }
+        if (gestorAudio != null) gestorAudio.reproducirEfecto(efecto);
     }
 
     public boolean estaEnModalDerrota() {
         return faseDerrota == FASE_DERROTA_MODAL;
+    }
+
+    public boolean estaMostrandoGuiaNivel() {
+        return mostrandoGuiaNivel;
+    }
+
+    public void alternarGuiaNivel() {
+        this.mostrandoGuiaNivel = !this.mostrandoGuiaNivel;
+        if (!this.mostrandoGuiaNivel) saltarIntro();
+        cancelarCable();
+        sonar(TipoEfecto.CLICK_UI);
+    }
+
+    public void cerrarGuiaNivel() {
+        if (this.mostrandoGuiaNivel) {
+            this.mostrandoGuiaNivel = false;
+            saltarIntro();
+            sonar(TipoEfecto.CLICK_UI);
+        }
     }
 
     public boolean manejarClicUI(float mx, float my) {
@@ -1713,17 +1724,28 @@ public class VistaNivel extends ScreenAdapter {
         if (modalActivo) {
             if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) {
                 sonar(TipoEfecto.CLICK_UI);
-                if (nivel != null && nivel.estaGanado()) {
-                    siguienteNivel();
-                } else {
-                    reiniciarNivel();
-                }
+                if (nivel != null && nivel.estaGanado()) siguienteNivel();
+                else reiniciarNivel();
                 return true;
             }
             if (mx >= 970f && mx <= 1270f && my >= 360f && my <= 420f) {
                 volverAlMenu();
                 return true;
             }
+            return true;
+        }
+
+        if (mostrandoGuiaNivel) {
+            float gmx = 500f, gmy = 270f, gmw = 920f, gmh = 540f;
+            float btnW = 250f, btnH = 46f, btnX = gmx + (gmw - btnW) / 2f, btnY = gmy + 24f;
+            boolean clicBoton = (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH);
+            boolean clicFuera = (mx < gmx || mx > gmx + gmw || my < gmy || my > gmy + gmh);
+            if (clicBoton || clicFuera) cerrarGuiaNivel();
+            return true;
+        }
+
+        if (mx >= 1430f && mx <= 1590f && my >= ALTO_VIRTUAL - 66f && my <= ALTO_VIRTUAL - 28f) {
+            alternarGuiaNivel();
             return true;
         }
         return false;
@@ -1751,8 +1773,7 @@ public class VistaNivel extends ScreenAdapter {
                     }
                 }
                 if (!existe) {
-                    Cable nuevo = new Cable(terminalOrigenCable, termDestino);
-                    nivel.agregarCable(nuevo);
+                    nivel.agregarCable(new Cable(terminalOrigenCable, termDestino));
                     generarChispasImpacto(termDestino.getPosicionAbsoluta().x, termDestino.getPosicionAbsoluta().y, 12);
                     sonar(TipoEfecto.CONECTAR_CABLE);
                 }
@@ -1768,14 +1789,11 @@ public class VistaNivel extends ScreenAdapter {
 
     public void actualizarPosicionCursor(float mx, float my) {
         this.ratonMundo.set(mx, my);
-        this.terminalBajoRaton = obtenerTerminalBajoRaton(mx, my, 34f);
+        this.terminalBajoRaton = mostrandoGuiaNivel ? null : obtenerTerminalBajoRaton(mx, my, 30f);
 
         boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalActivo) {
-            int btnHover = -1;
-            if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) btnHover = 1;
-            else if (mx >= 970f && mx <= 1270f && my >= 360f && my <= 420f) btnHover = 2;
-
+            int btnHover = (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) ? 1 : ((mx >= 970f && mx <= 1270f && my >= 360f && my <= 420f) ? 2 : -1);
             if (btnHover != ultimoUIHover) {
                 if (btnHover > 0) sonar(TipoEfecto.HOVER_UI);
                 ultimoUIHover = btnHover;
@@ -1783,18 +1801,20 @@ public class VistaNivel extends ScreenAdapter {
             return;
         }
 
+        if (mostrandoGuiaNivel) return;
+
         if (terminalBajoRaton != ultimoTerminalHover) {
-            if (terminalBajoRaton != null) {
-                sonar(TipoEfecto.HOVER_UI);
-            }
+            if (terminalBajoRaton != null) sonar(TipoEfecto.HOVER_UI);
             ultimoTerminalHover = terminalBajoRaton;
         }
 
         int slotHover = -1;
-        if (mx >= 1640f && mx <= 1890f) {
-            if (my >= 690f && my <= 890f) slotHover = 10;
-            else if (my >= 450f && my <= 650f) slotHover = 11;
-            else if (my >= 210f && my <= 410f) slotHover = 12;
+        if (mx >= 1645f && mx <= 1895f) {
+            for (int i = 0; i < SLOTS_Y.length; i++) {
+                if (my >= SLOTS_Y[i] && my <= SLOTS_Y[i] + 185f) { slotHover = 10 + i; break; }
+            }
+        } else if (mx >= 1430f && mx <= 1590f && my >= ALTO_VIRTUAL - 66f && my <= ALTO_VIRTUAL - 28f) {
+            slotHover = 14;
         }
         if (slotHover != ultimoUIHover) {
             if (slotHover > 0) sonar(TipoEfecto.HOVER_UI);
@@ -1803,36 +1823,25 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public void reiniciarNivel() {
-        this.derrotaPorTiempo = false;
-        this.progresoGuardado = false;
-        if (nivel != null) {
-            nivel.reiniciarNivelActual();
-        }
-        this.tiempoIntro = 0f;
-        this.introCompletada = false;
-        this.voltajeMedidorDC = 0f;
-        this.tiempoExitoAcumulado = 0f;
-        this.tiempoIntroNivel = 0f;
-        this.faseDerrota = FASE_DERROTA_NINGUNA;
-        this.tiempoFaseDerrota = 0f;
-        this.sacudidaCamaraX = 0f;
-        this.sacudidaCamaraY = 0f;
-        this.opacidadHollin = 0f;
-        this.posicionLimpiadorX = -150f;
-        this.ultimoSegundoSonado = -1;
+        resetearParametrosNivel();
+        if (nivel != null) nivel.reiniciarNivelActual();
         cancelarCable();
     }
 
     public void siguienteNivel() {
-        this.derrotaPorTiempo = false;
-        this.progresoGuardado = false;
+        resetearParametrosNivel();
         if (nivel != null) {
             int siguiente = nivel.getNumeroNivel() + 1;
-            if (siguiente > GestorNiveles.obtenerTotalNiveles()) {
-                siguiente = 1;
-            }
+            if (siguiente > GestorNiveles.obtenerTotalNiveles()) siguiente = 1;
             cargarNivel(GestorNiveles.crearNivel(siguiente));
         }
+        cancelarCable();
+    }
+
+    private void resetearParametrosNivel() {
+        this.derrotaPorTiempo = false;
+        this.progresoGuardado = false;
+        this.mostrandoGuiaNivel = false;
         this.tiempoIntro = 0f;
         this.introCompletada = false;
         this.voltajeMedidorDC = 0f;
@@ -1845,21 +1854,17 @@ public class VistaNivel extends ScreenAdapter {
         this.opacidadHollin = 0f;
         this.posicionLimpiadorX = -150f;
         this.ultimoSegundoSonado = -1;
-        cancelarCable();
     }
 
     public void cargarNivel(Nivel nuevoNivel) {
         this.nivel = nuevoNivel;
-        if (this.controlador != null) {
-            this.controlador.setNivel(nuevoNivel);
-        }
+        this.mostrandoGuiaNivel = (nuevoNivel != null && (nuevoNivel.getNumeroNivel() == 3 || nuevoNivel.getNumeroNivel() == 4));
+        if (this.controlador != null) this.controlador.setNivel(nuevoNivel);
     }
 
     public void volverAlMenu() {
         sonar(TipoEfecto.CLICK_UI);
-        if (juego != null) {
-            juego.setScreen(new VistaSeleccionNivel(juego));
-        }
+        if (juego != null) juego.setScreen(new VistaSeleccionNivel(juego));
     }
 
     public void saltarIntro() {
@@ -1868,17 +1873,9 @@ public class VistaNivel extends ScreenAdapter {
         this.voltajeMedidorDC = 5.0f;
     }
 
-    public GestorAudio getGestorAudio() {
-        return gestorAudio;
-    }
-
-    public boolean estaCableEnProgreso() {
-        return cableEnProgreso;
-    }
-
-    public boolean isCableEnProgreso() {
-        return cableEnProgreso;
-    }
+    public GestorAudio getGestorAudio() { return gestorAudio; }
+    public boolean estaCableEnProgreso() { return cableEnProgreso; }
+    public boolean isCableEnProgreso() { return cableEnProgreso; }
 
     @Override
     public void resize(int width, int height) {

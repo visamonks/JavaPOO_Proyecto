@@ -8,18 +8,18 @@ public class LED extends Componente {
     private boolean quemado;
 
     public LED(String identificador, float posicionX, float posicionY, boolean polaridadCorrecta) {
-        super(identificador, posicionX, posicionY, 320.0f, 320.0f);
+        super(identificador, posicionX, posicionY, 240.0f, 240.0f);
         this.polaridadCorrecta = polaridadCorrecta;
         this.quemado = false;
 
-        this.terminalAnodo = new Terminal(identificador + "_ANODO", this, 107.0f, 107.5f, true);
-        this.terminalCatodo = new Terminal(identificador + "_CATODO", this, 208.0f, 107.5f, false);
+        this.terminalAnodo = new Terminal(identificador + "_ANODO", this, 80.0f, 81.0f, true);
+        this.terminalCatodo = new Terminal(identificador + "_CATODO", this, 156.0f, 81.0f, false);
 
         this.terminales.add(terminalAnodo);
         this.terminales.add(terminalCatodo);
 
-        this.agregarPuntoConexion(107, 108);
-        this.agregarPuntoConexion(208, 108);
+        this.agregarPuntoConexion(80, 81);
+        this.agregarPuntoConexion(156, 81);
 
         this.evaluarEstado();
     }
@@ -55,7 +55,7 @@ public class LED extends Componente {
                 return false;
             }
         } else {
-            this.estadoActual = "NEUTRO"; 
+            this.estadoActual = "NEUTRO";
             if (terminalCatodo != null) {
                 terminalCatodo.setValorLogico(false);
             }

@@ -87,6 +87,14 @@ public abstract class Nivel {
 
     public abstract boolean evaluarCircuitoCompleto();
 
+    public String[] obtenerPasosGuia() {
+        return null;
+    }
+
+    public boolean[] obtenerEstadoPasosGuia() {
+        return null;
+    }
+
     public void actualizar(float deltaTiempo) {
         if (tiempoRestante > 0 && !(completado && ganado)) {
             tiempoRestante -= deltaTiempo;
@@ -146,6 +154,9 @@ public abstract class Nivel {
         } else if ("RESISTENCIA_220".equals(tipo)) {
             return new Resistencia("R_1", x, y, 220, 220);
         } else if ("SWITCH".equals(tipo)) {
+            if (this.numeroNivel >= 3) {
+                return new Switch("SW_1", x, y, false, false);
+            }
             boolean tieneSw1 = false;
             for (Componente c : componentes) {
                 if (c instanceof Switch && "SW_1".equals(c.getIdentificador())) {
@@ -287,4 +298,3 @@ public abstract class Nivel {
     public List<Cable> getCables() { return cables; }
     public List<CasillaInventario> getInventario() { return inventario; }
 }
-

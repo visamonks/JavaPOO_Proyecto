@@ -9,18 +9,13 @@ import java.util.Set;
 
 public class Nivel4 extends Nivel {
 
-    public static class RutaCircuito {
-        public List<Cable> cables = new ArrayList<>();
-        public Set<Terminal> terminales = new HashSet<>();
-        public Set<Componente> componentes = new HashSet<>();
-        public Set<Switch> switches = new HashSet<>();
-        public boolean tieneResistencia = false;
-        public boolean tieneLed = false;
-        public boolean polaridadInvertida = false;
-    }
+    private boolean paso1Listo = false;
+    private boolean paso2Listo = false;
+    private boolean paso3Listo = false;
+    private boolean paso4Listo = false;
 
     public Nivel4() {
-        super(4, "NIVEL 4: DOBLE SWITCH EN PARALELO (LÓGICA OR)", Constantes.TIEMPO_LIMITE_NIVEL_4);
+        super(4, "NIVEL 4: COMPUERTA LÓGICA OR", Constantes.TIEMPO_LIMITE_NIVEL_4);
         inicializar();
     }
 
@@ -35,23 +30,29 @@ public class Nivel4 extends Nivel {
         this.tiempoCircuitoActivo = 0.0f;
         this.tiempoLimite = Constantes.TIEMPO_LIMITE_NIVEL_4;
         this.tiempoRestante = this.tiempoLimite;
-        this.mensajeEstado = "Objetivo: Conecta la fuente, ambos interruptores en paralelo (Lógica OR), la resistencia y el LED.";
+        this.paso1Listo = false;
+        this.paso2Listo = false;
+        this.paso3Listo = false;
+        this.paso4Listo = false;
+        this.mensajeEstado = "Conecta Fuente (+) al Switch.";
 
         FuenteAlimentacion fuente = new FuenteAlimentacion(
                 Constantes.ID_NIVEL4_FUENTE,
                 Constantes.NIVEL4_FUENTE_X,
                 Constantes.NIVEL4_FUENTE_Y
         );
-        Switch sw1 = new Switch(
-                Constantes.ID_NIVEL4_SWITCH_A,
-                Constantes.NIVEL4_SWITCH_A_X,
-                Constantes.NIVEL4_SWITCH_A_Y,
+        Switch swDoble = new Switch(
+                Constantes.ID_NIVEL4_SWITCH,
+                Constantes.NIVEL4_SWITCH_X,
+                Constantes.NIVEL4_SWITCH_Y,
+                false,
                 false
         );
-        Switch sw2 = new Switch(
-                Constantes.ID_NIVEL4_SWITCH_B,
-                Constantes.NIVEL4_SWITCH_B_X,
-                Constantes.NIVEL4_SWITCH_B_Y,
+        CompuertaOR compuertaOr = new CompuertaOR(
+                Constantes.ID_NIVEL4_OR,
+                Constantes.NIVEL4_OR_X,
+                Constantes.NIVEL4_OR_Y,
+                false,
                 false
         );
         Resistencia resistencia = new Resistencia(
@@ -69,51 +70,62 @@ public class Nivel4 extends Nivel {
         );
 
         this.componentes.add(fuente);
-        this.componentes.add(sw1);
-        this.componentes.add(sw2);
+        this.componentes.add(swDoble);
+        this.componentes.add(compuertaOr);
         this.componentes.add(resistencia);
         this.componentes.add(led);
-
-        CasillaInventario casSw = new CasillaInventario("SWITCH", "Interruptor", 2);
-        casSw.decrementar();
-        casSw.decrementar();
-        this.inventario.add(casSw);
-
-        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ω", 1);
-        casRes.decrementar();
-        this.inventario.add(casRes);
 
         CasillaInventario casLed = new CasillaInventario("LED", "LED (Diodo)", 1);
         casLed.decrementar();
         this.inventario.add(casLed);
+
+        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1);
+        casRes.decrementar();
+        this.inventario.add(casRes);
+
+        CasillaInventario casSw = new CasillaInventario("SWITCH", "Switch Divisor", 1);
+        casSw.decrementar();
+        this.inventario.add(casSw);
+
+        CasillaInventario casOr = new CasillaInventario("OR", "Compuerta OR", 1);
+        casOr.decrementar();
+        this.inventario.add(casOr);
+    }
+
+    @Override
+    public String[] obtenerPasosGuia() {
+        return new String[]{
+            "1. Entrada",
+            "2. Ramas A+B",
+            "3. 220 + LED",
+            "4. A o B ON"
+        };
+    }
+
+    @Override
+    public boolean[] obtenerEstadoPasosGuia() {
+        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, paso4Listo};
     }
 
     @Override
     public boolean evaluarCircuitoCompleto() {
+        paso1Listo = false;
+        paso2Listo = false;
+        paso3Listo = false;
+        paso4Listo = false;
+
         FuenteAlimentacion fuente = null;
-        Switch sw1 = null;
-        Switch sw2 = null;
+        Switch sw = null;
+        CompuertaOR compuertaOr = null;
         Resistencia res = null;
         LED led = null;
 
         for (Componente c : componentes) {
-            if (c instanceof FuenteAlimentacion) {
-                fuente = (FuenteAlimentacion) c;
-            } else if (c instanceof Switch) {
-                if (Constantes.ID_NIVEL4_SWITCH_A.equals(c.getIdentificador())) {
-                    sw1 = (Switch) c;
-                } else if (Constantes.ID_NIVEL4_SWITCH_B.equals(c.getIdentificador())) {
-                    sw2 = (Switch) c;
-                } else if (sw1 == null) {
-                    sw1 = (Switch) c;
-                } else {
-                    sw2 = (Switch) c;
-                }
-            } else if (c instanceof Resistencia) {
-                res = (Resistencia) c;
-            } else if (c instanceof LED) {
-                led = (LED) c;
-            }
+            if (c instanceof FuenteAlimentacion) fuente = (FuenteAlimentacion) c;
+            else if (c instanceof Switch) sw = (Switch) c;
+            else if (c instanceof CompuertaOR) compuertaOr = (CompuertaOR) c;
+            else if (c instanceof Resistencia) res = (Resistencia) c;
+            else if (c instanceof LED) led = (LED) c;
         }
 
         for (Componente c : componentes) {
@@ -131,20 +143,26 @@ public class Nivel4 extends Nivel {
 
         fuente.getTerminalPositivo().setValorLogico(fuente.estaEncendida());
 
-        // Cortocircuito directo entre polos de la fuente
         for (Cable c : cables) {
             if (c.conectaTerminal(fuente.getTerminalPositivo()) && c.conectaTerminal(fuente.getTerminalNegativo())) {
                 fuente.setEstadoActual("ERROR");
                 c.setTieneEnergia(true);
-                mensajeEstado = "¡CORTOCIRCUITO DIRECTO! La fuente de poder ha estallado.";
+                mensajeEstado = "¡CORTOCIRCUITO DIRECTO! Nunca unas el (+) directo al (-) de la fuente.";
                 return false;
             }
         }
 
-        if (buscarCableConTerminal(fuente.getTerminalPositivo()) == null) {
-            fuente.setEstadoActual("NEUTRO");
-            if (sw1 != null) sw1.setEstadoActual("NEUTRO");
-            if (sw2 != null) sw2.setEstadoActual("NEUTRO");
+        fuente.setEstadoActual("NEUTRO");
+        if (sw != null) sw.setEstadoActual("NEUTRO");
+        if (compuertaOr != null) {
+            compuertaOr.setEntradas(false, false);
+            compuertaOr.setEstadoActual("NEUTRO");
+        }
+        if (res != null && !res.isQuemada()) res.setEstadoActual("NEUTRO");
+        if (led != null && !led.isQuemado()) led.setEstadoActual("NEUTRO");
+
+        List<Cable> cablesPos = buscarCablesConTerminal(fuente.getTerminalPositivo());
+        if (cablesPos.isEmpty()) {
             if (res != null) {
                 res.setQuemada(false);
                 res.setEstadoActual("NEUTRO");
@@ -153,168 +171,240 @@ public class Nivel4 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = "Objetivo: Conecta la fuente, ambos interruptores en paralelo (Lógica OR), la resistencia y el LED.";
+            mensajeEstado = "Conecta Fuente (+) al pin izquierdo del Switch.";
             this.ganado = false;
             this.completado = false;
             return false;
         }
 
-        // Búsqueda de todas las rutas posibles desde fuente(+) hasta fuente(-)
-        List<RutaCircuito> todasRutas = new ArrayList<>();
-        RutaCircuito rutaInicial = new RutaCircuito();
-        rutaInicial.terminales.add(fuente.getTerminalPositivo());
-        Set<Terminal> termVisitados = new HashSet<>();
-        termVisitados.add(fuente.getTerminalPositivo());
-        buscarRutasDesdeTerminal(
-                fuente.getTerminalPositivo(),
-                fuente.getTerminalNegativo(),
-                rutaInicial,
-                todasRutas,
-                new HashSet<>(),
-                termVisitados,
-                new HashSet<>()
-        );
+        if (sw == null) {
+            mensajeEstado = "Coloca el Switch en la mesa.";
+            return false;
+        }
+        if (compuertaOr == null) {
+            mensajeEstado = "Coloca la compuerta OR en la mesa.";
+            return false;
+        }
 
-        // 1. Verificación de cortocircuito sin carga (camino a tierra sin resistencia ni LED)
-        for (RutaCircuito r : todasRutas) {
-            if (!r.tieneResistencia && !r.tieneLed) {
+        Cable cableFuenteASw = null;
+        boolean conectadoDirectoACompuerta = false;
+        for (Cable cp : cablesPos) {
+            Terminal dest = cp.getOtroTerminal(fuente.getTerminalPositivo());
+            if (dest == sw.getTerminalEntrada()) {
+                cableFuenteASw = cp;
+            } else if (dest == compuertaOr.getTerminalEntradaA() || dest == compuertaOr.getTerminalEntradaB()) {
+                conectadoDirectoACompuerta = true;
+            }
+        }
+
+        if (cableFuenteASw == null) {
+            if (conectadoDirectoACompuerta) {
+                mensajeEstado = "Conecta Fuente (+) primero al Switch.";
+            } else {
+                mensajeEstado = "Conecta Fuente (+) al pin izquierdo del Switch.";
+            }
+            return false;
+        }
+
+        paso1Listo = true;
+        cableFuenteASw.setTieneEnergia(true);
+        sw.getTerminalEntrada().setValorLogico(true);
+
+        List<Cable> cablesSalA = buscarCablesConTerminal(sw.getTerminalSalidaA());
+        List<Cable> cablesSalB = buscarCablesConTerminal(sw.getTerminalSalidaB());
+
+        for (Cable ca : cablesSalA) {
+            if (ca.getOtroTerminal(sw.getTerminalSalidaA()) == fuente.getTerminalNegativo() && sw.isCerradoA()) {
                 fuente.setEstadoActual("ERROR");
-                for (Cable c : r.cables) c.setTieneEnergia(true);
-                mensajeEstado = "¡CORTOCIRCUITO DIRECTO! La fuente de poder ha estallado.";
+                ca.setTieneEnergia(true);
+                mensajeEstado = "¡CORTOCIRCUITO! Conectaste SAL A del Switch directo al polo negativo (-).";
+                return false;
+            }
+        }
+        for (Cable cb : cablesSalB) {
+            if (cb.getOtroTerminal(sw.getTerminalSalidaB()) == fuente.getTerminalNegativo() && sw.isCerradoB()) {
+                fuente.setEstadoActual("ERROR");
+                cb.setTieneEnergia(true);
+                mensajeEstado = "¡CORTOCIRCUITO! Conectaste SAL B del Switch directo al polo negativo (-).";
                 return false;
             }
         }
 
-        // 2. Verificación de LED quemado (LED sin resistencia limitadora en camino cerrado)
-        for (RutaCircuito r : todasRutas) {
-            if (r.tieneLed && !r.tieneResistencia) {
-                boolean conduce = true;
-                for (Switch s : r.switches) {
-                    if (!s.isCerrado()) {
-                        conduce = false;
-                        break;
-                    }
+        boolean inAConectada = false;
+        boolean inBConectada = false;
+        boolean senalEnInA = false;
+        boolean senalEnInB = false;
+
+        for (Cable ca : cablesSalA) {
+            Terminal dest = ca.getOtroTerminal(sw.getTerminalSalidaA());
+            if (dest == compuertaOr.getTerminalEntradaA()) {
+                inAConectada = true;
+                if (sw.isCerradoA()) {
+                    senalEnInA = true;
+                    ca.setTieneEnergia(true);
                 }
-                if (conduce) {
-                    if (led != null) {
-                        led.setQuemado(true);
-                        led.setEstadoActual("ERROR");
-                    }
-                    fuente.setEstadoActual("ERROR");
-                    for (Cable c : r.cables) c.setTieneEnergia(true);
-                    mensajeEstado = "¡EL LED SE HA QUEMADO! Conectaste a tierra sin resistencia limitadora.";
-                    return false;
+            } else if (dest == compuertaOr.getTerminalEntradaB()) {
+                inBConectada = true;
+                if (sw.isCerradoA()) {
+                    senalEnInB = true;
+                    ca.setTieneEnergia(true);
+                }
+            }
+        }
+
+        for (Cable cb : cablesSalB) {
+            Terminal dest = cb.getOtroTerminal(sw.getTerminalSalidaB());
+            if (dest == compuertaOr.getTerminalEntradaB()) {
+                inBConectada = true;
+                if (sw.isCerradoB()) {
+                    senalEnInB = true;
+                    cb.setTieneEnergia(true);
+                }
+            } else if (dest == compuertaOr.getTerminalEntradaA()) {
+                inAConectada = true;
+                if (sw.isCerradoB()) {
+                    senalEnInA = true;
+                    cb.setTieneEnergia(true);
                 }
             }
         }
 
-        // 3. Verificación de polaridad invertida
-        boolean algunaValida = false;
-        boolean algunaInvertida = false;
-        for (RutaCircuito r : todasRutas) {
-            if (r.tieneLed && r.tieneResistencia) {
-                if (r.polaridadInvertida) {
-                    algunaInvertida = true;
-                } else {
-                    algunaValida = true;
+        sw.evaluarEstado();
+        compuertaOr.setEntradas(senalEnInA, senalEnInB);
+
+        if (inAConectada && inBConectada) {
+            paso2Listo = true;
+        }
+
+        Terminal terminalActual = compuertaOr.getTerminalSalida();
+        boolean pasoPorResistencia = false;
+        boolean pasoPorLed = false;
+        boolean llegoATierra = false;
+        boolean polaridadInvertida = false;
+        Set<Componente> componentesVisitados = new HashSet<>();
+        List<Cable> cablesSalida = new ArrayList<>();
+        Componente ultimoComponenteSalida = compuertaOr;
+
+        while (terminalActual != null) {
+            Cable cableSaliente = buscarCableConTerminal(terminalActual);
+            if (cableSaliente == null) {
+                break;
+            }
+            cablesSalida.add(cableSaliente);
+
+            Terminal destino = cableSaliente.getOtroTerminal(terminalActual);
+            if (destino == null) break;
+            Componente compDestino = destino.getComponentePadre();
+            if (compDestino == null) break;
+
+            if (compDestino == fuente) {
+                if (destino == fuente.getTerminalNegativo()) {
+                    llegoATierra = true;
                 }
+                break;
             }
-        }
-        if (algunaInvertida && !algunaValida) {
-            fuente.setEstadoActual("NEUTRO");
-            if (sw1 != null) sw1.setEstadoActual("NEUTRO");
-            if (sw2 != null) sw2.setEstadoActual("NEUTRO");
-            if (res != null) res.setEstadoActual("NEUTRO");
-            if (led != null) led.setEstadoActual("NEUTRO");
-            for (Cable c : cables) c.setTieneEnergia(false);
-            mensajeEstado = "Polaridad invertida: La corriente debe entrar por el Ánodo (+) del LED.";
-            return false;
-        }
 
-        // 4. Filtrado de rutas válidas hacia tierra con protección
-        List<RutaCircuito> rutasValidas = new ArrayList<>();
-        for (RutaCircuito r : todasRutas) {
-            if (r.tieneLed && r.tieneResistencia && !r.polaridadInvertida) {
-                rutasValidas.add(r);
+            if (componentesVisitados.contains(compDestino)) {
+                break;
             }
-        }
+            componentesVisitados.add(compDestino);
+            ultimoComponenteSalida = compDestino;
 
-        if (rutasValidas.isEmpty()) {
-            fuente.setEstadoActual("NEUTRO");
-            if (sw1 != null) sw1.setEstadoActual("NEUTRO");
-            if (sw2 != null) sw2.setEstadoActual("NEUTRO");
-            if (res != null && !res.isQuemada()) res.setEstadoActual("NEUTRO");
-            if (led != null && !led.estaQuemado()) led.setEstadoActual("NEUTRO");
-            for (Cable c : cables) c.setTieneEnergia(false);
-
-            determinarMensajeCircuitoIncompleto(fuente, sw1, sw2, res, led);
-            return false;
-        }
-
-        // Verificar si los interruptores fueron conectados en serie (Lógica AND) en lugar de paralelo
-        boolean todasSonSerie = true;
-        for (RutaCircuito r : rutasValidas) {
-            if (!(r.switches.contains(sw1) && r.switches.contains(sw2))) {
-                todasSonSerie = false;
+            if (compDestino instanceof Resistencia) {
+                Resistencia r = (Resistencia) compDestino;
+                pasoPorResistencia = true;
+                terminalActual = (destino == r.getTerminalEntrada()) ? r.getTerminalSalida() : r.getTerminalEntrada();
+            } else if (compDestino instanceof LED) {
+                LED l = (LED) compDestino;
+                if (destino == l.getTerminalCatodo()) {
+                    polaridadInvertida = true;
+                    break;
+                }
+                pasoPorLed = true;
+                terminalActual = l.getTerminalCatodo();
+            } else {
                 break;
             }
         }
-        if (todasSonSerie) {
-            fuente.setEstadoActual("NEUTRO");
-            if (sw1 != null) sw1.setEstadoActual("NEUTRO");
-            if (sw2 != null) sw2.setEstadoActual("NEUTRO");
-            if (res != null) res.setEstadoActual("NEUTRO");
-            if (led != null) led.setEstadoActual("NEUTRO");
-            for (Cable c : cables) c.setTieneEnergia(false);
-            mensajeEstado = "Los interruptores están en serie (Lógica AND). Conéctalos en paralelo para la Lógica OR.";
+
+        if (llegoATierra && !pasoPorLed && !pasoPorResistencia && compuertaOr.isSalida()) {
+            fuente.setEstadoActual("ERROR");
+            for (Cable c : cablesSalida) c.setTieneEnergia(true);
+            mensajeEstado = "¡CORTOCIRCUITO DIRECTO! Conectaste la salida OUT directo a Fuente (-) sin componentes.";
             return false;
         }
 
-        // Verificar existencia de ambas ramas en paralelo
-        boolean tieneRamaSw1 = false;
-        boolean tieneRamaSw2 = false;
-        for (RutaCircuito r : rutasValidas) {
-            if (r.switches.contains(sw1) && !r.switches.contains(sw2)) {
-                tieneRamaSw1 = true;
+        if (polaridadInvertida) {
+            if (led != null) {
+                led.setQuemado(false);
+                led.setEstadoActual("NEUTRO");
             }
-            if (r.switches.contains(sw2) && !r.switches.contains(sw1)) {
-                tieneRamaSw2 = true;
+            mensajeEstado = "Polaridad invertida: entra por el Ánodo (+) rojo del LED y sal por el Cátodo (-) azul.";
+            return false;
+        }
+
+        if (llegoATierra && pasoPorLed && !pasoPorResistencia) {
+            if (compuertaOr.isSalida()) {
+                if (led != null) {
+                    led.setQuemado(true);
+                    led.setEstadoActual("ERROR");
+                }
+                fuente.setEstadoActual("ERROR");
+                for (Cable c : cablesSalida) {
+                    c.setTieneEnergia(true);
+                }
+                mensajeEstado = "¡EL LED SE HA QUEMADO! Faltó la resistencia de 220 Ohm.";
+                return false;
+            } else {
+                mensajeEstado = "Agrega la resistencia de 220 Ohm para proteger el LED.";
+                return false;
             }
         }
 
-        if (!tieneRamaSw1 && !tieneRamaSw2) {
-            mensajeEstado = "Falta intercalar los interruptores en paralelo en el circuito.";
-            return false;
-        }
-        if (tieneRamaSw1 && !tieneRamaSw2) {
-            fuente.setEstadoActual("NEUTRO");
-            if (sw1 != null) sw1.setEstadoActual("NEUTRO");
-            if (sw2 != null) sw2.setEstadoActual("NEUTRO");
-            if (res != null) res.setEstadoActual("NEUTRO");
-            if (led != null) led.setEstadoActual("NEUTRO");
-            for (Cable c : cables) c.setTieneEnergia(false);
-            mensajeEstado = "Falta conectar el segundo interruptor (Switch B) en paralelo para completar la Lógica OR.";
-            return false;
-        }
-        if (!tieneRamaSw1 && tieneRamaSw2) {
-            fuente.setEstadoActual("NEUTRO");
-            if (sw1 != null) sw1.setEstadoActual("NEUTRO");
-            if (sw2 != null) sw2.setEstadoActual("NEUTRO");
-            if (res != null) res.setEstadoActual("NEUTRO");
-            if (led != null) led.setEstadoActual("NEUTRO");
-            for (Cable c : cables) c.setTieneEnergia(false);
-            mensajeEstado = "Falta conectar el primer interruptor (Switch A) en paralelo para completar la Lógica OR.";
+        if (!paso2Listo) {
+            if (!inAConectada && !inBConectada) {
+                mensajeEstado = "Conecta las ramas A y B del Switch hacia OR.";
+            } else if (!inAConectada) {
+                mensajeEstado = "Falta conectar la entrada IN A de OR.";
+            } else {
+                mensajeEstado = "Falta conectar la entrada IN B de OR.";
+            }
             return false;
         }
 
-        // --- TOPOLOGÍA EN PARALELO VERIFICADA ---
-        boolean sw1Cerrado = (sw1 != null && sw1.isCerrado());
-        boolean sw2Cerrado = (sw2 != null && sw2.isCerrado());
+        if (!llegoATierra) {
+            if (cablesSalida.isEmpty()) {
+                mensajeEstado = "Conecta la salida de OR a la resistencia 220 Ohm.";
+            } else if (ultimoComponenteSalida instanceof Resistencia) {
+                if (!pasoPorLed) {
+                    mensajeEstado = "Conecta la resistencia al polo (+) del LED.";
+                } else {
+                    mensajeEstado = "Cierra hacia el polo (-) de la Fuente.";
+                }
+            } else if (ultimoComponenteSalida instanceof LED) {
+                if (pasoPorResistencia) {
+                    mensajeEstado = "Cierra desde LED (-) hacia Fuente (-).";
+                } else {
+                    mensajeEstado = "Conecta LED (-) a 220 Ohm y luego a Fuente (-).";
+                }
+            } else {
+                mensajeEstado = "Conecta la salida hacia 220 Ohm, LED y Fuente (-).";
+            }
+            return false;
+        }
 
-        if (!sw1Cerrado && !sw2Cerrado) {
-            fuente.setEstadoActual("NEUTRO");
-            if (sw1 != null) sw1.setEstadoActual("NEUTRO");
-            if (sw2 != null) sw2.setEstadoActual("NEUTRO");
+        if (!pasoPorLed) {
+            mensajeEstado = "Falta intercalar el LED en la salida.";
+            return false;
+        }
+
+        paso3Listo = true;
+
+        boolean cerradoA = sw.isCerradoA();
+        boolean cerradoB = sw.isCerradoB();
+
+        if (!cerradoA && !cerradoB) {
+            compuertaOr.setEstadoActual("NEUTRO");
             if (res != null) {
                 res.setQuemada(false);
                 res.setEstadoActual("NEUTRO");
@@ -323,15 +413,19 @@ public class Nivel4 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            for (Cable c : cables) c.setTieneEnergia(false);
-            mensajeEstado = "Circuito en paralelo conectado. Ambos interruptores están abiertos. Cierra al menos uno para encender el LED.";
+            for (Cable c : cablesSalida) {
+                c.setTieneEnergia(false);
+            }
+
+            mensajeEstado = "Activa la palanca A o B en el Switch.";
             return false;
         }
 
-        // Al menos una rama conduce: LÓGICA OR SATISFECHA
+        paso4Listo = true;
         fuente.setEstadoActual("EXITO");
-        fuente.getTerminalPositivo().setValorLogico(true);
-        fuente.getTerminalNegativo().setValorLogico(true);
+        sw.setEstadoActual("EXITO");
+        compuertaOr.setEntradas(senalEnInA, senalEnInB);
+        compuertaOr.setEstadoActual("EXITO");
 
         if (res != null) {
             res.setQuemada(false);
@@ -346,195 +440,18 @@ public class Nivel4 extends Nivel {
             led.getTerminalCatodo().setValorLogico(true);
         }
 
-        if (sw1 != null) {
-            if (sw1Cerrado) {
-                sw1.setEstadoActual("EXITO");
-                sw1.getTerminalEntrada().setValorLogico(true);
-                sw1.getTerminalSalida().setValorLogico(true);
-            } else {
-                sw1.setEstadoActual("NEUTRO");
-            }
-        }
-        if (sw2 != null) {
-            if (sw2Cerrado) {
-                sw2.setEstadoActual("EXITO");
-                sw2.getTerminalEntrada().setValorLogico(true);
-                sw2.getTerminalSalida().setValorLogico(true);
-            } else {
-                sw2.setEstadoActual("NEUTRO");
-            }
-        }
+        fuente.getTerminalPositivo().setValorLogico(true);
+        fuente.getTerminalNegativo().setValorLogico(true);
 
-        // Energizar cables en las rutas que conducen corriente
-        for (RutaCircuito r : rutasValidas) {
-            boolean rutaConduce = true;
-            for (Switch s : r.switches) {
-                if (!s.isCerrado()) {
-                    rutaConduce = false;
-                    break;
-                }
-            }
-            if (rutaConduce) {
-                for (Cable c : r.cables) {
-                    c.setTieneEnergia(true);
-                }
-            }
+        for (Cable c : cablesSalida) {
+            c.setTieneEnergia(true);
         }
 
         if (tiempoCircuitoActivo >= TIEMPO_REQUERIDO_VICTORIA) {
-            mensajeEstado = "¡CIRCUITO COMPLETO! Lógica OR superada: el LED se mantuvo encendido 5 segundos. ¡Nivel superado!";
+            mensajeEstado = "¡Nivel superado!";
         } else {
-            String detalleRamas = (sw1Cerrado && sw2Cerrado) ? "Ambas ramas conducen" :
-                    (sw1Cerrado ? "Rama A conduce" : "Rama B conduce");
-            mensajeEstado = String.format("¡CIRCUITO ACTIVO! Lógica OR (%s): %.1f / %.1f s", detalleRamas, tiempoCircuitoActivo, TIEMPO_REQUERIDO_VICTORIA);
+            mensajeEstado = String.format("Circuito activo: %.1f / %.0f s", tiempoCircuitoActivo, TIEMPO_REQUERIDO_VICTORIA);
         }
         return true;
-    }
-
-    private void buscarRutasDesdeTerminal(
-            Terminal actual,
-            Terminal destinoFinal,
-            RutaCircuito rutaActual,
-            List<RutaCircuito> rutasEncontradas,
-            Set<Cable> cablesEnRuta,
-            Set<Terminal> terminalesEnRuta,
-            Set<Componente> componentesEnRuta
-    ) {
-        if (actual == destinoFinal) {
-            RutaCircuito copia = new RutaCircuito();
-            copia.cables.addAll(rutaActual.cables);
-            copia.terminales.addAll(rutaActual.terminales);
-            copia.componentes.addAll(rutaActual.componentes);
-            copia.switches.addAll(rutaActual.switches);
-            copia.tieneResistencia = rutaActual.tieneResistencia;
-            copia.tieneLed = rutaActual.tieneLed;
-            copia.polaridadInvertida = rutaActual.polaridadInvertida;
-            rutasEncontradas.add(copia);
-            return;
-        }
-
-        List<Cable> salientes = buscarCablesConTerminal(actual);
-        for (Cable cable : salientes) {
-            if (cablesEnRuta.contains(cable)) continue;
-
-            Terminal destino = cable.getOtroTerminal(actual);
-            if (destino == null || terminalesEnRuta.contains(destino)) continue;
-
-            cablesEnRuta.add(cable);
-            terminalesEnRuta.add(destino);
-            rutaActual.cables.add(cable);
-            rutaActual.terminales.add(destino);
-
-            if (destino == destinoFinal) {
-                RutaCircuito copia = new RutaCircuito();
-                copia.cables.addAll(rutaActual.cables);
-                copia.terminales.addAll(rutaActual.terminales);
-                copia.componentes.addAll(rutaActual.componentes);
-                copia.switches.addAll(rutaActual.switches);
-                copia.tieneResistencia = rutaActual.tieneResistencia;
-                copia.tieneLed = rutaActual.tieneLed;
-                copia.polaridadInvertida = rutaActual.polaridadInvertida;
-                rutasEncontradas.add(copia);
-            } else {
-                Componente comp = destino.getComponentePadre();
-                if (comp != null && !componentesEnRuta.contains(comp) && !(comp instanceof FuenteAlimentacion)) {
-                    componentesEnRuta.add(comp);
-                    rutaActual.componentes.add(comp);
-
-                    if (comp instanceof Switch) {
-                        Switch sw = (Switch) comp;
-                        rutaActual.switches.add(sw);
-                        Terminal salida = (destino == sw.getTerminalEntrada()) ? sw.getTerminalSalida() : sw.getTerminalEntrada();
-                        if (!terminalesEnRuta.contains(salida)) {
-                            terminalesEnRuta.add(salida);
-                            rutaActual.terminales.add(salida);
-
-                            buscarRutasDesdeTerminal(salida, destinoFinal, rutaActual, rutasEncontradas, cablesEnRuta, terminalesEnRuta, componentesEnRuta);
-
-                            rutaActual.terminales.remove(salida);
-                            terminalesEnRuta.remove(salida);
-                        }
-                        rutaActual.switches.remove(sw);
-
-                    } else if (comp instanceof Resistencia) {
-                        Resistencia r = (Resistencia) comp;
-                        boolean antesRes = rutaActual.tieneResistencia;
-                        rutaActual.tieneResistencia = true;
-                        Terminal salida = (destino == r.getTerminalEntrada()) ? r.getTerminalSalida() : r.getTerminalEntrada();
-                        if (!terminalesEnRuta.contains(salida)) {
-                            terminalesEnRuta.add(salida);
-                            rutaActual.terminales.add(salida);
-
-                            buscarRutasDesdeTerminal(salida, destinoFinal, rutaActual, rutasEncontradas, cablesEnRuta, terminalesEnRuta, componentesEnRuta);
-
-                            rutaActual.terminales.remove(salida);
-                            terminalesEnRuta.remove(salida);
-                        }
-                        rutaActual.tieneResistencia = antesRes;
-
-                    } else if (comp instanceof LED) {
-                        LED l = (LED) comp;
-                        boolean antesLed = rutaActual.tieneLed;
-                        boolean antesPol = rutaActual.polaridadInvertida;
-                        rutaActual.tieneLed = true;
-
-                        if (destino == l.getTerminalCatodo()) {
-                            rutaActual.polaridadInvertida = true;
-                            Terminal salida = l.getTerminalAnodo();
-                            if (!terminalesEnRuta.contains(salida)) {
-                                terminalesEnRuta.add(salida);
-                                rutaActual.terminales.add(salida);
-
-                                buscarRutasDesdeTerminal(salida, destinoFinal, rutaActual, rutasEncontradas, cablesEnRuta, terminalesEnRuta, componentesEnRuta);
-
-                                rutaActual.terminales.remove(salida);
-                                terminalesEnRuta.remove(salida);
-                            }
-                        } else {
-                            Terminal salida = l.getTerminalCatodo();
-                            if (!terminalesEnRuta.contains(salida)) {
-                                terminalesEnRuta.add(salida);
-                                rutaActual.terminales.add(salida);
-
-                                buscarRutasDesdeTerminal(salida, destinoFinal, rutaActual, rutasEncontradas, cablesEnRuta, terminalesEnRuta, componentesEnRuta);
-
-                                rutaActual.terminales.remove(salida);
-                                terminalesEnRuta.remove(salida);
-                            }
-                        }
-                        rutaActual.tieneLed = antesLed;
-                        rutaActual.polaridadInvertida = antesPol;
-                    }
-
-                    rutaActual.componentes.remove(comp);
-                    componentesEnRuta.remove(comp);
-                }
-
-                // Permite continuar por otro cable conectado al mismo terminal (nodo común)
-                buscarRutasDesdeTerminal(destino, destinoFinal, rutaActual, rutasEncontradas, cablesEnRuta, terminalesEnRuta, componentesEnRuta);
-            }
-
-            rutaActual.terminales.remove(destino);
-            rutaActual.cables.remove(cable);
-            terminalesEnRuta.remove(destino);
-            cablesEnRuta.remove(cable);
-        }
-    }
-
-    private void determinarMensajeCircuitoIncompleto(FuenteAlimentacion fuente, Switch sw1, Switch sw2, Resistencia res, LED led) {
-        boolean sw1Conectado = (sw1 != null && (buscarCableConTerminal(sw1.getTerminalEntrada()) != null || buscarCableConTerminal(sw1.getTerminalSalida()) != null));
-        boolean sw2Conectado = (sw2 != null && (buscarCableConTerminal(sw2.getTerminalEntrada()) != null || buscarCableConTerminal(sw2.getTerminalSalida()) != null));
-        boolean resConectada = (res != null && (buscarCableConTerminal(res.getTerminalEntrada()) != null || buscarCableConTerminal(res.getTerminalSalida()) != null));
-        boolean ledConectado = (led != null && (buscarCableConTerminal(led.getTerminalAnodo()) != null || buscarCableConTerminal(led.getTerminalCatodo()) != null));
-
-        if (!sw1Conectado && !sw2Conectado) {
-            mensajeEstado = "Conecta la fuente (+) a las entradas de los interruptores en paralelo.";
-        } else if (!resConectada) {
-            mensajeEstado = "Conecta las salidas de los interruptores hacia la resistencia limitadora.";
-        } else if (!ledConectado) {
-            mensajeEstado = "Conecta la resistencia limitadora hacia el Ánodo (+) del LED.";
-        } else {
-            mensajeEstado = "Conecta el cátodo (-) del LED hacia el polo negativo (-) de la fuente.";
-        }
     }
 }

@@ -8,6 +8,11 @@ import java.util.Set;
 
 public class Nivel2 extends Nivel {
 
+    private boolean paso1Listo;
+    private boolean paso2Listo;
+    private boolean paso3Listo;
+    private boolean paso4Listo;
+
     public Nivel2() {
         super(2, "NIVEL 2: CIRCUITO CON INTERRUPTOR", 30.0f);
         inicializar();
@@ -24,12 +29,16 @@ public class Nivel2 extends Nivel {
         this.tiempoCircuitoActivo = 0.0f;
         this.tiempoLimite = 30.0f;
         this.tiempoRestante = this.tiempoLimite;
-        this.mensajeEstado = "Objetivo: Conecta la fuente, el interruptor, la resistencia y el LED.";
+        this.paso1Listo = false;
+        this.paso2Listo = false;
+        this.paso3Listo = false;
+        this.paso4Listo = false;
+        this.mensajeEstado = "Conecta en serie con el Switch y actívalo.";
 
         FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
-        Switch interruptor = new Switch("SW_1", 450f, 440f, false);
-        Resistencia resistencia = new Resistencia("R_1", 800f, 395f, 220, 220);
-        LED led = new LED("LED_1", 1240f, 350f, true);
+        Switch interruptor = new Switch("SW_1", 440f, 575f, false);
+        Resistencia resistencia = new Resistencia("R_1", 810f, 544f, 220, 220);
+        LED led = new LED("LED_1", 1230f, 440f, true);
 
         this.componentes.add(fuente);
         this.componentes.add(interruptor);
@@ -40,13 +49,28 @@ public class Nivel2 extends Nivel {
         casSw.decrementar();
         this.inventario.add(casSw);
 
-        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ω", 1);
+        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1);
         casRes.decrementar();
         this.inventario.add(casRes);
 
         CasillaInventario casLed = new CasillaInventario("LED", "LED (Diodo)", 1);
         casLed.decrementar();
         this.inventario.add(casLed);
+    }
+
+    @Override
+    public String[] obtenerPasosGuia() {
+        return new String[]{
+            "1. Fuente",
+            "2. Switch",
+            "3. 220 + LED",
+            "4. Switch ON"
+        };
+    }
+
+    @Override
+    public boolean[] obtenerEstadoPasosGuia() {
+        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, paso4Listo};
     }
 
     @Override
@@ -74,6 +98,20 @@ public class Nivel2 extends Nivel {
 
         if (fuente == null) {
             return false;
+        }
+
+        this.paso1Listo = (buscarCableConTerminal(fuente.getTerminalPositivo()) != null);
+        this.paso2Listo = false;
+        this.paso3Listo = (buscarCableConTerminal(fuente.getTerminalNegativo()) != null);
+        this.paso4Listo = (interruptor != null && interruptor.isCerrado());
+        if (res != null && led != null) {
+            for (Cable c : cables) {
+                if ((c.conectaTerminal(res.getTerminalEntrada()) || c.conectaTerminal(res.getTerminalSalida())) &&
+                        c.conectaTerminal(led.getTerminalAnodo())) {
+                    this.paso2Listo = true;
+                    break;
+                }
+            }
         }
 
         fuente.getTerminalPositivo().setValorLogico(fuente.estaEncendida());

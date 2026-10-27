@@ -198,19 +198,19 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         );
         datosNiveles[2] = new InfoNivel(
                 3,
-                "DOBLE SWITCH (AND)",
+                "COMPUERTA AND",
                 "LOGICA I",
-                "30s",
-                "Fuente DC - 2x Interruptores - Resistencia - LED",
-                "Logica digital en serie: conecta dos interruptores en serie. Ambos deben cerrarse para encender el LED."
+                "50s",
+                "Fuente - Switch A/B - Compuerta AND - 220 Ohm - LED",
+                "Conecta el Switch Divisor a la compuerta AND. Ambas palancas (A y B) deben estar en ON para encender el LED."
         );
         datosNiveles[3] = new InfoNivel(
                 4,
-                "DOBLE SWITCH (OR)",
+                "COMPUERTA OR",
                 "LOGICA II",
-                "30s",
-                "Fuente DC - 2x Interruptores - Resistencia - LED",
-                "Logica inclusiva en paralelo: conecta dos interruptores en paralelo. Con que AL MENOS UNO este cerrado, el LED encendera."
+                "50s",
+                "Fuente - Switch A/B - Compuerta OR - 220 Ohm - LED",
+                "Conecta el Switch Divisor a la compuerta OR. Con que AL MENOS UNA palanca (A o B) este en ON, el LED encendera."
         );
         datosNiveles[4] = new InfoNivel(
                 5,

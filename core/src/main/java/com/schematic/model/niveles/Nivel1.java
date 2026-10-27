@@ -4,6 +4,10 @@ import com.schematic.model.componentes.*;
 
 public class Nivel1 extends Nivel {
 
+    private boolean paso1Listo;
+    private boolean paso2Listo;
+    private boolean paso3Listo;
+
     public Nivel1() {
         super(1, "NIVEL 1: ENCIENDE EL LED", 30.0f);
         inicializar();
@@ -20,11 +24,14 @@ public class Nivel1 extends Nivel {
         this.tiempoCircuitoActivo = 0.0f;
         this.tiempoLimite = 30.0f;
         this.tiempoRestante = this.tiempoLimite;
-        this.mensajeEstado = "Objetivo: Conecta la fuente (+), la resistencia y el LED para encenderlo.";
+        this.paso1Listo = false;
+        this.paso2Listo = false;
+        this.paso3Listo = false;
+        this.mensajeEstado = "Conecta Fuente (+), resistencia 220 Ohm y LED.";
 
         FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
-        Resistencia resistencia = new Resistencia("R_1", 600f, 410f, 220, 220);
-        LED led = new LED("LED_1", 1120f, 365f, true);
+        Resistencia resistencia = new Resistencia("R_1", 620f, 544f, 220, 220);
+        LED led = new LED("LED_1", 1120f, 440f, true);
 
         this.componentes.add(fuente);
         this.componentes.add(resistencia);
@@ -34,9 +41,23 @@ public class Nivel1 extends Nivel {
         casLed.decrementar();
         this.inventario.add(casLed);
 
-        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ω", 1);
+        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1);
         casRes.decrementar();
         this.inventario.add(casRes);
+    }
+
+    @Override
+    public String[] obtenerPasosGuia() {
+        return new String[]{
+            "1. Fuente",
+            "2. 220 Ohm",
+            "3. LED"
+        };
+    }
+
+    @Override
+    public boolean[] obtenerEstadoPasosGuia() {
+        return new boolean[]{paso1Listo, paso2Listo, paso3Listo};
     }
 
     @Override
@@ -62,6 +83,26 @@ public class Nivel1 extends Nivel {
 
         if (fuente == null) {
             return false;
+        }
+
+        this.paso1Listo = false;
+        this.paso2Listo = false;
+        this.paso3Listo = false;
+        if (res != null && led != null) {
+            for (Cable c : cables) {
+                if (c.conectaTerminal(fuente.getTerminalPositivo()) &&
+                        (c.conectaTerminal(res.getTerminalEntrada()) || c.conectaTerminal(res.getTerminalSalida()) || c.conectaTerminal(led.getTerminalAnodo()))) {
+                    this.paso1Listo = true;
+                }
+                if ((c.conectaTerminal(res.getTerminalEntrada()) || c.conectaTerminal(res.getTerminalSalida())) &&
+                        (c.conectaTerminal(led.getTerminalAnodo()) || c.conectaTerminal(led.getTerminalCatodo()))) {
+                    this.paso2Listo = true;
+                }
+                if (c.conectaTerminal(fuente.getTerminalNegativo()) &&
+                        (c.conectaTerminal(led.getTerminalCatodo()) || c.conectaTerminal(res.getTerminalEntrada()) || c.conectaTerminal(res.getTerminalSalida()))) {
+                    this.paso3Listo = true;
+                }
+            }
         }
 
         fuente.getTerminalPositivo().setValorLogico(fuente.estaEncendida());

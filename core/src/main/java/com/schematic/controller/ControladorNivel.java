@@ -17,6 +17,8 @@ import com.schematic.model.componentes.Terminal;
 import com.schematic.model.niveles.Nivel;
 import com.schematic.view.VistaNivel;
 
+import java.util.List;
+
 public class ControladorNivel extends InputAdapter {
 
     public static final float TAMANO_CELDA = 60f;
@@ -84,7 +86,7 @@ public class ControladorNivel extends InputAdapter {
             }
 
             if (vista != null) {
-                Cable cableCodo = vista.obtenerCableCodoBajoRaton(mx, my, 24f);
+                Cable cableCodo = vista.obtenerCableCodoBajoRaton(mx, my, 22f);
                 if (cableCodo != null) {
                     cableArrastrandoCodo = cableCodo;
                     arrastrandoCodo = true;
@@ -92,8 +94,8 @@ public class ControladorNivel extends InputAdapter {
                 }
             }
 
-            if (nivel != null && mx >= 1640f && mx <= 1890f) {
-                if (my >= 690f && my <= 890f) {
+            if (nivel != null && mx >= 1645f && mx <= 1895f) {
+                if (my >= 720f && my <= 905f) {
                     Nivel.CasillaInventario casilla = nivel.buscarCasilla("LED");
                     if (casilla != null && casilla.puedeUsar()) {
                         arrastrandoDesdeBarra = true;
@@ -102,7 +104,7 @@ public class ControladorNivel extends InputAdapter {
                         sonar(TipoEfecto.CLICK_UI);
                         return true;
                     }
-                } else if (my >= 450f && my <= 650f) {
+                } else if (my >= 515f && my <= 700f) {
                     Nivel.CasillaInventario casilla = nivel.buscarCasilla("RESISTENCIA_220");
                     if (casilla != null && casilla.puedeUsar()) {
                         arrastrandoDesdeBarra = true;
@@ -111,7 +113,7 @@ public class ControladorNivel extends InputAdapter {
                         sonar(TipoEfecto.CLICK_UI);
                         return true;
                     }
-                } else if (my >= 210f && my <= 410f) {
+                } else if (my >= 310f && my <= 495f) {
                     Nivel.CasillaInventario casilla = nivel.buscarCasilla("SWITCH");
                     if (casilla != null && casilla.puedeUsar()) {
                         arrastrandoDesdeBarra = true;
@@ -120,11 +122,22 @@ public class ControladorNivel extends InputAdapter {
                         sonar(TipoEfecto.CLICK_UI);
                         return true;
                     }
+                } else if (my >= 105f && my <= 290f) {
+                    Nivel.CasillaInventario casAnd = nivel.buscarCasilla("AND");
+                    Nivel.CasillaInventario casOr = nivel.buscarCasilla("OR");
+                    Nivel.CasillaInventario casGate = (casAnd != null) ? casAnd : casOr;
+                    if (casGate != null && casGate.puedeUsar()) {
+                        arrastrandoDesdeBarra = true;
+                        tipoComponenteArrastrado = casGate.getTipo();
+                        posicionArrastre.set(mx, my);
+                        sonar(TipoEfecto.CLICK_UI);
+                        return true;
+                    }
                 }
             }
 
             if (vista != null) {
-                Terminal term = vista.obtenerTerminalBajoRaton(mx, my, 34f);
+                Terminal term = vista.obtenerTerminalBajoRaton(mx, my, 30f);
                 if (term != null) {
                     vista.iniciarCable(term, mx, my);
                     return true;
@@ -142,6 +155,11 @@ public class ControladorNivel extends InputAdapter {
                 }
             }
         } else if (button == Buttons.RIGHT) {
+            if (vista != null && vista.estaMostrandoGuiaNivel()) {
+                vista.cerrarGuiaNivel();
+                return true;
+            }
+
             if (arrastrandoDesdeBarra) {
                 arrastrandoDesdeBarra = false;
                 tipoComponenteArrastrado = null;
@@ -154,11 +172,11 @@ public class ControladorNivel extends InputAdapter {
             }
 
             if (vista != null && nivel != null) {
-                Terminal term = vista.obtenerTerminalBajoRaton(mx, my, 34f);
+                Terminal term = vista.obtenerTerminalBajoRaton(mx, my, 30f);
                 if (term != null) {
-                    Cable c = nivel.buscarCableConTerminal(term);
-                    if (c != null) {
-                        nivel.eliminarCable(c);
+                    List<Cable> conectados = nivel.buscarCablesConTerminal(term);
+                    if (!conectados.isEmpty()) {
+                        nivel.eliminarCable(conectados.get(conectados.size() - 1));
                         sonar(TipoEfecto.DESCONECTAR_CABLE);
                         return true;
                     }
@@ -211,10 +229,11 @@ public class ControladorNivel extends InputAdapter {
         if (componenteSeleccionado != null) {
             float nuevaX = mx - desfaseArrastreX;
             float nuevaY = my - desfaseArrastreY;
-            if (nuevaX < 320f) nuevaX = 320f;
-            if (nuevaX > 1720f) nuevaX = 1720f;
-            if (nuevaY < 80f) nuevaY = 80f;
-            if (nuevaY > 820f) nuevaY = 820f;
+            float maxAlto = 965f - componenteSeleccionado.getAlto();
+            if (nuevaX < 310f) nuevaX = 310f;
+            if (nuevaX > 1740f) nuevaX = 1740f;
+            if (nuevaY < 118f) nuevaY = 118f;
+            if (nuevaY > maxAlto) nuevaY = maxAlto;
             componenteSeleccionado.actualizarPosicion(nuevaX, nuevaY);
             return true;
         }
@@ -236,19 +255,22 @@ public class ControladorNivel extends InputAdapter {
             }
 
             if (arrastrandoDesdeBarra) {
-                if (mx >= 340f && mx <= 1580f && my >= 100f && my <= 880f) {
-                    float posX = mx;
-                    float posY = my;
+                if (nivel != null && mx >= 300f && mx < 1620f && my >= 100f && my <= 960f) {
+                    float w = 240f;
+                    float h = 240f;
                     if ("LED".equals(tipoComponenteArrastrado)) {
-                        posX = mx - 160f;
-                        posY = my - 160f;
+                        w = 240f; h = 240f;
                     } else if ("RESISTENCIA_220".equals(tipoComponenteArrastrado)) {
-                        posX = mx - 180f;
-                        posY = my - 115f;
+                        w = 270f; h = 172f;
+                    } else if ("AND".equals(tipoComponenteArrastrado) || "OR".equals(tipoComponenteArrastrado)) {
+                        w = 280f; h = 280f;
                     } else if ("SWITCH".equals(tipoComponenteArrastrado)) {
-                        posX = mx - 120f;
-                        posY = my - 70f;
+                        boolean esDoble = (nivel.getNumeroNivel() >= 3);
+                        w = esDoble ? 230f : 190f;
+                        h = esDoble ? 180f : 110f;
                     }
+                    float posX = Math.max(315f, Math.min(1600f - w, mx - w / 2f));
+                    float posY = Math.max(118f, Math.min(965f - h, my - h / 2f));
                     Componente colocado = nivel.crearYColocarComponente(tipoComponenteArrastrado, posX, posY);
                     if (colocado != null) {
                         sonar(TipoEfecto.CONECTAR_CABLE);
@@ -260,27 +282,39 @@ public class ControladorNivel extends InputAdapter {
             }
 
             if (vista != null && vista.estaCableEnProgreso()) {
-                Terminal destino = vista.obtenerTerminalBajoRaton(mx, my, 34f);
+                Terminal destino = vista.obtenerTerminalBajoRaton(mx, my, 30f);
                 vista.finalizarCable(destino);
                 return true;
             }
 
             if (componenteSeleccionado != null) {
+                float distArrastre = Vector2.dst(clickInicioX, clickInicioY, mx, my);
                 if (mx >= 1620f) {
                     nivel.devolverAlInventario(componenteSeleccionado);
                     sonar(TipoEfecto.DESCONECTAR_CABLE);
-                } else if (componenteSeleccionado instanceof Switch) {
-                    float distArrastre = Vector2.dst(clickInicioX, clickInicioY, mx, my);
-                    if (distArrastre < 15f) {
+                } else {
+                    float maxX = 1605f - componenteSeleccionado.getAncho();
+                    if (componenteSeleccionado.getPosicionX() > maxX) {
+                        componenteSeleccionado.actualizarPosicion(maxX, componenteSeleccionado.getPosicionY());
+                    }
+                    if (componenteSeleccionado instanceof Switch && distArrastre < 15f) {
                         Switch sw = (Switch) componenteSeleccionado;
-                        sw.conmutar();
+                        sw.conmutarSegunPosicionY(my);
                         nivel.actualizar(0f);
                         sonar(TipoEfecto.CONMUTAR_SWITCH);
                         if (vista != null) {
-                            float contactX = sw.getPosicionX() + sw.getAncho() - 35f;
-                            float contactY = sw.getPosicionY() + sw.getAlto() / 2f;
+                            float contactX = sw.getPosicionX() + sw.getAncho() - 28f;
+                            float contactY;
+                            if (sw.isDoble()) {
+                                boolean mitadSuperior = (my >= sw.getPosicionY() + sw.getAlto() * 0.5f);
+                                contactY = sw.getPosicionY() + (mitadSuperior ? 136f : 44f);
+                            } else {
+                                contactY = sw.getPosicionY() + sw.getAlto() / 2f;
+                            }
                             vista.generarChispasImpacto(contactX, contactY, 8);
                         }
+                    } else if (nivel != null) {
+                        nivel.actualizar(0f);
                     }
                 }
                 componenteSeleccionado = null;
@@ -302,9 +336,18 @@ public class ControladorNivel extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
-        if (keycode == Input.Keys.ESCAPE) {
+        if (keycode == Input.Keys.H) {
             if (vista != null) {
-                vista.volverAlMenu();
+                vista.alternarGuiaNivel();
+                return true;
+            }
+        } else if (keycode == Input.Keys.ESCAPE) {
+            if (vista != null) {
+                if (vista.estaMostrandoGuiaNivel()) {
+                    vista.cerrarGuiaNivel();
+                } else {
+                    vista.volverAlMenu();
+                }
                 return true;
             }
         } else if (keycode == Input.Keys.R) {
@@ -314,11 +357,19 @@ public class ControladorNivel extends InputAdapter {
             }
         } else if (keycode == Input.Keys.SPACE) {
             if (vista != null) {
-                vista.saltarIntro();
+                if (vista.estaMostrandoGuiaNivel()) {
+                    vista.cerrarGuiaNivel();
+                } else {
+                    vista.saltarIntro();
+                }
                 return true;
             }
         } else if (keycode == Input.Keys.ENTER) {
             if (vista != null) {
+                if (vista.estaMostrandoGuiaNivel()) {
+                    vista.cerrarGuiaNivel();
+                    return true;
+                }
                 if (nivel != null && nivel.estaGanado()) {
                     vista.siguienteNivel();
                     return true;

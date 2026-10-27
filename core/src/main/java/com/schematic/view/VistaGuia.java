@@ -49,6 +49,7 @@ public class VistaGuia extends ScreenAdapter {
 
     private List<Texture> texturas;
     private Animation<TextureRegion> animAnd;
+    private Animation<TextureRegion> animOr;
     private Animation<TextureRegion> animLedNormal;
     private Animation<TextureRegion> animLedPrendiendo;
     private Animation<TextureRegion> animLedMuriendo;
@@ -131,6 +132,7 @@ public class VistaGuia extends ScreenAdapter {
 
     private void cargarAnimaciones() {
         animAnd = cargarAnimacion("and", 12, 0.12f);
+        animOr = cargarAnimacion("or", 12, 0.12f);
         animLedNormal = cargarAnimacion("led_normal", 10, 0.12f);
         animLedPrendiendo = cargarAnimacion("led_prendiendo", 8, 0.10f);
         animLedMuriendo = cargarAnimacion("led_muriendo", 10, 0.14f);
@@ -164,8 +166,8 @@ public class VistaGuia extends ScreenAdapter {
                 "LUZ",
                 "2V | 20mA",
                 "Se enciende cuando la corriente lo atraviesa. Tiene patita positiva (ánodo) y negativa (cátodo).",
-                "• Conecta el ánodo (+) a la corriente y el cátodo (-) a tierra.\n" +
-                "• Ponle siempre una resistencia para no quemarlo.",
+                "- Conecta el ánodo (+) a la corriente y el cátodo (-) a tierra.\n" +
+                "- Ponle siempre una resistencia para no quemarlo.",
                 new String[]{"APAGADO", "ENCENDIDO", "QUEMADO"},
                 0
         ));
@@ -173,10 +175,10 @@ public class VistaGuia extends ScreenAdapter {
         listaPagina0.add(new ElementoGuia(
                 "RESISTENCIA",
                 "PROTECCIÓN",
-                "220 Ω",
+                "220 Ohm",
                 "Frena el exceso de corriente para proteger los componentes y evitar que se quemen.",
-                "• Conéctala en serie antes o después del LED.\n" +
-                "• No tiene polaridad: funciona igual en cualquier sentido.",
+                "- Conéctala en serie antes o después del LED.\n" +
+                "- No tiene polaridad: funciona igual en cualquier sentido.",
                 new String[]{"NORMAL", "QUEMADA"},
                 1
         ));
@@ -186,8 +188,8 @@ public class VistaGuia extends ScreenAdapter {
                 "ENERGÍA",
                 "5V DC",
                 "Suministra la energía para que todo el circuito cobre vida.",
-                "• La energía sale por el (+) y debe regresar al (-).\n" +
-                "• Nunca unas el (+) directo al (-) o harás un cortocircuito.",
+                "- La energía sale por el (+) y debe regresar al (-).\n" +
+                "- Nunca unas el (+) directo al (-) o harás un cortocircuito.",
                 new String[]{"ON (5V)", "OFF (0V)"},
                 2
         ));
@@ -197,8 +199,8 @@ public class VistaGuia extends ScreenAdapter {
                 "CONTROL",
                 "ON / OFF",
                 "Abre o cierra el paso de corriente a tu gusto.",
-                "• Dale clic al centro para abrirlo o cerrarlo.\n" +
-                "• En ON deja pasar la energía; en OFF corta el circuito.",
+                "- Dale clic al centro para abrirlo o cerrarlo.\n" +
+                "- En ON deja pasar la energía; en OFF corta el circuito.",
                 new String[]{"CERRADO", "ABIERTO"},
                 3
         ));
@@ -208,19 +210,20 @@ public class VistaGuia extends ScreenAdapter {
                 "LÓGICA",
                 "Y = A · B",
                 "Solo activa su salida si recibe corriente en sus dos entradas al mismo tiempo.",
-                "• Activa la entrada A y la entrada B para encender la salida.\n" +
-                "• Si falta alguna de las dos, la salida se queda en 0.",
+                "- Activa la entrada A y la entrada B para encender la salida.\n" +
+                "- Si falta alguna de las dos, la salida se queda en 0.",
                 new String[]{"0 · 0 = 0", "1 · 0 = 0", "1 · 1 = 1"},
                 4
         ));
 
         listaPagina1.add(new ElementoGuia(
                 "COMPUERTA OR",
-                "PRÓXIMAMENTE",
-                "EN DESARROLLO",
-                "Compuerta de suma lógica. Estará disponible en los próximos niveles.",
-                "• Próximamente disponible en el simulador.",
-                new String[]{},
+                "LÓGICA",
+                "Y = A + B",
+                "Activa su salida cuando recibe corriente en la entrada A, en la entrada B o en ambas al mismo tiempo.",
+                "- Conecta las salidas A y B del Switch Divisor a sus entradas A y B.\n" +
+                "- Basta con activar A, B o ambas para que encienda el LED.",
+                new String[]{"0 + 0 = 0", "1 + 0 = 1", "1 + 1 = 1"},
                 5
         ));
 
@@ -229,8 +232,8 @@ public class VistaGuia extends ScreenAdapter {
                 "CONEXIÓN",
                 "LÍNEA CONDUCTORA",
                 "Unen los componentes y llevan la electricidad por donde decidas.",
-                "• Clic en un pin y arrastra hasta otro para conectarlos.\n" +
-                "• Clic derecho sobre un cable para desconectarlo.",
+                "- Clic en un pin y arrastra hasta otro para conectarlos.\n" +
+                "- Clic derecho sobre un cable para desconectarlo.",
                 new String[]{"ACTIVO", "REPOSO"},
                 6
         ));
@@ -240,8 +243,8 @@ public class VistaGuia extends ScreenAdapter {
                 "ENERGÍA",
                 "CARGA (-)",
                 "Pequeños amigos que viajan por el cable transportando la energía.",
-                "• Fluyen en cuanto el circuito está cerrado de punta a punta.\n" +
-                "• Si abres el interruptor o cortas un cable, se detienen.",
+                "- Fluyen en cuanto el circuito está cerrado de punta a punta.\n" +
+                "- Si abres el interruptor o cortas un cable, se detienen.",
                 new String[]{"FLUYENDO", "PAUSADO"},
                 7
         ));
@@ -897,6 +900,10 @@ public class VistaGuia extends ScreenAdapter {
             } else if (item.tipoVisual == 4) {
                 TextureRegion frameAnd = animAnd.getKeyFrame(tiempo, true);
                 batch.draw(frameAnd, vx + 15f, vy + 20f, 190f, 190f);
+
+            } else if (item.tipoVisual == 5) {
+                TextureRegion frameOr = animOr.getKeyFrame(tiempo, true);
+                batch.draw(frameOr, vx + 15f, vy + 20f, 190f, 190f);
 
             } else if (item.tipoVisual == 2) {
                 boolean on = (item.estadoSeleccionado == 0);

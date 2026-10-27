@@ -9,19 +9,19 @@ public class Resistencia extends Componente {
     private boolean quemada;
 
     public Resistencia(String identificador, float posicionX, float posicionY, int valorOhmios, int valorRequerido) {
-        super(identificador, posicionX, posicionY, 360.0f, 230.0f);
+        super(identificador, posicionX, posicionY, 270.0f, 172.0f);
         this.valorOhmios = Math.max(1, valorOhmios);
         this.valorRequerido = valorRequerido;
         this.quemada = false;
 
-        this.terminalEntrada = new Terminal(identificador + "_ENTRADA", this, 48f, 115f, true);
-        this.terminalSalida = new Terminal(identificador + "_SALIDA", this, 312f, 115f, false);
+        this.terminalEntrada = new Terminal(identificador + "_ENTRADA", this, 36.0f, 86.0f, true);
+        this.terminalSalida = new Terminal(identificador + "_SALIDA", this, 234.0f, 86.0f, false);
 
         this.terminales.add(terminalEntrada);
         this.terminales.add(terminalSalida);
 
-        this.agregarPuntoConexion(48, 115);
-        this.agregarPuntoConexion(312, 115);
+        this.agregarPuntoConexion(36, 86);
+        this.agregarPuntoConexion(234, 86);
 
         this.evaluarEstado();
     }
@@ -93,7 +93,7 @@ public class Resistencia extends Componente {
     }
 
     public String getTextoEtiqueta() {
-        return valorOhmios + " Ω";
+        return valorOhmios + " Ohm";
     }
 
     @Override

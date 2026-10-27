@@ -26,7 +26,7 @@ public class Nivel5 extends Nivel {
         this.componentes.add(fuente);
 
         this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
-        this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ω", 1));
+        this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
         this.inventario.add(new CasillaInventario("SWITCH", "Interruptor", 1));
         this.inventario.add(new CasillaInventario("AND", "Compuerta AND", 1));
     }
