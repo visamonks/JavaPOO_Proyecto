@@ -55,4 +55,3 @@ public class Nivel5 extends Nivel {
         return false;
     }
 }
-

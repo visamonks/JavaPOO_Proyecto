@@ -162,111 +162,80 @@ public class VistaGuia extends ScreenAdapter {
 
     private void cargarElementos() {
         listaPagina0.add(new ElementoGuia(
-                "DIODO LED",
-                "LUZ",
-                "2V | 20mA",
-                "Se enciende cuando la corriente lo atraviesa. Tiene patita positiva (ánodo) y negativa (cátodo).",
-                "- Conecta el ánodo (+) a la corriente y el cátodo (-) a tierra.\n" +
-                "- Ponle siempre una resistencia para no quemarlo.",
-                new String[]{"APAGADO", "ENCENDIDO", "QUEMADO"},
-                0
-        ));
+                "DIODO LED", "LUZ",
+                "Una pequeña luz que se enciende cuando la corriente pasa a través de ella.",
+                "Es la lucecita que te avisa que el cargador del celular está conectado.",
+                "Entra por la pata (+) roja y sale por la (-) azul. Siempre con resistencia.",
+                new String[]{"APAGADO", "ENCENDIDO", "QUEMADO"}, 0));
 
         listaPagina0.add(new ElementoGuia(
-                "RESISTENCIA",
-                "PROTECCIÓN",
-                "220 Ohm",
-                "Frena el exceso de corriente para proteger los componentes y evitar que se quemen.",
-                "- Conéctala en serie antes o después del LED.\n" +
-                "- No tiene polaridad: funciona igual en cualquier sentido.",
-                new String[]{"NORMAL", "QUEMADA"},
-                1
-        ));
+                "RESISTENCIA", "PROTECCIÓN",
+                "Frena el exceso de corriente para que ninguna pieza se queme.",
+                "Como la llave del grifo: deja pasar el agua, pero sin que salga a chorro.",
+                "Ponla en serie con el LED. Funciona igual en cualquier sentido.",
+                new String[]{"NORMAL", "QUEMADA"}, 1));
 
         listaPagina0.add(new ElementoGuia(
-                "FUENTE DE PODER",
-                "ENERGÍA",
-                "5V DC",
-                "Suministra la energía para que todo el circuito cobre vida.",
-                "- La energía sale por el (+) y debe regresar al (-).\n" +
-                "- Nunca unas el (+) directo al (-) o harás un cortocircuito.",
-                new String[]{"ON (5V)", "OFF (0V)"},
-                2
-        ));
+                "FUENTE DE PODER", "ENERGÍA",
+                "Entrega la energía (5 voltios) que hace funcionar todo el circuito.",
+                "Es como la batería del control remoto o el tomacorriente de tu casa.",
+                "La energía sale por (+) y debe regresar al (-). Nunca los unas directo.",
+                new String[]{"ON (5V)", "OFF (0V)"}, 2));
 
         listaPagina0.add(new ElementoGuia(
-                "INTERRUPTOR",
-                "CONTROL",
-                "ON / OFF",
-                "Abre o cierra el paso de corriente a tu gusto.",
-                "- Dale clic al centro para abrirlo o cerrarlo.\n" +
-                "- En ON deja pasar la energía; en OFF corta el circuito.",
-                new String[]{"CERRADO", "ABIERTO"},
-                3
-        ));
+                "INTERRUPTOR", "CONTROL",
+                "Abre o cierra el camino por donde viaja la corriente.",
+                "Es el apagador de la luz de tu cuarto.",
+                "Dale clic para cambiarlo: ON deja pasar la corriente, OFF la corta.",
+                new String[]{"CERRADO", "ABIERTO"}, 3));
 
         listaPagina1.add(new ElementoGuia(
-                "COMPUERTA AND",
-                "LÓGICA",
-                "Y = A · B",
-                "Solo activa su salida si recibe corriente en sus dos entradas al mismo tiempo.",
-                "- Activa la entrada A y la entrada B para encender la salida.\n" +
-                "- Si falta alguna de las dos, la salida se queda en 0.",
-                new String[]{"0 · 0 = 0", "1 · 0 = 0", "1 · 1 = 1"},
-                4
-        ));
+                "COMPUERTA AND", "LÓGICA  \"Y\"",
+                "Solo enciende su salida si la entrada A Y la entrada B tienen corriente.",
+                "El microondas solo calienta si la puerta está cerrada Y presionaste Start.",
+                "Si falta una sola entrada, la salida se queda apagada.",
+                new String[]{"0 · 0 = 0", "1 · 0 = 0", "1 · 1 = 1"}, 4));
 
         listaPagina1.add(new ElementoGuia(
-                "COMPUERTA OR",
-                "LÓGICA",
-                "Y = A + B",
-                "Activa su salida cuando recibe corriente en la entrada A, en la entrada B o en ambas al mismo tiempo.",
-                "- Conecta las salidas A y B del Switch Divisor a sus entradas A y B.\n" +
-                "- Basta con activar A, B o ambas para que encienda el LED.",
-                new String[]{"0 + 0 = 0", "1 + 0 = 1", "1 + 1 = 1"},
-                5
-        ));
+                "COMPUERTA OR", "LÓGICA  \"O\"",
+                "Enciende su salida si la entrada A O la entrada B (o las dos) tienen corriente.",
+                "La luz de la escalera: la prendes desde el apagador de abajo O el de arriba.",
+                "Con una sola entrada encendida es suficiente.",
+                new String[]{"0 + 0 = 0", "1 + 0 = 1", "1 + 1 = 1"}, 5));
 
         listaPagina1.add(new ElementoGuia(
-                "CABLES",
-                "CONEXIÓN",
-                "LÍNEA CONDUCTORA",
-                "Unen los componentes y llevan la electricidad por donde decidas.",
-                "- Clic en un pin y arrastra hasta otro para conectarlos.\n" +
-                "- Clic derecho sobre un cable para desconectarlo.",
-                new String[]{"ACTIVO", "REPOSO"},
-                6
-        ));
+                "CABLES", "CONEXIÓN",
+                "Unen las piezas y llevan la corriente de una a otra.",
+                "Son como las tuberías que llevan el agua por toda la casa.",
+                "Arrastra de un punto a otro para conectar. Clic derecho para borrar.",
+                new String[]{"ACTIVO", "REPOSO"}, 6));
 
         listaPagina1.add(new ElementoGuia(
-                "ELECTRONES",
-                "ENERGÍA",
-                "CARGA (-)",
-                "Pequeños amigos que viajan por el cable transportando la energía.",
-                "- Fluyen en cuanto el circuito está cerrado de punta a punta.\n" +
-                "- Si abres el interruptor o cortas un cable, se detienen.",
-                new String[]{"FLUYENDO", "PAUSADO"},
-                7
-        ));
+                "ELECTRONES", "ENERGÍA",
+                "Partículas diminutas que viajan por el cable llevando la energía.",
+                "Como carros en una carretera: solo avanzan si el camino está completo.",
+                "Si ves electrones moviéndose, tu circuito está cerrado.",
+                new String[]{"FLUYENDO", "PAUSADO"}, 7));
     }
 
     private static class ElementoGuia {
         String nombre;
         String categoria;
-        String especificacion;
-        String descripcion;
-        String queHacer;
+        String queEs;
+        String vidaDiaria;
+        String reglaDeOro;
         String[] nombresEstados;
         int tipoVisual;
         int estadoSeleccionado = 0;
         float animHover = 0f;
 
-        ElementoGuia(String nombre, String categoria, String especificacion, String descripcion, String queHacer, String[] nombresEstados, int tipoVisual) {
+        ElementoGuia(String nombre, String categoria, String queEs, String vidaDiaria, String reglaDeOro,
+                     String[] nombresEstados, int tipoVisual) {
             this.nombre = nombre;
             this.categoria = categoria;
-            this.especificacion = especificacion;
-            this.descripcion = descripcion;
-            this.queHacer = queHacer;
+            this.queEs = queEs;
+            this.vidaDiaria = vidaDiaria;
+            this.reglaDeOro = reglaDeOro;
             this.nombresEstados = nombresEstados;
             this.tipoVisual = tipoVisual;
         }
@@ -869,9 +838,6 @@ public class VistaGuia extends ScreenAdapter {
             fontPequena.setColor(colorAmbar);
             fontPequena.draw(batch, item.categoria, x + w - layout.width - 24f, y + h - 18f);
 
-            fontPequena.setColor(colorBrillante);
-            fontPequena.draw(batch, item.especificacion, x + 265f, y + h - 48f);
-
             float vx = x + 22f;
             float vy = y + 68f;
             float vw = 220f;
@@ -934,21 +900,25 @@ public class VistaGuia extends ScreenAdapter {
             float descW = w - 290f;
 
             fontPequena.setColor(colorNeon);
-            fontPequena.draw(batch, "¿QUÉ HACE?", descX, descY);
+            fontPequena.draw(batch, "¿QUÉ ES?", descX, descY);
 
             fontTexto.setColor(Color.WHITE);
-            fontTexto.draw(batch, item.descripcion, descX, descY - 18f, descW, Align.left, true);
+            fontTexto.draw(batch, item.queEs, descX, descY - 18f, descW, Align.left, true);
 
             float qx = x + 265f;
             float qy = y + 20f;
             float qw = w - 285f;
             float qh = 168f;
 
-            fontPequena.setColor(colorAmbar);
-            fontPequena.draw(batch, "¿CÓMO CONECTARLO?", qx + 14f, qy + qh - 10f);
-
+            fontPequena.setColor(colorVerde);
+            fontPequena.draw(batch, "EN LA VIDA DIARIA", qx + 14f, qy + qh - 10f);
             fontPequena.setColor(colorClaro);
-            fontPequena.draw(batch, item.queHacer, qx + 14f, qy + qh - 38f, qw - 28f, Align.left, true);
+            fontPequena.draw(batch, item.vidaDiaria, qx + 14f, qy + qh - 38f, qw - 28f, Align.left, true);
+
+            fontPequena.setColor(colorAmbar);
+            fontPequena.draw(batch, "REGLA DE ORO", qx + 14f, qy + 74f);
+            fontPequena.setColor(Color.WHITE);
+            fontPequena.draw(batch, item.reglaDeOro, qx + 14f, qy + 48f, qw - 28f, Align.left, true);
         }
     }
 

@@ -142,7 +142,6 @@ public class Nivel3Test {
     public void testTablaDeVerdadCompuertaAND() {
         conectarCircuitoCompuertaANDCompleto();
 
-        // 0 · 0 = 0
         switchDivisor.setCerradoA(false);
         switchDivisor.setCerradoB(false);
         nivel.actualizar(0.1f);
@@ -150,7 +149,6 @@ public class Nivel3Test {
         assertEquals("NEUTRO", led.getEstadoActual());
         assertEquals(0.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
 
-        // 1 · 0 = 0
         switchDivisor.setCerradoA(true);
         switchDivisor.setCerradoB(false);
         nivel.actualizar(0.1f);
@@ -158,7 +156,6 @@ public class Nivel3Test {
         assertEquals("NEUTRO", led.getEstadoActual());
         assertEquals(0.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
 
-        // 0 · 1 = 0
         switchDivisor.setCerradoA(false);
         switchDivisor.setCerradoB(true);
         nivel.actualizar(0.1f);
@@ -166,7 +163,6 @@ public class Nivel3Test {
         assertEquals("NEUTRO", led.getEstadoActual());
         assertEquals(0.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
 
-        // 1 · 1 = 1
         switchDivisor.setCerradoA(true);
         switchDivisor.setCerradoB(true);
         nivel.actualizar(1.0f);

@@ -929,4 +929,3 @@ public class VistaConfiguraciones extends ScreenAdapter {
         fontBotones.dispose();
     }
 }
-

@@ -27,7 +27,6 @@ public class CircuitoTest {
     }
 
     private void conectarCircuito() {
-        // Conectar: Fuente(+) -> Switch -> Resistencia -> LED -> Fuente(-)
         nivel.agregarCable(new Cable(fuente.getTerminalPositivo(), interruptor.getTerminalEntrada()));
         nivel.agregarCable(new Cable(interruptor.getTerminalSalida(), resistencia.getTerminalEntrada()));
         nivel.agregarCable(new Cable(resistencia.getTerminalSalida(), led.getTerminalAnodo()));
@@ -41,7 +40,6 @@ public class CircuitoTest {
 
         nivel.actualizar(0.1f);
 
-        // Con switch abierto, no debe haber corriente en ningún cable
         for (Cable c : nivel.getCables()) {
             assertFalse(c.isTieneEnergia(), "Ningún cable debe tener corriente si el switch está apagado.");
         }
@@ -55,7 +53,6 @@ public class CircuitoTest {
     public void testFlujoCorrienteAlEncenderYDetenerAlApagar() {
         conectarCircuito();
 
-        // 1. Encender el switch
         interruptor.setCerrado(true);
         nivel.actualizar(1.0f);
 
@@ -67,8 +64,7 @@ public class CircuitoTest {
         assertEquals(1.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
         assertFalse(nivel.estaGanado(), "Aún no debe ganar porque no han pasado 5 segundos.");
 
-        // 2. Apagar el switch
-        interruptor.conmutar(); // Ahora cerrado es false
+        interruptor.conmutar();
         nivel.actualizar(0.1f);
 
         for (Cable c : nivel.getCables()) {
@@ -89,7 +85,6 @@ public class CircuitoTest {
         assertEquals(2.5f, nivel.getTiempoCircuitoActivo(), 0.001f);
         assertFalse(nivel.estaGanado());
 
-        // Quitar el switch del circuito
         nivel.devolverAlInventario(interruptor);
         nivel.actualizar(0.1f);
 
@@ -106,17 +101,14 @@ public class CircuitoTest {
         conectarCircuito();
         interruptor.setCerrado(true);
 
-        // Avanzar 2 segundos
         nivel.actualizar(2.0f);
         assertEquals(2.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
         assertFalse(nivel.estaGanado());
 
-        // Avanzar 2.9 segundos (total 4.9s)
         nivel.actualizar(2.9f);
         assertEquals(4.9f, nivel.getTiempoCircuitoActivo(), 0.001f);
         assertFalse(nivel.estaGanado(), "No debe ganar con 4.9 segundos continuos.");
 
-        // Avanzar 0.2 segundos (total >= 5.0s)
         nivel.actualizar(0.2f);
         assertEquals(5.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
         assertTrue(nivel.estaGanado(), "Debe ganar tras 5.0 segundos continuos.");
@@ -128,19 +120,16 @@ public class CircuitoTest {
         conectarCircuito();
         interruptor.setCerrado(true);
 
-        // Mantener activo 4.5 segundos
         nivel.actualizar(4.5f);
         assertEquals(4.5f, nivel.getTiempoCircuitoActivo(), 0.001f);
         assertFalse(nivel.estaGanado());
 
-        // Interrumpir el circuito apagando el switch
         interruptor.setCerrado(false);
         nivel.actualizar(0.1f);
 
         assertEquals(0.0f, nivel.getTiempoCircuitoActivo(), 0.001f, "Temporizador debe reiniciarse a 0.");
         assertFalse(nivel.estaGanado());
 
-        // Volver a encender: debe requerir otros 5 segundos completos desde cero
         interruptor.setCerrado(true);
         nivel.actualizar(3.0f);
         assertEquals(3.0f, nivel.getTiempoCircuitoActivo(), 0.001f);
@@ -151,4 +140,3 @@ public class CircuitoTest {
         assertTrue(nivel.estaGanado(), "Ahora sí gana con 5 segundos continuos.");
     }
 }
-

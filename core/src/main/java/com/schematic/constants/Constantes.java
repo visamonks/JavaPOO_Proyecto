@@ -10,7 +10,6 @@ public class Constantes {
     public static final String ESTADO_ERROR = "ERROR";
     public static final String RUTA_PROGRESO = "progreso.json";
 
-    // --- TIEMPOS Y CONSTANTES DE NIVELES 3 Y 4 ---
     public static final float TIEMPO_VALIDACION_NIVEL_3 = 5.0f;
     public static final float TIEMPO_LIMITE_NIVEL_3 = 50.0f;
 

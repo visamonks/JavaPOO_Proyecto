@@ -116,7 +116,6 @@ public class Nivel2 extends Nivel {
 
         fuente.getTerminalPositivo().setValorLogico(fuente.estaEncendida());
 
-        // Cortocircuito directo entre terminales de la fuente
         for (Cable c : cables) {
             if (c.conectaTerminal(fuente.getTerminalPositivo()) && c.conectaTerminal(fuente.getTerminalNegativo())) {
                 fuente.setEstadoActual("ERROR");
@@ -144,7 +143,6 @@ public class Nivel2 extends Nivel {
             return false;
         }
 
-        // Trazado del circuito serie a partir de la fuente positiva
         Terminal terminalActual = fuente.getTerminalPositivo();
         boolean pasoPorSwitch = false;
         boolean pasoPorResistencia = false;
@@ -175,7 +173,6 @@ public class Nivel2 extends Nivel {
             }
 
             if (componentesVisitados.contains(compDestino)) {
-                // Evitar ciclos infinitos
                 break;
             }
             componentesVisitados.add(compDestino);
@@ -213,7 +210,6 @@ public class Nivel2 extends Nivel {
             }
         }
 
-        // Evaluar resultado de la conexión
         if (llegoATierra) {
             if (pasoPorLed && !pasoPorResistencia) {
                 if (led != null) {
@@ -257,7 +253,6 @@ public class Nivel2 extends Nivel {
                         led.setQuemado(false);
                         led.setEstadoActual("NEUTRO");
                     }
-                    // Detener inmediatamente el flujo de corriente en todos los cables
                     for (Cable c : cables) {
                         c.setTieneEnergia(false);
                     }
@@ -302,7 +297,6 @@ public class Nivel2 extends Nivel {
             }
         }
 
-        // Si aún no llega a tierra (circuito interrumpido o switch quitado), apagar corriente y neutro a componentes
         fuente.setEstadoActual("NEUTRO");
         if (interruptor != null) interruptor.setEstadoActual("NEUTRO");
         if (res != null && !res.isQuemada()) res.setEstadoActual("NEUTRO");

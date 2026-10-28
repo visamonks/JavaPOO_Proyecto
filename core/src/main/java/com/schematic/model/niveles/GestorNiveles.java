@@ -25,4 +25,3 @@ public class GestorNiveles {
         return TOTAL_NIVELES;
     }
 }
-
