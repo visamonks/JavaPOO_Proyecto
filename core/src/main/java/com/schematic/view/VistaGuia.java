@@ -70,16 +70,22 @@ public class VistaGuia extends ScreenAdapter {
     private float tiempo = 0f;
     private float offsetGrid = 0f;
 
-    private int pagina = 0;
+    private static final float FLECHA_ANCHO = 100f;
+    private static final float FLECHA_ALTO = 140f;
+    private static final float FLECHA_Y = 470f;
+    private static final float FLECHA_IZQ_X = 90f;
+    private static final float FLECHA_DER_X = 1730f;
+
+    private static final float TARJETA_X = 520f;
+    private static final float TARJETA_Y = 345f;
+
+    private int indice = 0;
     private int ultimoElementoHover = -1;
     private float hoverVolver = 0f;
-    private float hoverTab0 = 1f;
-    private float hoverTab1 = 0f;
     private float hoverPrev = 0f;
     private float hoverNext = 0f;
 
-    private ArrayList<ElementoGuia> listaPagina0;
-    private ArrayList<ElementoGuia> listaPagina1;
+    private ArrayList<ElementoGuia> elementos;
 
     public VistaGuia() {
         this((Game) Gdx.app.getApplicationListener());
@@ -125,8 +131,7 @@ public class VistaGuia extends ScreenAdapter {
         this.texturas = new ArrayList<>();
         cargarAnimaciones();
 
-        this.listaPagina0 = new ArrayList<>();
-        this.listaPagina1 = new ArrayList<>();
+        this.elementos = new ArrayList<>();
         cargarElementos();
     }
 
@@ -161,56 +166,56 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void cargarElementos() {
-        listaPagina0.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "DIODO LED", "LUZ",
                 "Una pequeña luz que se enciende cuando la corriente pasa a través de ella.",
                 "Es la lucecita que te avisa que el cargador del celular está conectado.",
                 "Entra por la pata (+) roja y sale por la (-) azul. Siempre con resistencia.",
                 new String[]{"APAGADO", "ENCENDIDO", "QUEMADO"}, 0));
 
-        listaPagina0.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "RESISTENCIA", "PROTECCIÓN",
                 "Frena el exceso de corriente para que ninguna pieza se queme.",
                 "Como la llave del grifo: deja pasar el agua, pero sin que salga a chorro.",
                 "Ponla en serie con el LED. Funciona igual en cualquier sentido.",
                 new String[]{"NORMAL", "QUEMADA"}, 1));
 
-        listaPagina0.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "FUENTE DE PODER", "ENERGÍA",
                 "Entrega la energía (5 voltios) que hace funcionar todo el circuito.",
                 "Es como la batería del control remoto o el tomacorriente de tu casa.",
                 "La energía sale por (+) y debe regresar al (-). Nunca los unas directo.",
                 new String[]{"ON (5V)", "OFF (0V)"}, 2));
 
-        listaPagina0.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "INTERRUPTOR", "CONTROL",
                 "Abre o cierra el camino por donde viaja la corriente.",
                 "Es el apagador de la luz de tu cuarto.",
                 "Dale clic para cambiarlo: ON deja pasar la corriente, OFF la corta.",
                 new String[]{"CERRADO", "ABIERTO"}, 3));
 
-        listaPagina1.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "COMPUERTA AND", "LÓGICA  \"Y\"",
                 "Solo enciende su salida si la entrada A Y la entrada B tienen corriente.",
                 "El microondas solo calienta si la puerta está cerrada Y presionaste Start.",
                 "Si falta una sola entrada, la salida se queda apagada.",
                 new String[]{"0 · 0 = 0", "1 · 0 = 0", "1 · 1 = 1"}, 4));
 
-        listaPagina1.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "COMPUERTA OR", "LÓGICA  \"O\"",
                 "Enciende su salida si la entrada A O la entrada B (o las dos) tienen corriente.",
                 "La luz de la escalera: la prendes desde el apagador de abajo O el de arriba.",
                 "Con una sola entrada encendida es suficiente.",
                 new String[]{"0 + 0 = 0", "1 + 0 = 1", "1 + 1 = 1"}, 5));
 
-        listaPagina1.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "CABLES", "CONEXIÓN",
                 "Unen las piezas y llevan la corriente de una a otra.",
                 "Son como las tuberías que llevan el agua por toda la casa.",
                 "Arrastra de un punto a otro para conectar. Clic derecho para borrar.",
                 new String[]{"ACTIVO", "REPOSO"}, 6));
 
-        listaPagina1.add(new ElementoGuia(
+        elementos.add(new ElementoGuia(
                 "ELECTRONES", "ENERGÍA",
                 "Partículas diminutas que viajan por el cable llevando la energía.",
                 "Como carros en una carretera: solo avanzan si el camino está completo.",
@@ -257,35 +262,19 @@ public class VistaGuia extends ScreenAdapter {
                     return true;
                 }
 
-                if (estaAdentro(mx, my, 400f, 960f, 520f, 44f)) {
-                    pagina = 0;
-                    sonar(TipoEfecto.CLICK_UI);
+                if (estaAdentro(mx, my, FLECHA_IZQ_X, FLECHA_Y, FLECHA_ANCHO, FLECHA_ALTO)) {
+                    cambiarTarjeta(-1);
                     return true;
                 }
-                if (estaAdentro(mx, my, 950f, 960f, 520f, 44f)) {
-                    pagina = 1;
-                    sonar(TipoEfecto.CLICK_UI);
-                    return true;
-                }
-
-                if (estaAdentro(mx, my, 340f, 960f, 48f, 44f)) {
-                    pagina = (pagina - 1 + 2) % 2;
-                    sonar(TipoEfecto.CLICK_UI);
-                    return true;
-                }
-                if (estaAdentro(mx, my, 1485f, 960f, 48f, 44f)) {
-                    pagina = (pagina + 1) % 2;
-                    sonar(TipoEfecto.CLICK_UI);
+                if (estaAdentro(mx, my, FLECHA_DER_X, FLECHA_Y, FLECHA_ANCHO, FLECHA_ALTO)) {
+                    cambiarTarjeta(1);
                     return true;
                 }
 
-                ArrayList<ElementoGuia> lista = (pagina == 0) ? listaPagina0 : listaPagina1;
-                float[][] coords = getCoordenadasTarjetas();
-
-                for (int i = 0; i < lista.size(); i++) {
-                    ElementoGuia item = lista.get(i);
-                    float cx = coords[i][0];
-                    float cy = coords[i][1];
+                {
+                    ElementoGuia item = elementos.get(indice);
+                    float cx = TARJETA_X;
+                    float cy = TARJETA_Y;
 
                     if (item.nombresEstados.length > 0) {
                         float btnY = cy + 22f;
@@ -319,23 +308,11 @@ public class VistaGuia extends ScreenAdapter {
                     return true;
                 }
                 if (keycode == Input.Keys.LEFT || keycode == Input.Keys.A) {
-                    pagina = (pagina - 1 + 2) % 2;
-                    sonar(TipoEfecto.CLICK_UI);
+                    cambiarTarjeta(-1);
                     return true;
                 }
                 if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.D || keycode == Input.Keys.TAB) {
-                    pagina = (pagina + 1) % 2;
-                    sonar(TipoEfecto.CLICK_UI);
-                    return true;
-                }
-                if (keycode == Input.Keys.NUM_1) {
-                    pagina = 0;
-                    sonar(TipoEfecto.CLICK_UI);
-                    return true;
-                }
-                if (keycode == Input.Keys.NUM_2) {
-                    pagina = 1;
-                    sonar(TipoEfecto.CLICK_UI);
+                    cambiarTarjeta(1);
                     return true;
                 }
                 return false;
@@ -360,13 +337,9 @@ public class VistaGuia extends ScreenAdapter {
         return x >= bx && x <= bx + bw && y >= by && y <= by + bh;
     }
 
-    private float[][] getCoordenadasTarjetas() {
-        return new float[][]{
-                {60f, 500f},
-                {980f, 500f},
-                {60f, 85f},
-                {980f, 85f}
-        };
+    private void cambiarTarjeta(int direccion) {
+        indice = (indice + direccion + elementos.size()) % elementos.size();
+        sonar(TipoEfecto.CLICK_UI);
     }
 
     @Override
@@ -394,7 +367,7 @@ public class VistaGuia extends ScreenAdapter {
         dibujarFondo();
         dibujarOsciloscopio();
         dibujarRejillaInferior();
-        dibujarTabsShapes();
+        dibujarFlechasShapes();
         dibujarTarjetasShapes(mx, my);
         dibujarBotonVolverShape();
         shapeRenderer.end();
@@ -414,27 +387,17 @@ public class VistaGuia extends ScreenAdapter {
         hoverVolver = MathUtils.lerp(hoverVolver, hVolver ? 1f : 0f, delta * 18f);
         if (hVolver) hoverActual = 10;
 
-        boolean hTab0 = estaAdentro(mx, my, 400f, 960f, 520f, 44f);
-        boolean hTab1 = estaAdentro(mx, my, 950f, 960f, 520f, 44f);
-        hoverTab0 = MathUtils.lerp(hoverTab0, (pagina == 0 || hTab0) ? 1f : 0f, delta * 18f);
-        hoverTab1 = MathUtils.lerp(hoverTab1, (pagina == 1 || hTab1) ? 1f : 0f, delta * 18f);
-        if (hTab0) hoverActual = 11;
-        else if (hTab1) hoverActual = 12;
-
-        boolean hPrev = estaAdentro(mx, my, 340f, 960f, 48f, 44f);
-        boolean hNext = estaAdentro(mx, my, 1485f, 960f, 48f, 44f);
+        boolean hPrev = estaAdentro(mx, my, FLECHA_IZQ_X, FLECHA_Y, FLECHA_ANCHO, FLECHA_ALTO);
+        boolean hNext = estaAdentro(mx, my, FLECHA_DER_X, FLECHA_Y, FLECHA_ANCHO, FLECHA_ALTO);
         hoverPrev = MathUtils.lerp(hoverPrev, hPrev ? 1f : 0f, delta * 18f);
         hoverNext = MathUtils.lerp(hoverNext, hNext ? 1f : 0f, delta * 18f);
         if (hPrev) hoverActual = 13;
         else if (hNext) hoverActual = 14;
 
-        ArrayList<ElementoGuia> lista = (pagina == 0) ? listaPagina0 : listaPagina1;
-        float[][] coords = getCoordenadasTarjetas();
-        for (int i = 0; i < lista.size(); i++) {
-            boolean hCard = estaAdentro(mx, my, coords[i][0], coords[i][1], 880f, 390f);
-            lista.get(i).animHover = MathUtils.lerp(lista.get(i).animHover, hCard ? 1f : 0f, delta * 16f);
-            if (hCard && hoverActual == -1) hoverActual = i;
-        }
+        ElementoGuia actual = elementos.get(indice);
+        boolean hCard = estaAdentro(mx, my, TARJETA_X, TARJETA_Y, 880f, 390f);
+        actual.animHover = MathUtils.lerp(actual.animHover, hCard ? 1f : 0f, delta * 16f);
+        if (hCard && hoverActual == -1) hoverActual = indice;
 
         if (hoverActual != ultimoElementoHover) {
             if (hoverActual >= 0) {
@@ -504,46 +467,25 @@ public class VistaGuia extends ScreenAdapter {
         }
     }
 
-    private void dibujarTabsShapes() {
-        shapeRenderer.setColor(colorCaja);
-        shapeRenderer.rect(400f, 960f, 520f, 44f);
-        shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.3f + hoverTab0 * 0.65f);
-        shapeRenderer.rectLine(400f, 960f, 920f, 960f, 3.2f);
-        shapeRenderer.rectLine(400f, 1004f, 920f, 1004f, 3.2f);
-        shapeRenderer.rectLine(400f, 960f, 400f, 1004f, 3.2f);
-        shapeRenderer.rectLine(920f, 960f, 920f, 1004f, 3.2f);
-        if (pagina == 0) {
-            shapeRenderer.setColor(colorBrillante);
-            shapeRenderer.rect(400f, 960f, 520f, 4f);
-        }
+    private void dibujarFlechasShapes() {
+        dibujarFlechaShape(FLECHA_IZQ_X, hoverPrev, true);
+        dibujarFlechaShape(FLECHA_DER_X, hoverNext, false);
+    }
 
+    private void dibujarFlechaShape(float x, float hover, boolean haciaIzquierda) {
         shapeRenderer.setColor(colorCaja);
-        shapeRenderer.rect(950f, 960f, 520f, 44f);
-        shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.3f + hoverTab1 * 0.65f);
-        shapeRenderer.rectLine(950f, 960f, 1470f, 960f, 3.2f);
-        shapeRenderer.rectLine(950f, 1004f, 1470f, 1004f, 3.2f);
-        shapeRenderer.rectLine(950f, 960f, 950f, 1004f, 3.2f);
-        shapeRenderer.rectLine(1470f, 960f, 1470f, 1004f, 3.2f);
-        if (pagina == 1) {
-            shapeRenderer.setColor(colorBrillante);
-            shapeRenderer.rect(950f, 960f, 520f, 4f);
-        }
+        shapeRenderer.rect(x, FLECHA_Y, FLECHA_ANCHO, FLECHA_ALTO);
+        shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.4f + hover * 0.6f);
+        shapeRenderer.rectLine(x, FLECHA_Y, x + FLECHA_ANCHO, FLECHA_Y, 2.5f);
+        shapeRenderer.rectLine(x + FLECHA_ANCHO, FLECHA_Y, x + FLECHA_ANCHO, FLECHA_Y + FLECHA_ALTO, 2.5f);
+        shapeRenderer.rectLine(x + FLECHA_ANCHO, FLECHA_Y + FLECHA_ALTO, x, FLECHA_Y + FLECHA_ALTO, 2.5f);
+        shapeRenderer.rectLine(x, FLECHA_Y + FLECHA_ALTO, x, FLECHA_Y, 2.5f);
 
-        shapeRenderer.setColor(colorCaja);
-        shapeRenderer.rect(340f, 960f, 48f, 44f);
-        shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.4f + hoverPrev * 0.6f);
-        shapeRenderer.rectLine(340f, 960f, 388f, 960f, 2.5f);
-        shapeRenderer.rectLine(388f, 960f, 388f, 1004f, 2.5f);
-        shapeRenderer.rectLine(388f, 1004f, 340f, 1004f, 2.5f);
-        shapeRenderer.rectLine(340f, 1004f, 340f, 960f, 2.5f);
-
-        shapeRenderer.setColor(colorCaja);
-        shapeRenderer.rect(1485f, 960f, 48f, 44f);
-        shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.4f + hoverNext * 0.6f);
-        shapeRenderer.rectLine(1485f, 960f, 1533f, 960f, 2.5f);
-        shapeRenderer.rectLine(1533f, 960f, 1533f, 1004f, 2.5f);
-        shapeRenderer.rectLine(1533f, 1004f, 1485f, 1004f, 2.5f);
-        shapeRenderer.rectLine(1485f, 1004f, 1485f, 960f, 2.5f);
+        float cx = x + FLECHA_ANCHO / 2f;
+        float cy = FLECHA_Y + FLECHA_ALTO / 2f;
+        float punta = haciaIzquierda ? -22f : 22f;
+        shapeRenderer.setColor(hover > 0.5f ? Color.WHITE : colorNeon);
+        shapeRenderer.triangle(cx + punta, cy, cx - punta, cy + 26f, cx - punta, cy - 26f);
     }
 
     private void dibujarCabecera() {
@@ -556,36 +498,23 @@ public class VistaGuia extends ScreenAdapter {
         fontTitulo.setColor(colorBrillante);
         fontTitulo.draw(batch, titulo, tx, 1055f);
 
-        String sub = "Conoce las piezas del circuito y aprende cómo utilizarlas";
+        String sub = "Una pieza a la vez. Usa las flechas para conocer la siguiente.";
         layout.setText(fontSubtitulo, sub);
         fontSubtitulo.setColor(colorClaro);
         fontSubtitulo.draw(batch, sub, (Constantes.ANCHO_VENTANA - layout.width) / 2f, 1022f);
 
-        String t0 = "1. COMPONENTES BÁSICOS";
-        layout.setText(fontBotones, t0);
-        fontBotones.setColor(pagina == 0 ? colorBrillante : colorMetal);
-        fontBotones.draw(batch, t0, 400f + (520f - layout.width) / 2f, 988f);
-
-        String t1 = "2. LÓGICA Y CONEXIONES";
-        layout.setText(fontBotones, t1);
-        fontBotones.setColor(pagina == 1 ? colorBrillante : colorMetal);
-        fontBotones.draw(batch, t1, 950f + (520f - layout.width) / 2f, 988f);
-
-        fontBotones.setColor(hoverPrev > 0.5f ? Color.WHITE : colorNeon);
-        fontBotones.draw(batch, "<", 356f, 988f);
-
-        fontBotones.setColor(hoverNext > 0.5f ? Color.WHITE : colorNeon);
-        fontBotones.draw(batch, ">", 1502f, 988f);
+        String contador = (indice + 1) + " / " + elementos.size();
+        layout.setText(fontBotones, contador);
+        fontBotones.setColor(colorBrillante);
+        fontBotones.draw(batch, contador, (Constantes.ANCHO_VENTANA - layout.width) / 2f, 300f);
     }
 
     private void dibujarTarjetasShapes(float mx, float my) {
-        ArrayList<ElementoGuia> lista = (pagina == 0) ? listaPagina0 : listaPagina1;
-        float[][] coords = getCoordenadasTarjetas();
-
-        for (int i = 0; i < lista.size(); i++) {
-            ElementoGuia item = lista.get(i);
-            float x = coords[i][0];
-            float y = coords[i][1];
+        {
+            int i = indice;
+            ElementoGuia item = elementos.get(indice);
+            float x = TARJETA_X;
+            float y = TARJETA_Y;
             float w = 880f;
             float h = 390f;
             float hov = item.animHover;
@@ -821,13 +750,10 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void dibujarContenido(float mx, float my) {
-        ArrayList<ElementoGuia> lista = (pagina == 0) ? listaPagina0 : listaPagina1;
-        float[][] coords = getCoordenadasTarjetas();
-
-        for (int i = 0; i < lista.size(); i++) {
-            ElementoGuia item = lista.get(i);
-            float x = coords[i][0];
-            float y = coords[i][1];
+        {
+            ElementoGuia item = elementos.get(indice);
+            float x = TARJETA_X;
+            float y = TARJETA_Y;
             float w = 880f;
             float h = 390f;
 
@@ -970,7 +896,7 @@ public class VistaGuia extends ScreenAdapter {
         fontBotones.setColor(hoverVolver > 0.5f ? Color.WHITE : colorBrillante);
         fontBotones.draw(batch, txt, tx, ty);
 
-        String atajos = "ESC: Volver   |   Flechas: Cambiar página";
+        String atajos = "ESC: Volver   |   Flechas: Cambiar de pieza";
         layout.setText(fontPequena, atajos);
         fontPequena.setColor(colorMetal);
         fontPequena.draw(batch, atajos, (Constantes.ANCHO_VENTANA - layout.width) / 2f + 120f, 48f);
