@@ -72,12 +72,26 @@ public class VistaGuia extends ScreenAdapter {
 
     private static final float FLECHA_ANCHO = 100f;
     private static final float FLECHA_ALTO = 140f;
-    private static final float FLECHA_Y = 470f;
-    private static final float FLECHA_IZQ_X = 90f;
-    private static final float FLECHA_DER_X = 1730f;
+    private static final float FLECHA_Y = 460f;
+    private static final float FLECHA_IZQ_X = 120f;
+    private static final float FLECHA_DER_X = 1700f;
 
-    private static final float TARJETA_X = 520f;
-    private static final float TARJETA_Y = 345f;
+    private static final float TARJETA_X = 260f;
+    private static final float TARJETA_Y = 170f;
+    private static final float TARJETA_ANCHO = 1400f;
+    private static final float TARJETA_ALTO = 720f;
+
+    private static final float VISUAL_X = TARJETA_X + 50f;
+    private static final float VISUAL_Y = TARJETA_Y + 120f;
+    private static final float VISUAL_LADO = 480f;
+
+    private static final float BOTON_ESTADO_Y = TARJETA_Y + 46f;
+    private static final float BOTON_ESTADO_ALTO = 56f;
+    private static final float BOTON_ESTADO_SEPARACION = 10f;
+
+    private static final float TEXTO_X = TARJETA_X + 610f;
+    private static final float TEXTO_ANCHO = 740f;
+    private static final float BLOQUE_ALTO = 160f;
 
     private int indice = 0;
     private int ultimoElementoHover = -1;
@@ -114,15 +128,15 @@ public class VistaGuia extends ScreenAdapter {
 
         this.fontCardTitulo = new BitmapFont();
         this.fontCardTitulo.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.fontCardTitulo.getData().setScale(1.45f);
+        this.fontCardTitulo.getData().setScale(2.3f);
 
         this.fontTexto = new BitmapFont();
         this.fontTexto.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.fontTexto.getData().setScale(0.98f);
+        this.fontTexto.getData().setScale(1.4f);
 
         this.fontPequena = new BitmapFont();
         this.fontPequena.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.fontPequena.getData().setScale(0.85f);
+        this.fontPequena.getData().setScale(1.05f);
 
         this.fontBotones = new BitmapFont();
         this.fontBotones.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
@@ -271,31 +285,19 @@ public class VistaGuia extends ScreenAdapter {
                     return true;
                 }
 
-                {
-                    ElementoGuia item = elementos.get(indice);
-                    float cx = TARJETA_X;
-                    float cy = TARJETA_Y;
-
-                    if (item.nombresEstados.length > 0) {
-                        float btnY = cy + 22f;
-                        float cant = item.nombresEstados.length;
-                        float btnW = (220f - (cant - 1) * 6f) / cant;
-
-                        for (int b = 0; b < cant; b++) {
-                            float bx = cx + 22f + b * (btnW + 6f);
-                            if (estaAdentro(mx, my, bx, btnY, btnW, 36f)) {
-                                item.estadoSeleccionado = b;
-                                sonar(TipoEfecto.CONMUTAR_SWITCH);
-                                return true;
-                            }
-                        }
-
-                        if (estaAdentro(mx, my, cx + 22f, cy + 68f, 220f, 230f)) {
-                            item.estadoSeleccionado = (item.estadoSeleccionado + 1) % item.nombresEstados.length;
-                            sonar(TipoEfecto.CONMUTAR_SWITCH);
-                            return true;
-                        }
+                ElementoGuia item = elementos.get(indice);
+                int cantidad = item.nombresEstados.length;
+                for (int b = 0; b < cantidad; b++) {
+                    if (estaAdentro(mx, my, getBotonEstadoX(b, cantidad), BOTON_ESTADO_Y, getBotonEstadoAncho(cantidad), BOTON_ESTADO_ALTO)) {
+                        item.estadoSeleccionado = b;
+                        sonar(TipoEfecto.CONMUTAR_SWITCH);
+                        return true;
                     }
+                }
+                if (cantidad > 0 && estaAdentro(mx, my, VISUAL_X, VISUAL_Y, VISUAL_LADO, VISUAL_LADO)) {
+                    item.estadoSeleccionado = (item.estadoSeleccionado + 1) % cantidad;
+                    sonar(TipoEfecto.CONMUTAR_SWITCH);
+                    return true;
                 }
 
                 return false;
@@ -335,6 +337,14 @@ public class VistaGuia extends ScreenAdapter {
 
     private boolean estaAdentro(float x, float y, float bx, float by, float bw, float bh) {
         return x >= bx && x <= bx + bw && y >= by && y <= by + bh;
+    }
+
+    private float getBotonEstadoAncho(int cantidad) {
+        return (VISUAL_LADO - (cantidad - 1) * BOTON_ESTADO_SEPARACION) / cantidad;
+    }
+
+    private float getBotonEstadoX(int b, int cantidad) {
+        return VISUAL_X + b * (getBotonEstadoAncho(cantidad) + BOTON_ESTADO_SEPARACION);
     }
 
     private void cambiarTarjeta(int direccion) {
@@ -395,7 +405,7 @@ public class VistaGuia extends ScreenAdapter {
         else if (hNext) hoverActual = 14;
 
         ElementoGuia actual = elementos.get(indice);
-        boolean hCard = estaAdentro(mx, my, TARJETA_X, TARJETA_Y, 880f, 390f);
+        boolean hCard = estaAdentro(mx, my, TARJETA_X, TARJETA_Y, TARJETA_ANCHO, TARJETA_ALTO);
         actual.animHover = MathUtils.lerp(actual.animHover, hCard ? 1f : 0f, delta * 16f);
         if (hCard && hoverActual == -1) hoverActual = indice;
 
@@ -503,138 +513,90 @@ public class VistaGuia extends ScreenAdapter {
         fontSubtitulo.setColor(colorClaro);
         fontSubtitulo.draw(batch, sub, (Constantes.ANCHO_VENTANA - layout.width) / 2f, 1022f);
 
-        String contador = (indice + 1) + " / " + elementos.size();
-        layout.setText(fontBotones, contador);
-        fontBotones.setColor(colorBrillante);
-        fontBotones.draw(batch, contador, (Constantes.ANCHO_VENTANA - layout.width) / 2f, 300f);
     }
 
     private void dibujarTarjetasShapes(float mx, float my) {
-        {
-            int i = indice;
-            ElementoGuia item = elementos.get(indice);
-            float x = TARJETA_X;
-            float y = TARJETA_Y;
-            float w = 880f;
-            float h = 390f;
-            float hov = item.animHover;
+        ElementoGuia item = elementos.get(indice);
+        float x = TARJETA_X, y = TARJETA_Y, w = TARJETA_ANCHO, h = TARJETA_ALTO;
+        float hov = item.animHover;
 
-            float sombra = 10f + hov * 6f;
-            shapeRenderer.setColor(0f, 0f, 0f, 0.88f);
-            shapeRenderer.rect(x + sombra, y - sombra, w, h);
+        shapeRenderer.setColor(0f, 0f, 0f, 0.85f);
+        shapeRenderer.rect(x + 14f, y - 14f, w, h);
+        shapeRenderer.setColor(colorCaja.r, colorCaja.g, colorCaja.b, 0.98f);
+        shapeRenderer.rect(x, y, w, h);
 
-            shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.18f + hov * 0.28f);
-            shapeRenderer.rect(x + sombra * 0.5f, y - sombra * 0.5f, w, h);
+        float grosor = 2.5f + hov * 1.5f;
+        dibujarBorde(x, y, w, h, hov > 0.5f ? colorBrillante : colorNeon, grosor);
+        dibujarEsquinas(x, y, w, h, 26f, grosor + 2f);
 
-            shapeRenderer.setColor(MathUtils.lerp(colorCaja.r, colorSlate.r, hov * 0.4f), MathUtils.lerp(colorCaja.g, 0.11f, hov * 0.4f), MathUtils.lerp(colorCaja.b, 0.18f, hov * 0.4f), 0.98f);
-            shapeRenderer.rect(x, y, w, h);
-
-            for (float lx = x + 20f; lx < x + w; lx += 45f) {
-                shapeRenderer.setColor(colorSlate.r, colorSlate.g, colorSlate.b, 0.22f);
-                shapeRenderer.rectLine(lx, y, lx + 20f, y + h, 1.5f);
-            }
-
-            Color colB = (hov > 0.5f) ? colorBrillante : colorNeon;
-            float grosor = 3.0f + hov * 1.5f;
-            shapeRenderer.setColor(colB);
-            shapeRenderer.rectLine(x, y, x + w, y, grosor);
-            shapeRenderer.rectLine(x + w, y, x + w, y + h, grosor);
-            shapeRenderer.rectLine(x + w, y + h, x, y + h, grosor);
-            shapeRenderer.rectLine(x, y + h, x, y, grosor);
-
-            shapeRenderer.setColor(colorBrillante);
-            float brk = 22f + hov * 6f;
-            shapeRenderer.rectLine(x, y, x + brk, y, grosor + 2f);
-            shapeRenderer.rectLine(x, y, x, y + brk, grosor + 2f);
-            shapeRenderer.rectLine(x + w, y, x + w - brk, y, grosor + 2f);
-            shapeRenderer.rectLine(x + w, y, x + w, y + brk, grosor + 2f);
-            shapeRenderer.rectLine(x, y + h, x + brk, y + h, grosor + 2f);
-            shapeRenderer.rectLine(x, y + h, x, y + h - brk, grosor + 2f);
-            shapeRenderer.rectLine(x + w, y + h, x + w - brk, y + h, grosor + 2f);
-            shapeRenderer.rectLine(x + w, y + h, x + w, y + h - brk, grosor + 2f);
-
-            if (hov > 0.05f) {
-                float perim = 2 * (w + h);
-                float dist = ((tiempo * 440f) + i * 140f) % perim;
-                float pxL, pyL;
-                if (dist < w) {
-                    pxL = x + dist; pyL = y;
-                } else if (dist < w + h) {
-                    pxL = x + w; pyL = y + (dist - w);
-                } else if (dist < 2 * w + h) {
-                    pxL = x + w - (dist - (w + h)); pyL = y + h;
-                } else {
-                    pxL = x; pyL = y + h - (dist - (2 * w + h));
-                }
-                shapeRenderer.setColor(1f, 1f, 1f, 0.95f * hov);
-                shapeRenderer.circle(pxL, pyL, 3.8f);
-                shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.75f * hov);
-                shapeRenderer.circle(pxL, pyL, 7.0f);
-            }
-
-            float vx = x + 22f;
-            float vy = y + 68f;
-            float vw = 220f;
-            float vh = 230f;
-
-            shapeRenderer.setColor(0.015f, 0.025f, 0.045f, 0.98f);
-            shapeRenderer.rect(vx, vy, vw, vh);
-
-            shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.12f);
-            for (float gy = vy + 25f; gy < vy + vh; gy += 25f) {
-                shapeRenderer.rectLine(vx, gy, vx + vw, gy, 1.0f);
-            }
-            for (float gx = vx + 25f; gx < vx + vw; gx += 25f) {
-                shapeRenderer.rectLine(gx, vy, gx, vy + vh, 1.0f);
-            }
-
-            shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.55f);
-            shapeRenderer.rectLine(vx, vy, vx + vw, vy, 2.0f);
-            shapeRenderer.rectLine(vx + vw, vy, vx + vw, vy + vh, 2.0f);
-            shapeRenderer.rectLine(vx + vw, vy + vh, vx, vy + vh, 2.0f);
-            shapeRenderer.rectLine(vx, vy + vh, vx, vy, 2.0f);
-
-            if (item.nombresEstados.length > 0) {
-                float btnY = y + 22f;
-                float cant = item.nombresEstados.length;
-                float btnW = (vw - (cant - 1) * 6f) / cant;
-
-                for (int b = 0; b < cant; b++) {
-                    float bx = vx + b * (btnW + 6f);
-                    boolean sel = (item.estadoSeleccionado == b);
-                    boolean hBtn = estaAdentro(mx, my, bx, btnY, btnW, 36f);
-
-                    shapeRenderer.setColor(sel ? colorSlate : colorCaja);
-                    shapeRenderer.rect(bx, btnY, btnW, 36f);
-
-                    Color cB = sel ? colorBrillante : (hBtn ? colorNeon : colorMetal);
-                    shapeRenderer.setColor(cB);
-                    shapeRenderer.rectLine(bx, btnY, bx + btnW, btnY, sel ? 2.8f : 1.5f);
-                    shapeRenderer.rectLine(bx + btnW, btnY, bx + btnW, btnY + 36f, sel ? 2.8f : 1.5f);
-                    shapeRenderer.rectLine(bx + btnW, btnY + 36f, bx, btnY + 36f, sel ? 2.8f : 1.5f);
-                    shapeRenderer.rectLine(bx, btnY + 36f, bx, btnY, sel ? 2.8f : 1.5f);
-                }
-            }
-
-            float qx = x + 265f;
-            float qy = y + 20f;
-            float qw = w - 285f;
-            float qh = 168f;
-
-            shapeRenderer.setColor(0.035f, 0.055f, 0.085f, 0.95f);
-            shapeRenderer.rect(qx, qy, qw, qh);
-
-            shapeRenderer.setColor(colorAmbar.r, colorAmbar.g, colorAmbar.b, 0.65f);
-            shapeRenderer.rectLine(qx, qy, qx + qw, qy, 2.2f);
-            shapeRenderer.rectLine(qx + qw, qy, qx + qw, qy + qh, 2.2f);
-            shapeRenderer.rectLine(qx + qw, qy + qh, qx, qy + qh, 2.2f);
-            shapeRenderer.rectLine(qx, qy + qh, qx, qy, 2.2f);
-
-            shapeRenderer.setColor(colorAmbar.r, colorAmbar.g, colorAmbar.b, 0.18f);
-            shapeRenderer.rect(qx, qy + qh - 30f, qw, 30f);
-
-            dibujarProceduralShapes(item, vx, vy, vw, vh);
+        shapeRenderer.setColor(0.015f, 0.025f, 0.045f, 0.98f);
+        shapeRenderer.rect(VISUAL_X, VISUAL_Y, VISUAL_LADO, VISUAL_LADO);
+        shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, 0.10f);
+        for (float g = 50f; g < VISUAL_LADO; g += 50f) {
+            shapeRenderer.rectLine(VISUAL_X, VISUAL_Y + g, VISUAL_X + VISUAL_LADO, VISUAL_Y + g, 1f);
+            shapeRenderer.rectLine(VISUAL_X + g, VISUAL_Y, VISUAL_X + g, VISUAL_Y + VISUAL_LADO, 1f);
         }
+        dibujarBorde(VISUAL_X, VISUAL_Y, VISUAL_LADO, VISUAL_LADO, new Color(colorNeon.r, colorNeon.g, colorNeon.b, 0.55f), 2f);
+
+        int cantidad = item.nombresEstados.length;
+        for (int b = 0; b < cantidad; b++) {
+            float bx = getBotonEstadoX(b, cantidad);
+            float bw = getBotonEstadoAncho(cantidad);
+            boolean sel = (item.estadoSeleccionado == b);
+            boolean hBtn = estaAdentro(mx, my, bx, BOTON_ESTADO_Y, bw, BOTON_ESTADO_ALTO);
+            shapeRenderer.setColor(sel ? new Color(0.06f, 0.16f, 0.24f, 1f) : colorSlate);
+            shapeRenderer.rect(bx, BOTON_ESTADO_Y, bw, BOTON_ESTADO_ALTO);
+            dibujarBorde(bx, BOTON_ESTADO_Y, bw, BOTON_ESTADO_ALTO, sel ? colorBrillante : (hBtn ? colorNeon : colorMetal), sel ? 2.8f : 1.5f);
+        }
+
+        layout.setText(fontPequena, item.categoria);
+        float chipW = layout.width + 36f;
+        float chipX = x + w - chipW - 40f;
+        float chipY = y + h - 72f;
+        shapeRenderer.setColor(colorAmbar.r, colorAmbar.g, colorAmbar.b, 0.16f);
+        shapeRenderer.rect(chipX, chipY, chipW, 40f);
+        dibujarBorde(chipX, chipY, chipW, 40f, colorAmbar, 1.8f);
+
+        dibujarBloqueShape(getBloqueY(0), colorNeon);
+        dibujarBloqueShape(getBloqueY(1), colorVerde);
+        dibujarBloqueShape(getBloqueY(2), colorAmbar);
+
+        shapeRenderer.translate(VISUAL_X + 20f, VISUAL_Y + 10f, 0f);
+        shapeRenderer.scale(2f, 2f, 1f);
+        dibujarProceduralShapes(item, 0f, 0f, 220f, 230f);
+        shapeRenderer.identity();
+    }
+
+    private float getBloqueY(int numero) {
+        return TARJETA_Y + 440f - numero * (BLOQUE_ALTO + 20f);
+    }
+
+    private void dibujarBloqueShape(float by, Color color) {
+        shapeRenderer.setColor(0.035f, 0.055f, 0.085f, 0.95f);
+        shapeRenderer.rect(TEXTO_X, by, TEXTO_ANCHO, BLOQUE_ALTO);
+        shapeRenderer.setColor(color);
+        shapeRenderer.rect(TEXTO_X, by, 8f, BLOQUE_ALTO);
+        dibujarBorde(TEXTO_X, by, TEXTO_ANCHO, BLOQUE_ALTO, new Color(color.r, color.g, color.b, 0.35f), 1.5f);
+    }
+
+    private void dibujarBorde(float x, float y, float w, float h, Color color, float grosor) {
+        shapeRenderer.setColor(color);
+        shapeRenderer.rectLine(x, y, x + w, y, grosor);
+        shapeRenderer.rectLine(x + w, y, x + w, y + h, grosor);
+        shapeRenderer.rectLine(x + w, y + h, x, y + h, grosor);
+        shapeRenderer.rectLine(x, y + h, x, y, grosor);
+    }
+
+    private void dibujarEsquinas(float x, float y, float w, float h, float largo, float grosor) {
+        shapeRenderer.setColor(colorBrillante);
+        shapeRenderer.rectLine(x, y, x + largo, y, grosor);
+        shapeRenderer.rectLine(x, y, x, y + largo, grosor);
+        shapeRenderer.rectLine(x + w, y, x + w - largo, y, grosor);
+        shapeRenderer.rectLine(x + w, y, x + w, y + largo, grosor);
+        shapeRenderer.rectLine(x, y + h, x + largo, y + h, grosor);
+        shapeRenderer.rectLine(x, y + h, x, y + h - largo, grosor);
+        shapeRenderer.rectLine(x + w, y + h, x + w - largo, y + h, grosor);
+        shapeRenderer.rectLine(x + w, y + h, x + w, y + h - largo, grosor);
     }
 
     private void dibujarProceduralShapes(ElementoGuia item, float vx, float vy, float vw, float vh) {
@@ -750,101 +712,64 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void dibujarContenido(float mx, float my) {
-        {
-            ElementoGuia item = elementos.get(indice);
-            float x = TARJETA_X;
-            float y = TARJETA_Y;
-            float w = 880f;
-            float h = 390f;
+        ElementoGuia item = elementos.get(indice);
+        float x = TARJETA_X, y = TARJETA_Y, h = TARJETA_ALTO;
 
-            fontCardTitulo.setColor(Color.WHITE);
-            fontCardTitulo.draw(batch, item.nombre, x + 24f, y + h - 18f);
+        fontPequena.setColor(colorMetal);
+        fontPequena.draw(batch, "PIEZA " + (indice + 1) + " DE " + elementos.size(), x + 50f, y + h - 30f);
+        fontCardTitulo.setColor(Color.WHITE);
+        fontCardTitulo.draw(batch, item.nombre, x + 50f, y + h - 62f);
 
-            layout.setText(fontPequena, item.categoria);
-            fontPequena.setColor(colorAmbar);
-            fontPequena.draw(batch, item.categoria, x + w - layout.width - 24f, y + h - 18f);
+        layout.setText(fontPequena, item.categoria);
+        fontPequena.setColor(colorAmbar);
+        fontPequena.draw(batch, item.categoria, x + TARJETA_ANCHO - 40f - 18f - layout.width, y + h - 42f);
 
-            float vx = x + 22f;
-            float vy = y + 68f;
-            float vw = 220f;
-            float vh = 230f;
+        dibujarSpriteDePieza(item);
 
-            if (item.tipoVisual == 0) {
-                TextureRegion frameLed;
-                if (item.estadoSeleccionado == 2) {
-                    frameLed = animLedMuriendo.getKeyFrame(tiempo, true);
-                } else if (item.estadoSeleccionado == 1) {
-                    frameLed = animLedPrendiendo.getKeyFrame(tiempo, true);
-                } else {
-                    frameLed = animLedNormal.getKeyFrame(tiempo, true);
-                }
-                batch.draw(frameLed, vx + 20f, vy + 25f, 180f, 180f);
+        int cantidad = item.nombresEstados.length;
+        for (int b = 0; b < cantidad; b++) {
+            String nom = item.nombresEstados[b];
+            float bx = getBotonEstadoX(b, cantidad);
+            float bw = getBotonEstadoAncho(cantidad);
+            layout.setText(fontPequena, nom);
+            fontPequena.setColor(item.estadoSeleccionado == b ? Color.WHITE : colorClaro);
+            fontPequena.draw(batch, nom, bx + (bw - layout.width) / 2f, BOTON_ESTADO_Y + (BOTON_ESTADO_ALTO + layout.height) / 2f);
+        }
+        fontPequena.setColor(colorMetal);
+        fontPequena.draw(batch, "Toca la pieza o un botón para ver sus estados", VISUAL_X, BOTON_ESTADO_Y - 14f);
 
-            } else if (item.tipoVisual == 1) {
-                TextureRegion frameRes;
-                if (item.estadoSeleccionado == 1) {
-                    frameRes = animResistenciaFallo.getKeyFrame(tiempo, true);
-                } else {
-                    frameRes = animResistenciaNormal.getKeyFrame(tiempo, true);
-                }
-                batch.draw(frameRes, vx + 10f, vy + 50f, 200f, 130f);
+        dibujarBloqueTexto(getBloqueY(0), "¿QUÉ ES?", item.queEs, colorNeon);
+        dibujarBloqueTexto(getBloqueY(1), "EN LA VIDA DIARIA", item.vidaDiaria, colorVerde);
+        dibujarBloqueTexto(getBloqueY(2), "REGLA DE ORO", item.reglaDeOro, colorAmbar);
+    }
 
-            } else if (item.tipoVisual == 4) {
-                TextureRegion frameAnd = animAnd.getKeyFrame(tiempo, true);
-                batch.draw(frameAnd, vx + 15f, vy + 20f, 190f, 190f);
+    private void dibujarBloqueTexto(float by, String etiqueta, String texto, Color color) {
+        fontPequena.setColor(color);
+        fontPequena.draw(batch, etiqueta, TEXTO_X + 30f, by + BLOQUE_ALTO - 18f);
+        fontTexto.setColor(Color.WHITE);
+        fontTexto.draw(batch, texto, TEXTO_X + 30f, by + BLOQUE_ALTO - 56f, TEXTO_ANCHO - 60f, Align.left, true);
+    }
 
-            } else if (item.tipoVisual == 5) {
-                TextureRegion frameOr = animOr.getKeyFrame(tiempo, true);
-                batch.draw(frameOr, vx + 15f, vy + 20f, 190f, 190f);
-
-            } else if (item.tipoVisual == 2) {
-                boolean on = (item.estadoSeleccionado == 0);
-                fontBotones.setColor(on ? colorNeon : colorRojo);
-                String txtV = on ? "5.00 V" : "0.00 V";
-                layout.setText(fontBotones, txtV);
-                fontBotones.draw(batch, txtV, vx + (vw - layout.width) / 2f, vy + vh - 26f);
-            }
-
-            if (item.nombresEstados.length > 0) {
-                float btnY = y + 22f;
-                float cant = item.nombresEstados.length;
-                float btnW = (vw - (cant - 1) * 6f) / cant;
-
-                for (int b = 0; b < cant; b++) {
-                    float bx = vx + b * (btnW + 6f);
-                    boolean sel = (item.estadoSeleccionado == b);
-                    String nom = item.nombresEstados[b];
-
-                    layout.setText(fontPequena, nom);
-                    fontPequena.setColor(sel ? Color.WHITE : colorClaro);
-                    fontPequena.draw(batch, nom, bx + (btnW - layout.width) / 2f, btnY + 23f);
-                }
-            }
-
-            float descX = x + 265f;
-            float descY = y + h - 72f;
-            float descW = w - 290f;
-
-            fontPequena.setColor(colorNeon);
-            fontPequena.draw(batch, "¿QUÉ ES?", descX, descY);
-
-            fontTexto.setColor(Color.WHITE);
-            fontTexto.draw(batch, item.queEs, descX, descY - 18f, descW, Align.left, true);
-
-            float qx = x + 265f;
-            float qy = y + 20f;
-            float qw = w - 285f;
-            float qh = 168f;
-
-            fontPequena.setColor(colorVerde);
-            fontPequena.draw(batch, "EN LA VIDA DIARIA", qx + 14f, qy + qh - 10f);
-            fontPequena.setColor(colorClaro);
-            fontPequena.draw(batch, item.vidaDiaria, qx + 14f, qy + qh - 38f, qw - 28f, Align.left, true);
-
-            fontPequena.setColor(colorAmbar);
-            fontPequena.draw(batch, "REGLA DE ORO", qx + 14f, qy + 74f);
-            fontPequena.setColor(Color.WHITE);
-            fontPequena.draw(batch, item.reglaDeOro, qx + 14f, qy + 48f, qw - 28f, Align.left, true);
+    private void dibujarSpriteDePieza(ElementoGuia item) {
+        float vx = VISUAL_X, vy = VISUAL_Y;
+        if (item.tipoVisual == 0) {
+            Animation<TextureRegion> anim = animLedNormal;
+            if (item.estadoSeleccionado == 1) anim = animLedPrendiendo;
+            else if (item.estadoSeleccionado == 2) anim = animLedMuriendo;
+            batch.draw(anim.getKeyFrame(tiempo, true), vx + 40f, vy + 40f, 400f, 400f);
+        } else if (item.tipoVisual == 1) {
+            Animation<TextureRegion> anim = (item.estadoSeleccionado == 1) ? animResistenciaFallo : animResistenciaNormal;
+            batch.draw(anim.getKeyFrame(tiempo, true), vx + 15f, vy + 95f, 450f, 290f);
+        } else if (item.tipoVisual == 4) {
+            batch.draw(animAnd.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
+        } else if (item.tipoVisual == 5) {
+            batch.draw(animOr.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
+        } else if (item.tipoVisual == 2) {
+            boolean on = (item.estadoSeleccionado == 0);
+            String voltaje = on ? "5.00 V" : "0.00 V";
+            fontCardTitulo.setColor(on ? colorNeon : colorRojo);
+            layout.setText(fontCardTitulo, voltaje);
+            fontCardTitulo.draw(batch, voltaje, vx + (VISUAL_LADO - layout.width) / 2f, vy + 335f);
         }
     }
 
