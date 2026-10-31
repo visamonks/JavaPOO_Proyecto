@@ -93,8 +93,17 @@ public class VistaGuia extends ScreenAdapter {
     private static final float TEXTO_ANCHO = 740f;
     private static final float BLOQUE_ALTO = 160f;
 
+    private static final float SELECTOR_Y = 96f;
+    private static final float SELECTOR_ALTO = 44f;
+    private static final float SELECTOR_SEPARACION = 10f;
+
+    private static final int HOVER_NINGUNO = -1;
+    private static final int HOVER_VOLVER = 100;
+    private static final int HOVER_ANTERIOR = 101;
+    private static final int HOVER_SIGUIENTE = 102;
+
     private int indice = 0;
-    private int ultimoElementoHover = -1;
+    private int ultimoHover = HOVER_NINGUNO;
     private float hoverVolver = 0f;
     private float hoverPrev = 0f;
     private float hoverNext = 0f;
@@ -285,6 +294,13 @@ public class VistaGuia extends ScreenAdapter {
                     return true;
                 }
 
+                for (int i = 0; i < elementos.size(); i++) {
+                    if (estaAdentro(mx, my, getSelectorX(i), SELECTOR_Y, getSelectorAncho(), SELECTOR_ALTO)) {
+                        irATarjeta(i);
+                        return true;
+                    }
+                }
+
                 ElementoGuia item = elementos.get(indice);
                 int cantidad = item.nombresEstados.length;
                 for (int b = 0; b < cantidad; b++) {
@@ -315,6 +331,11 @@ public class VistaGuia extends ScreenAdapter {
                 }
                 if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.D || keycode == Input.Keys.TAB) {
                     cambiarTarjeta(1);
+                    return true;
+                }
+                int numero = keycode - Input.Keys.NUM_1;
+                if (numero >= 0 && numero < elementos.size()) {
+                    irATarjeta(numero);
                     return true;
                 }
                 return false;
@@ -348,8 +369,21 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void cambiarTarjeta(int direccion) {
-        indice = (indice + direccion + elementos.size()) % elementos.size();
+        irATarjeta((indice + direccion + elementos.size()) % elementos.size());
+    }
+
+    private void irATarjeta(int nuevoIndice) {
+        indice = nuevoIndice;
         sonar(TipoEfecto.CLICK_UI);
+    }
+
+    private float getSelectorAncho() {
+        int n = elementos.size();
+        return (TARJETA_ANCHO - (n - 1) * SELECTOR_SEPARACION) / n;
+    }
+
+    private float getSelectorX(int i) {
+        return TARJETA_X + i * (getSelectorAncho() + SELECTOR_SEPARACION);
     }
 
     @Override
@@ -379,12 +413,14 @@ public class VistaGuia extends ScreenAdapter {
         dibujarRejillaInferior();
         dibujarFlechasShapes();
         dibujarTarjetasShapes(mx, my);
+        dibujarSelectorShapes(mx, my);
         dibujarBotonVolverShape();
         shapeRenderer.end();
 
         batch.begin();
         dibujarCabecera();
         dibujarContenido(mx, my);
+        dibujarSelectorTextos();
         dibujarBotonVolverTexto();
         batch.end();
 
@@ -392,28 +428,59 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void actualizarAnimaciones(float delta, float mx, float my) {
-        int hoverActual = -1;
+        int hoverActual = HOVER_NINGUNO;
         boolean hVolver = estaAdentro(mx, my, 60f, 20f, 270f, 50f);
         hoverVolver = MathUtils.lerp(hoverVolver, hVolver ? 1f : 0f, delta * 18f);
-        if (hVolver) hoverActual = 10;
+        if (hVolver) hoverActual = HOVER_VOLVER;
 
         boolean hPrev = estaAdentro(mx, my, FLECHA_IZQ_X, FLECHA_Y, FLECHA_ANCHO, FLECHA_ALTO);
         boolean hNext = estaAdentro(mx, my, FLECHA_DER_X, FLECHA_Y, FLECHA_ANCHO, FLECHA_ALTO);
         hoverPrev = MathUtils.lerp(hoverPrev, hPrev ? 1f : 0f, delta * 18f);
         hoverNext = MathUtils.lerp(hoverNext, hNext ? 1f : 0f, delta * 18f);
-        if (hPrev) hoverActual = 13;
-        else if (hNext) hoverActual = 14;
+        if (hPrev) hoverActual = HOVER_ANTERIOR;
+        else if (hNext) hoverActual = HOVER_SIGUIENTE;
+
+        for (int i = 0; i < elementos.size(); i++) {
+            if (estaAdentro(mx, my, getSelectorX(i), SELECTOR_Y, getSelectorAncho(), SELECTOR_ALTO)) {
+                hoverActual = i;
+            }
+        }
 
         ElementoGuia actual = elementos.get(indice);
         boolean hCard = estaAdentro(mx, my, TARJETA_X, TARJETA_Y, TARJETA_ANCHO, TARJETA_ALTO);
         actual.animHover = MathUtils.lerp(actual.animHover, hCard ? 1f : 0f, delta * 16f);
-        if (hCard && hoverActual == -1) hoverActual = indice;
 
-        if (hoverActual != ultimoElementoHover) {
-            if (hoverActual >= 0) {
+        if (hoverActual != ultimoHover) {
+            if (hoverActual != HOVER_NINGUNO) {
                 sonar(TipoEfecto.HOVER_UI);
             }
-            ultimoElementoHover = hoverActual;
+            ultimoHover = hoverActual;
+        }
+    }
+
+    private void dibujarSelectorShapes(float mx, float my) {
+        float ancho = getSelectorAncho();
+        for (int i = 0; i < elementos.size(); i++) {
+            float x = getSelectorX(i);
+            boolean actual = (i == indice);
+            boolean hover = estaAdentro(mx, my, x, SELECTOR_Y, ancho, SELECTOR_ALTO);
+            shapeRenderer.setColor(actual ? new Color(0.06f, 0.16f, 0.24f, 1f) : colorCaja);
+            shapeRenderer.rect(x, SELECTOR_Y, ancho, SELECTOR_ALTO);
+            dibujarBorde(x, SELECTOR_Y, ancho, SELECTOR_ALTO, actual ? colorBrillante : (hover ? colorNeon : colorMetal), actual ? 2.6f : 1.4f);
+            if (actual) {
+                shapeRenderer.setColor(colorNeon);
+                shapeRenderer.rect(x, SELECTOR_Y, ancho, 4f);
+            }
+        }
+    }
+
+    private void dibujarSelectorTextos() {
+        float ancho = getSelectorAncho();
+        for (int i = 0; i < elementos.size(); i++) {
+            String nombre = elementos.get(i).nombre;
+            layout.setText(fontPequena, nombre);
+            fontPequena.setColor(i == indice ? Color.WHITE : colorClaro);
+            fontPequena.draw(batch, nombre, getSelectorX(i) + (ancho - layout.width) / 2f, SELECTOR_Y + (SELECTOR_ALTO + layout.height) / 2f);
         }
     }
 
@@ -821,10 +888,10 @@ public class VistaGuia extends ScreenAdapter {
         fontBotones.setColor(hoverVolver > 0.5f ? Color.WHITE : colorBrillante);
         fontBotones.draw(batch, txt, tx, ty);
 
-        String atajos = "ESC: Volver   |   Flechas: Cambiar de pieza";
+        String atajos = "ESC: Volver   |   Flechas o teclas 1-8: Cambiar de pieza";
         layout.setText(fontPequena, atajos);
         fontPequena.setColor(colorMetal);
-        fontPequena.draw(batch, atajos, (Constantes.ANCHO_VENTANA - layout.width) / 2f + 120f, 48f);
+        fontPequena.draw(batch, atajos, (Constantes.ANCHO_VENTANA - layout.width) / 2f + 120f, 52f);
     }
 
     @Override
