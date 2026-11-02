@@ -28,7 +28,9 @@ import com.schematic.model.progreso.ProgresoJugador;
 import com.schematic.JuegoPrincipal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VistaNivel extends ScreenAdapter {
 
@@ -75,6 +77,10 @@ public class VistaNivel extends ScreenAdapter {
     private int ultimoUIHover = -1;
 
     private List<ParticulaChispa> particulas;
+
+    private final EnrutadorCables enrutador = new EnrutadorCables();
+    private final Map<Cable, List<Vector2>> rutasCables = new HashMap<>();
+    private String firmaRutas = "";
 
     private final Color COLOR_FONDO_NEGRO = new Color(0.02f, 0.03f, 0.06f, 1f);
     private final Color COLOR_SLATE_OSCURO = new Color(0.06f, 0.09f, 0.14f, 1f);
@@ -194,6 +200,7 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         actualizarParticulas(delta);
+        actualizarRutasSiCambioLaMesa();
         camara.position.set(ANCHO_VIRTUAL / 2f + sacudidaCamaraX, ALTO_VIRTUAL / 2f + sacudidaCamaraY, 0);
         camara.update();
 
@@ -924,16 +931,14 @@ public class VistaNivel extends ScreenAdapter {
 
             for (int i = 1; i < ruta.size() - 1; i++) {
                 Vector2 codo = ruta.get(i);
-                boolean codoHover = (ratonMundo.dst(codo.x, codo.y) <= 22f);
+                if (ratonMundo.dst(codo.x, codo.y) > 22f) continue;
+                float pulso = 1f + 0.25f * MathUtils.sin(tiempoTotal * 14f);
+                shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.55f);
+                shapeRenderer.circle(codo.x, codo.y, 19f * pulso);
                 shapeRenderer.setColor(COLOR_CAJA_OSCURA);
                 shapeRenderer.circle(codo.x, codo.y, 10f);
-                shapeRenderer.setColor(codoHover ? Color.WHITE : COLOR_CELESTE_BRILLANTE);
+                shapeRenderer.setColor(Color.WHITE);
                 shapeRenderer.circle(codo.x, codo.y, 6f);
-                if (codoHover) {
-                    float pulso = 1f + 0.25f * MathUtils.sin(tiempoTotal * 14f);
-                    shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.55f);
-                    shapeRenderer.circle(codo.x, codo.y, 19f * pulso);
-                }
             }
         }
     }
@@ -998,104 +1003,51 @@ public class VistaNivel extends ScreenAdapter {
         }
     }
 
-    public List<Vector2> calcularRutaOrtogonal(Cable cable, Terminal tOrigen, Terminal tDestino) {
-        if (tOrigen == null || tDestino == null) return new ArrayList<>();
-        Vector2 p1 = tOrigen.getPosicionAbsoluta(), p2 = tDestino.getPosicionAbsoluta();
-        boolean origLed = (tOrigen.getComponentePadre() instanceof LED), destLed = (tDestino.getComponentePadre() instanceof LED);
-
-        if (cable != null && cable.tieneCodoPersonalizado()) {
-            return calcularPuntosOrtogonalesConCodoManual(p1, p2, cable.getCodoPersonalizadoX(), cable.getCodoPersonalizadoY(), origLed, destLed);
+    private String calcularFirmaMesa() {
+        StringBuilder firma = new StringBuilder();
+        for (Componente c : nivel.getComponentes()) {
+            firma.append(c.getPosicionX()).append(',').append(c.getPosicionY()).append(';');
         }
-
-        int idx = (nivel != null && cable != null) ? nivel.getCables().indexOf(cable) : 0;
-        float desfase = 0f;
-        if (!origLed && !destLed) {
-            if (idx == 1) desfase = 32f;
-            else if (idx == 2) desfase = -32f;
-            else if (idx > 2) desfase = ((idx % 2 == 0) ? -1f : 1f) * (32f + (idx / 2) * 16f);
+        for (Cable c : nivel.getCables()) {
+            firma.append(System.identityHashCode(c)).append(':')
+                 .append(c.getCodoPersonalizadoX()).append(',').append(c.getCodoPersonalizadoY()).append(';');
         }
-        return calcularPuntosOrtogonales(p1, p2, origLed, destLed, desfase);
+        return firma.toString();
     }
 
-    public List<Vector2> calcularRutaOrtogonal(Terminal tOrigen, Terminal tDestino) {
-        return calcularRutaOrtogonal(null, tOrigen, tDestino);
+    private void actualizarRutasSiCambioLaMesa() {
+        if (nivel == null) return;
+        String firma = calcularFirmaMesa();
+        if (firma.equals(firmaRutas)) return;
+        firmaRutas = firma;
+
+        rutasCables.clear();
+        enrutador.prepararMesa(nivel.getComponentes());
+        for (Cable cable : nivel.getCables()) {
+            Terminal t1 = cable.getTerminalOrigen(), t2 = cable.getTerminalDestino();
+            if (t1 == null || t2 == null) continue;
+            Vector2 codo = cable.tieneCodoPersonalizado()
+                    ? new Vector2(cable.getCodoPersonalizadoX(), cable.getCodoPersonalizadoY()) : null;
+            List<Vector2> ruta = enrutador.calcularRuta(t1, t2, codo);
+            enrutador.marcarComoUsada(ruta);
+            rutasCables.put(cable, ruta);
+        }
+    }
+
+    public List<Vector2> calcularRutaOrtogonal(Cable cable, Terminal tOrigen, Terminal tDestino) {
+        if (tOrigen == null || tDestino == null) return new ArrayList<>();
+        actualizarRutasSiCambioLaMesa();
+        List<Vector2> ruta = rutasCables.get(cable);
+        return (ruta != null) ? ruta : enrutador.calcularRuta(tOrigen, tDestino, null);
     }
 
     public List<Vector2> calcularRutaOrtogonalArrastre(Terminal tOrigen, Vector2 pDestino) {
         if (tOrigen == null || pDestino == null) return new ArrayList<>();
-        boolean origLed = (tOrigen.getComponentePadre() instanceof LED);
-        boolean destLed = (terminalBajoRaton != null && terminalBajoRaton.getComponentePadre() instanceof LED);
-        return calcularPuntosOrtogonales(tOrigen.getPosicionAbsoluta(), pDestino, origLed, destLed, 0f);
-    }
-
-    private List<Vector2> calcularPuntosOrtogonalesConCodoManual(Vector2 p1, Vector2 p2, float cx, float cy, boolean origVert, boolean destVert) {
-        List<Vector2> ruta = new ArrayList<>();
-        ruta.add(new Vector2(p1.x, p1.y));
-        if (origVert) {
-            ruta.add(new Vector2(p1.x, cy));
-            if (Math.abs(p2.x - p1.x) > 1f) ruta.add(new Vector2(p2.x, cy));
-            ruta.add(new Vector2(p2.x, p2.y));
-        } else {
-            ruta.add(new Vector2(cx, p1.y));
-            if (Math.abs(p2.y - p1.y) > 1f) ruta.add(new Vector2(cx, p2.y));
-            ruta.add(new Vector2(p2.x, p2.y));
+        actualizarRutasSiCambioLaMesa();
+        if (terminalBajoRaton != null && terminalBajoRaton.getComponentePadre() != tOrigen.getComponentePadre()) {
+            return enrutador.calcularRuta(tOrigen, terminalBajoRaton, null);
         }
-        return simplificarPuntosConsecutivos(ruta);
-    }
-
-    private List<Vector2> calcularPuntosOrtogonales(Vector2 p1, Vector2 p2, boolean origVert, boolean destVert, float desfase) {
-        List<Vector2> ruta = new ArrayList<>();
-        ruta.add(new Vector2(p1.x, p1.y));
-        float dx = p2.x - p1.x, dy = p2.y - p1.y;
-        if (Math.abs(dx) + Math.abs(dy) < 1f) {
-            ruta.add(new Vector2(p2.x, p2.y));
-            return ruta;
-        }
-
-        float ang = Math.abs(MathUtils.atan2(dy, dx) * MathUtils.radiansToDegrees);
-        if (ang > 90f) ang = 180f - ang;
-
-        if (ang <= 6f || Math.abs(dy) <= 8f) {
-            ruta.add(new Vector2(p2.x, p1.y));
-            return ruta;
-        }
-        if (ang >= 84f || Math.abs(dx) <= 8f) {
-            ruta.add(new Vector2(p1.x, p2.y));
-            return ruta;
-        }
-
-        if (origVert) {
-            float codoY = p2.y + desfase;
-            ruta.add(new Vector2(p1.x, codoY));
-            ruta.add(new Vector2(p2.x, codoY));
-        } else if (destVert) {
-            float codoX = p2.x + desfase;
-            ruta.add(new Vector2(codoX, p1.y));
-            ruta.add(new Vector2(codoX, p2.y));
-        } else {
-            if (Math.abs(dx) >= Math.abs(dy)) {
-                float codoX = (p1.x + p2.x) * 0.5f + desfase;
-                ruta.add(new Vector2(codoX, p1.y));
-                ruta.add(new Vector2(codoX, p2.y));
-            } else {
-                float codoY = (p1.y + p2.y) * 0.5f + desfase;
-                ruta.add(new Vector2(p1.x, codoY));
-                ruta.add(new Vector2(p2.x, codoY));
-            }
-        }
-        ruta.add(new Vector2(p2.x, p2.y));
-        return simplificarPuntosConsecutivos(ruta);
-    }
-
-    private List<Vector2> simplificarPuntosConsecutivos(List<Vector2> entrada) {
-        List<Vector2> limpia = new ArrayList<>();
-        if (entrada == null || entrada.isEmpty()) return limpia;
-        limpia.add(entrada.get(0));
-        for (int i = 1; i < entrada.size(); i++) {
-            Vector2 actual = entrada.get(i);
-            if (actual.dst(limpia.get(limpia.size() - 1)) > 1f) limpia.add(actual);
-        }
-        return limpia;
+        return enrutador.calcularRutaHaciaPunto(tOrigen, pDestino);
     }
 
     public Cable obtenerCableCodoBajoRaton(float mx, float my, float radio) {
