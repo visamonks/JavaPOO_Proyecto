@@ -123,6 +123,25 @@ public abstract class Nivel {
         }
     }
 
+    public String obtenerPiezasPendientes() {
+        StringBuilder pendientes = new StringBuilder();
+        for (CasillaInventario casilla : inventario) {
+            if (casilla.getCantidadDisponible() > 0) {
+                if (pendientes.length() > 0) pendientes.append(", ");
+                pendientes.append(casilla.getTitulo());
+            }
+        }
+        return pendientes.toString();
+    }
+
+    protected String mensajeColocarPiezas(String mensajeSiYaEstanTodas) {
+        String pendientes = obtenerPiezasPendientes();
+        if (pendientes.isEmpty()) {
+            return mensajeSiYaEstanTodas;
+        }
+        return "Arrastra a la mesa: " + pendientes;
+    }
+
     public CasillaInventario buscarCasilla(String tipo) {
         for (CasillaInventario casilla : inventario) {
             if (casilla.getTipo().equals(tipo)) {

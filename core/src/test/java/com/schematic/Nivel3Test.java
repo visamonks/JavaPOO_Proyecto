@@ -24,6 +24,11 @@ public class Nivel3Test {
         nivel = (Nivel3) GestorNiveles.crearNivel(3);
         assertNotNull(nivel, "GestorNiveles debe instanciar Nivel3 para el nivel 3.");
 
+        nivel.crearYColocarComponente("SWITCH", Constantes.NIVEL4_SWITCH_X, Constantes.NIVEL4_SWITCH_Y);
+        nivel.crearYColocarComponente("AND", Constantes.NIVEL4_OR_X, Constantes.NIVEL4_OR_Y);
+        nivel.crearYColocarComponente("RESISTENCIA_220", Constantes.NIVEL4_RESISTENCIA_X, Constantes.NIVEL4_RESISTENCIA_Y);
+        nivel.crearYColocarComponente("LED", Constantes.NIVEL4_LED_X, Constantes.NIVEL4_LED_Y);
+
         for (Componente c : nivel.getComponentes()) {
             if (c instanceof FuenteAlimentacion) fuente = (FuenteAlimentacion) c;
             else if (c instanceof Switch) switchDivisor = (Switch) c;
@@ -43,12 +48,21 @@ public class Nivel3Test {
     }
 
     @Test
+    public void testNivelEmpiezaSoloConLaFuente() {
+        Nivel nuevo = GestorNiveles.crearNivel(3);
+        assertEquals(1, nuevo.getComponentes().size(), "Solo la fuente debe estar en la mesa al iniciar.");
+        assertTrue(nuevo.getComponentes().get(0) instanceof FuenteAlimentacion);
+        assertEquals(1, nuevo.buscarCasilla("AND").getCantidadDisponible());
+        assertTrue(nuevo.getMensajeEstado().contains("Arrastra a la mesa"));
+    }
+
+    @Test
     public void testInicializacionComponentesTiempoEInventario() {
         assertEquals(3, nivel.getNumeroNivel());
         assertEquals("NIVEL 3: COMPUERTA LÓGICA AND", nivel.getTituloReto());
         assertEquals(50.0f, nivel.getTiempoLimite(), 0.001f);
         assertEquals(50.0f, nivel.getTiempoRestante(), 0.001f);
-        assertEquals(5, nivel.getComponentes().size(), "Debe haber 5 componentes colocados en el tablero.");
+        assertEquals(5, nivel.getComponentes().size(), "Tras colocar las piezas debe haber 5 componentes en el tablero.");
 
         assertNotNull(fuente);
         assertNotNull(switchDivisor);

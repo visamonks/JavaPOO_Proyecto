@@ -34,62 +34,16 @@ public class Nivel4 extends Nivel {
         this.paso2Listo = false;
         this.paso3Listo = false;
         this.paso4Listo = false;
-        this.mensajeEstado = "Conecta Fuente (+) al Switch.";
-
-        FuenteAlimentacion fuente = new FuenteAlimentacion(
+        this.componentes.add(new FuenteAlimentacion(
                 Constantes.ID_NIVEL4_FUENTE,
                 Constantes.NIVEL4_FUENTE_X,
                 Constantes.NIVEL4_FUENTE_Y
-        );
-        Switch swDoble = new Switch(
-                Constantes.ID_NIVEL4_SWITCH,
-                Constantes.NIVEL4_SWITCH_X,
-                Constantes.NIVEL4_SWITCH_Y,
-                false,
-                false
-        );
-        CompuertaOR compuertaOr = new CompuertaOR(
-                Constantes.ID_NIVEL4_OR,
-                Constantes.NIVEL4_OR_X,
-                Constantes.NIVEL4_OR_Y,
-                false,
-                false
-        );
-        Resistencia resistencia = new Resistencia(
-                Constantes.ID_NIVEL4_RESISTENCIA,
-                Constantes.NIVEL4_RESISTENCIA_X,
-                Constantes.NIVEL4_RESISTENCIA_Y,
-                220,
-                220
-        );
-        LED led = new LED(
-                Constantes.ID_NIVEL4_LED,
-                Constantes.NIVEL4_LED_X,
-                Constantes.NIVEL4_LED_Y,
-                true
-        );
-
-        this.componentes.add(fuente);
-        this.componentes.add(swDoble);
-        this.componentes.add(compuertaOr);
-        this.componentes.add(resistencia);
-        this.componentes.add(led);
-
-        CasillaInventario casLed = new CasillaInventario("LED", "LED (Diodo)", 1);
-        casLed.decrementar();
-        this.inventario.add(casLed);
-
-        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1);
-        casRes.decrementar();
-        this.inventario.add(casRes);
-
-        CasillaInventario casSw = new CasillaInventario("SWITCH", "Switch Divisor", 1);
-        casSw.decrementar();
-        this.inventario.add(casSw);
-
-        CasillaInventario casOr = new CasillaInventario("OR", "Compuerta OR", 1);
-        casOr.decrementar();
-        this.inventario.add(casOr);
+        ));
+        this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
+        this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
+        this.inventario.add(new CasillaInventario("SWITCH", "Switch Divisor", 1));
+        this.inventario.add(new CasillaInventario("OR", "Compuerta OR", 1));
+        this.mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+) al Switch.");
     }
 
     @Override
@@ -171,7 +125,7 @@ public class Nivel4 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = "Conecta Fuente (+) al pin izquierdo del Switch.";
+            mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+) al pin izquierdo del Switch.");
             this.ganado = false;
             this.completado = false;
             return false;

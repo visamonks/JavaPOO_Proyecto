@@ -27,23 +27,10 @@ public class Nivel1 extends Nivel {
         this.paso1Listo = false;
         this.paso2Listo = false;
         this.paso3Listo = false;
-        this.mensajeEstado = "Conecta Fuente (+), resistencia 220 Ohm y LED.";
-
-        FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
-        Resistencia resistencia = new Resistencia("R_1", 620f, 544f, 220, 220);
-        LED led = new LED("LED_1", 1120f, 440f, true);
-
-        this.componentes.add(fuente);
-        this.componentes.add(resistencia);
-        this.componentes.add(led);
-
-        CasillaInventario casLed = new CasillaInventario("LED", "LED (Diodo)", 1);
-        casLed.decrementar();
-        this.inventario.add(casLed);
-
-        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1);
-        casRes.decrementar();
-        this.inventario.add(casRes);
+        this.componentes.add(new FuenteAlimentacion("FUENTE_PODER", 80f, 280f));
+        this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
+        this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
+        this.mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+), resistencia 220 Ohm y LED.");
     }
 
     @Override
@@ -127,7 +114,7 @@ public class Nivel1 extends Nivel {
                 res.setQuemada(false);
                 res.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = "Objetivo: Conecta la fuente (+), la resistencia y el LED para encenderlo.";
+            mensajeEstado = mensajeColocarPiezas("Objetivo: Conecta la fuente (+), la resistencia y el LED para encenderlo.");
             this.ganado = false;
             this.completado = false;
             return false;

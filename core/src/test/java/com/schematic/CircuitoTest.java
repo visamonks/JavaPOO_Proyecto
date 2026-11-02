@@ -18,6 +18,9 @@ public class CircuitoTest {
     @BeforeEach
     public void setUp() {
         nivel = new Nivel2();
+        nivel.crearYColocarComponente("SWITCH", 440f, 575f);
+        nivel.crearYColocarComponente("RESISTENCIA_220", 810f, 544f);
+        nivel.crearYColocarComponente("LED", 1230f, 440f);
         for (Componente c : nivel.getComponentes()) {
             if (c instanceof FuenteAlimentacion) fuente = (FuenteAlimentacion) c;
             else if (c instanceof Switch) interruptor = (Switch) c;
@@ -31,6 +34,15 @@ public class CircuitoTest {
         nivel.agregarCable(new Cable(interruptor.getTerminalSalida(), resistencia.getTerminalEntrada()));
         nivel.agregarCable(new Cable(resistencia.getTerminalSalida(), led.getTerminalAnodo()));
         nivel.agregarCable(new Cable(led.getTerminalCatodo(), fuente.getTerminalNegativo()));
+    }
+
+    @Test
+    public void testNivelEmpiezaSoloConLaFuente() {
+        Nivel2 nuevo = new Nivel2();
+        assertEquals(1, nuevo.getComponentes().size(), "Solo la fuente debe estar en la mesa al iniciar.");
+        assertTrue(nuevo.getComponentes().get(0) instanceof FuenteAlimentacion);
+        assertEquals(1, nuevo.buscarCasilla("SWITCH").getCantidadDisponible());
+        assertTrue(nuevo.getMensajeEstado().contains("Arrastra a la mesa"));
     }
 
     @Test

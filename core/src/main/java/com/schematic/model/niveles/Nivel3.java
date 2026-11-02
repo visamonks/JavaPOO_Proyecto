@@ -34,35 +34,12 @@ public class Nivel3 extends Nivel {
         this.paso2Listo = false;
         this.paso3Listo = false;
         this.paso4Listo = false;
-        this.mensajeEstado = "Conecta Fuente (+) al Switch.";
-
-        FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
-        Switch swDoble = new Switch("SW_1", 370f, 490f, false, false);
-        CompuertaAND compuertaAnd = new CompuertaAND("AND_1", 680f, 430f, false, false);
-        Resistencia resistencia = new Resistencia("R_1", 995f, 494f, 220, 220);
-        LED led = new LED("LED_1", 1320f, 420f, true);
-
-        this.componentes.add(fuente);
-        this.componentes.add(swDoble);
-        this.componentes.add(compuertaAnd);
-        this.componentes.add(resistencia);
-        this.componentes.add(led);
-
-        CasillaInventario casLed = new CasillaInventario("LED", "LED (Diodo)", 1);
-        casLed.decrementar();
-        this.inventario.add(casLed);
-
-        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1);
-        casRes.decrementar();
-        this.inventario.add(casRes);
-
-        CasillaInventario casSw = new CasillaInventario("SWITCH", "Switch Divisor", 1);
-        casSw.decrementar();
-        this.inventario.add(casSw);
-
-        CasillaInventario casAnd = new CasillaInventario("AND", "Compuerta AND", 1);
-        casAnd.decrementar();
-        this.inventario.add(casAnd);
+        this.componentes.add(new FuenteAlimentacion("FUENTE_PODER", 80f, 280f));
+        this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
+        this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
+        this.inventario.add(new CasillaInventario("SWITCH", "Switch Divisor", 1));
+        this.inventario.add(new CasillaInventario("AND", "Compuerta AND", 1));
+        this.mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+) al Switch.");
     }
 
     @Override
@@ -144,7 +121,7 @@ public class Nivel3 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = "Conecta Fuente (+) al pin izquierdo del Switch.";
+            mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+) al pin izquierdo del Switch.");
             this.ganado = false;
             this.completado = false;
             return false;

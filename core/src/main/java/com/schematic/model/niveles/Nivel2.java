@@ -33,29 +33,11 @@ public class Nivel2 extends Nivel {
         this.paso2Listo = false;
         this.paso3Listo = false;
         this.paso4Listo = false;
-        this.mensajeEstado = "Conecta en serie con el Switch y actívalo.";
-
-        FuenteAlimentacion fuente = new FuenteAlimentacion("FUENTE_PODER", 80f, 280f);
-        Switch interruptor = new Switch("SW_1", 440f, 575f, false);
-        Resistencia resistencia = new Resistencia("R_1", 810f, 544f, 220, 220);
-        LED led = new LED("LED_1", 1230f, 440f, true);
-
-        this.componentes.add(fuente);
-        this.componentes.add(interruptor);
-        this.componentes.add(resistencia);
-        this.componentes.add(led);
-
-        CasillaInventario casSw = new CasillaInventario("SWITCH", "Interruptor", 1);
-        casSw.decrementar();
-        this.inventario.add(casSw);
-
-        CasillaInventario casRes = new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1);
-        casRes.decrementar();
-        this.inventario.add(casRes);
-
-        CasillaInventario casLed = new CasillaInventario("LED", "LED (Diodo)", 1);
-        casLed.decrementar();
-        this.inventario.add(casLed);
+        this.componentes.add(new FuenteAlimentacion("FUENTE_PODER", 80f, 280f));
+        this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
+        this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
+        this.inventario.add(new CasillaInventario("SWITCH", "Interruptor", 1));
+        this.mensajeEstado = mensajeColocarPiezas("Conecta en serie con el Switch y actívalo.");
     }
 
     @Override
@@ -137,7 +119,7 @@ public class Nivel2 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = "Objetivo: Conecta la fuente, el interruptor, la resistencia y el LED.";
+            mensajeEstado = mensajeColocarPiezas("Objetivo: Conecta la fuente, el interruptor, la resistencia y el LED.");
             this.ganado = false;
             this.completado = false;
             return false;
