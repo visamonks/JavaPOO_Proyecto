@@ -95,6 +95,17 @@ public abstract class Nivel {
         return null;
     }
 
+    public TutorialNivel obtenerTutorial() {
+        return new TutorialNivel(
+                tituloReto,
+                "Arma el circuito con las piezas del almacén.",
+                "Los circuitos están en todo lo que usa electricidad en tu casa.",
+                TutorialNivel.Esquema.SERIE,
+                obtenerPasosGuia(),
+                "Mantén el circuito encendido 5 segundos seguidos."
+        );
+    }
+
     public void actualizar(float deltaTiempo) {
         if (tiempoRestante > 0 && !(completado && ganado)) {
             tiempoRestante -= deltaTiempo;
