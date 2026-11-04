@@ -62,6 +62,19 @@ public class Nivel4 extends Nivel {
     }
 
     @Override
+    public TutorialNivel obtenerTutorial() {
+        return new TutorialNivel(
+                "COMPUERTA OR",
+                "La compuerta OR deja salir corriente si la entrada A O la entrada B está encendida. Con una basta.",
+                "El timbre de una casa con dos puertas: suena si tocan en la de enfrente O en la de atrás.",
+                TutorialNivel.Esquema.DIVISOR_OR,
+                new String[]{"Fuente (+) al Switch", "Salidas A y B a la OR", "OR a 220 Ohm y al LED", "LED (-) a la Fuente (-)"},
+                "Enciende la palanca A o la B y mantén el LED prendido 5 segundos."
+        ).conTablaVerdad(false, true, true, true)
+         .conConsejo("Clic en la mitad de arriba del switch para A y en la de abajo para B.");
+    }
+
+    @Override
     public boolean evaluarCircuitoCompleto() {
         paso1Listo = false;
         paso2Listo = false;

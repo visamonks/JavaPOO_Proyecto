@@ -48,6 +48,18 @@ public class Nivel1 extends Nivel {
     }
 
     @Override
+    public TutorialNivel obtenerTutorial() {
+        return new TutorialNivel(
+                "CIRCUITO LED",
+                "Un circuito es un camino cerrado: la corriente sale de la fuente, pasa por las piezas y regresa a ella.",
+                "Como una linterna: la pila empuja la corriente, el foco se enciende y la corriente vuelve a la pila.",
+                TutorialNivel.Esquema.SERIE,
+                new String[]{"Fuente (+) a la resistencia", "Resistencia al (+) del LED", "LED (-) a la Fuente (-)"},
+                "Enciende el LED y mantenlo prendido 5 segundos."
+        ).conConsejo("Sin la resistencia de 220 Ohm el LED se quema.");
+    }
+
+    @Override
     public boolean evaluarCircuitoCompleto() {
         FuenteAlimentacion fuente = null;
         LED led = null;

@@ -58,6 +58,19 @@ public class Nivel3 extends Nivel {
     }
 
     @Override
+    public TutorialNivel obtenerTutorial() {
+        return new TutorialNivel(
+                "COMPUERTA AND",
+                "La compuerta AND solo deja salir corriente si sus dos entradas, A Y B, están encendidas.",
+                "Una caja fuerte con dos llaves: solo se abre si las dos personas giran su llave al mismo tiempo.",
+                TutorialNivel.Esquema.DIVISOR_AND,
+                new String[]{"Fuente (+) al Switch", "Salidas A y B a la AND", "AND a 220 Ohm y al LED", "LED (-) a la Fuente (-)"},
+                "Enciende las palancas A y B a la vez por 5 segundos."
+        ).conTablaVerdad(false, false, false, true)
+         .conConsejo("Clic en la mitad de arriba del switch para A y en la de abajo para B.");
+    }
+
+    @Override
     public boolean evaluarCircuitoCompleto() {
         paso1Listo = false;
         paso2Listo = false;

@@ -56,6 +56,18 @@ public class Nivel2 extends Nivel {
     }
 
     @Override
+    public TutorialNivel obtenerTutorial() {
+        return new TutorialNivel(
+                "INTERRUPTOR",
+                "Un interruptor abre o cierra el camino. Si el camino está abierto, la corriente no puede pasar.",
+                "Es el apagador de tu cuarto: el foco siempre está conectado, pero solo prende cuando lo subes.",
+                TutorialNivel.Esquema.SERIE_CON_SWITCH,
+                new String[]{"Fuente (+) al Switch", "Switch a la resistencia", "Resistencia al (+) del LED", "LED (-) a la Fuente (-)"},
+                "Arma el circuito y enciende el Switch (clic) por 5 segundos."
+        ).conConsejo("Si lo apagas antes de tiempo, el contador vuelve a 0.");
+    }
+
+    @Override
     public boolean evaluarCircuitoCompleto() {
         FuenteAlimentacion fuente = null;
         Switch interruptor = null;

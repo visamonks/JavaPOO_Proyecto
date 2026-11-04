@@ -96,12 +96,16 @@ public abstract class Nivel {
     }
 
     public TutorialNivel obtenerTutorial() {
+        String[] pasos = obtenerPasosGuia();
+        if (pasos == null) {
+            pasos = new String[]{"Coloca las piezas", "Conéctalas con cables", "Enciende el circuito"};
+        }
         return new TutorialNivel(
                 tituloReto,
                 "Arma el circuito con las piezas del almacén.",
                 "Los circuitos están en todo lo que usa electricidad en tu casa.",
                 TutorialNivel.Esquema.SERIE,
-                obtenerPasosGuia(),
+                pasos,
                 "Mantén el circuito encendido 5 segundos seguidos."
         );
     }
