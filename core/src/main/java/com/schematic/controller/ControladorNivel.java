@@ -367,7 +367,7 @@ public class ControladorNivel extends InputAdapter {
         } else if (keycode == Input.Keys.ENTER) {
             if (vista != null) {
                 if (vista.estaMostrandoGuiaNivel()) {
-                    vista.cerrarGuiaNivel();
+                    vista.avanzarTutorial();
                     return true;
                 }
                 if (nivel != null && nivel.estaGanado()) {

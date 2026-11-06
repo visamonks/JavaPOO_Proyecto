@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.schematic.controller.ControladorNivel;
@@ -51,7 +52,7 @@ public class VistaNivel extends ScreenAdapter {
     private FitViewport viewport;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
-    private BitmapFont font, fontTitulo, fontPequena;
+    private BitmapFont font, fontTitulo, fontPequena, fontTutorial;
     private GlyphLayout glyphLayout;
     private ControladorNivel controlador;
 
@@ -60,6 +61,8 @@ public class VistaNivel extends ScreenAdapter {
     private Animation<TextureRegion> animResistenciaNormal, animResistenciaFallo, animAnd, animOr;
 
     private boolean mostrandoGuiaNivel;
+    private int paginaTutorial;
+    private TutorialNivel tutorialActual;
     private float tiempoTotal, tiempoAnimError, tiempoIntro, voltajeMedidorDC, tiempoExitoAcumulado;
     private boolean introCompletada, progresoGuardado, derrotaPorTiempo;
     private float offsetGridPerspectiva, tiempoIntroNivel;
@@ -121,13 +124,16 @@ public class VistaNivel extends ScreenAdapter {
         this.font = crearFont(1.25f);
         this.fontTitulo = crearFont(1.75f);
         this.fontPequena = crearFont(0.95f);
+        this.fontTutorial = crearFont(1.45f);
 
         this.texturasCargadas = new ArrayList<>();
         cargarAnimaciones();
 
         this.ratonMundo = new Vector2();
         this.particulas = new ArrayList<>();
-        this.mostrandoGuiaNivel = (nivel != null && (nivel.getNumeroNivel() == 3 || nivel.getNumeroNivel() == 4));
+        this.mostrandoGuiaNivel = (nivel != null);
+        this.paginaTutorial = 0;
+        this.tutorialActual = (nivel != null) ? nivel.obtenerTutorial() : null;
         this.controlador = new ControladorNivel(nivel, camara, viewport, this);
     }
 
@@ -240,18 +246,21 @@ public class VistaNivel extends ScreenAdapter {
             dibujarVistaPreviaArrastre();
         }
         batch.end();
+        Gdx.gl.glEnable(GL20.GL_BLEND);
 
         dibujarEfectosDerrota();
 
         boolean modalFinActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalFinActivo) {
+            Gdx.gl.glEnable(GL20.GL_BLEND);
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             dibujarFondoModal();
             shapeRenderer.end();
             batch.begin();
             dibujarContenidoModal();
             batch.end();
-        } else if (mostrandoGuiaNivel) {
+        } else if (mostrandoGuiaNivel && tutorialActual != null) {
+            Gdx.gl.glEnable(GL20.GL_BLEND);
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             dibujarGuiaNivelShapes();
             shapeRenderer.end();
@@ -1276,32 +1285,268 @@ public class VistaNivel extends ScreenAdapter {
         fontPequena.draw(batch, "Clic Izq: Conectar / Switch   ·   Clic Der: Borrar   ·   H: Guía   ·   R: Reiniciar   ·   ESC: Menú", 40f, 36f);
     }
 
+    private static final float TUTO_X = 360f, TUTO_Y = 170f, TUTO_ANCHO = 1200f, TUTO_ALTO = 740f;
+    private static final float TUTO_BOTON_ANCHO = 260f, TUTO_BOTON_ALTO = 56f;
+    private static final float TUTO_BOTON_Y = TUTO_Y + 30f;
+    private static final float TUTO_SIGUIENTE_X = TUTO_X + TUTO_ANCHO - 40f - TUTO_BOTON_ANCHO;
+    private static final float ESQUEMA_ANCHO = 848f, ESQUEMA_ALTO = 236f;
+    private static final float PESTANA_ANCHO = 300f, PESTANA_ALTO = 40f, PESTANA_Y = TUTO_Y + TUTO_ALTO - 126f;
+    private static final String[] TITULOS_PAGINAS = {"1   ¿QUÉ ES?", "2   ASÍ SE CONECTA", "3   TU MISIÓN"};
+    private static final int TOTAL_PAGINAS = 3;
+
+    private final Color COLOR_VERDE_TUTO = new Color(0.20f, 0.95f, 0.45f, 1f);
+    private final Color COLOR_AMBAR_TUTO = new Color(1.0f, 0.76f, 0.20f, 1f);
+
+    private boolean estaSobre(float x, float y, float w, float h) {
+        return ratonMundo.x >= x && ratonMundo.x <= x + w && ratonMundo.y >= y && ratonMundo.y <= y + h;
+    }
+
+    private float getXPestana(int i) {
+        float total = TOTAL_PAGINAS * PESTANA_ANCHO + (TOTAL_PAGINAS - 1) * 20f;
+        return TUTO_X + (TUTO_ANCHO - total) / 2f + i * (PESTANA_ANCHO + 20f);
+    }
+
     private void dibujarGuiaNivelShapes() {
-        shapeRenderer.setColor(0.01f, 0.02f, 0.04f, 0.84f);
+        shapeRenderer.setColor(0.01f, 0.02f, 0.04f, 0.86f);
         shapeRenderer.rect(0, 0, ANCHO_VIRTUAL, ALTO_VIRTUAL);
 
-        float mx = 500f, my = 270f, mw = 920f, mh = 540f;
         shapeRenderer.setColor(0f, 0f, 0f, 0.72f);
-        shapeRenderer.rect(mx + 10f, my - 10f, mw, mh);
-        dibujarCajaBorde(mx, my, mw, mh, new Color(0.04f, 0.06f, 0.10f, 0.98f), COLOR_NEON_CELESTE, 2.4f);
-
-        shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE);
-        float brk = 18f;
-        shapeRenderer.rectLine(mx, my, mx + brk, my, 3.8f);
-        shapeRenderer.rectLine(mx, my, mx, my + brk, 3.8f);
-        shapeRenderer.rectLine(mx + mw, my, mx + mw - brk, my, 3.8f);
-        shapeRenderer.rectLine(mx + mw, my, mx + mw, my + brk, 3.8f);
-        shapeRenderer.rectLine(mx, my + mh, mx + brk, my + mh, 3.8f);
-        shapeRenderer.rectLine(mx, my + mh, mx, my + mh - brk, 3.8f);
-        shapeRenderer.rectLine(mx + mw, my + mh, mx + mw - brk, my + mh, 3.8f);
-        shapeRenderer.rectLine(mx + mw, my + mh, mx + mw, my + mh - brk, 3.8f);
-
+        shapeRenderer.rect(TUTO_X + 12f, TUTO_Y - 12f, TUTO_ANCHO, TUTO_ALTO);
+        dibujarCajaBorde(TUTO_X, TUTO_Y, TUTO_ANCHO, TUTO_ALTO, new Color(0.04f, 0.06f, 0.10f, 0.98f), COLOR_NEON_CELESTE, 2.4f);
         shapeRenderer.setColor(0.06f, 0.10f, 0.16f, 0.95f);
-        shapeRenderer.rect(mx + 2f, my + mh - 56f, mw - 4f, 54f);
-        shapeRenderer.setColor(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.45f);
-        shapeRenderer.rectLine(mx + 2f, my + mh - 56f, mx + mw - 2f, my + mh - 56f, 1.4f);
+        shapeRenderer.rect(TUTO_X + 2f, TUTO_Y + TUTO_ALTO - 70f, TUTO_ANCHO - 4f, 68f);
 
-        float vx = mx + 36f, vy = my + 226f, vw = mw - 72f, vh = 236f;
+        for (int i = 0; i < TOTAL_PAGINAS; i++) {
+            float px = getXPestana(i);
+            boolean actual = (i == paginaTutorial), vista = (i < paginaTutorial);
+            Color fondo = actual ? new Color(0.06f, 0.16f, 0.24f, 1f) : new Color(0.03f, 0.05f, 0.09f, 0.95f);
+            Color borde = actual ? COLOR_CELESTE_BRILLANTE : (vista ? COLOR_NEON_CELESTE : COLOR_GRIS_METAL);
+            dibujarCajaBorde(px, PESTANA_Y, PESTANA_ANCHO, PESTANA_ALTO, fondo, borde, actual ? 2.2f : 1.3f);
+            if (actual) {
+                shapeRenderer.setColor(COLOR_NEON_CELESTE);
+                shapeRenderer.rect(px, PESTANA_Y, PESTANA_ANCHO, 4f);
+            }
+        }
+
+        if (paginaTutorial == 0) dibujarPaginaConceptoShapes();
+        else if (paginaTutorial == 1) dibujarPaginaConexionShapes();
+        else dibujarPaginaMisionShapes();
+
+        boolean ultima = (paginaTutorial == TOTAL_PAGINAS - 1);
+        boolean hov = estaSobre(TUTO_SIGUIENTE_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO);
+        Color colorBoton = ultima ? COLOR_VERDE_TUTO : COLOR_NEON_CELESTE;
+        dibujarCajaBorde(TUTO_SIGUIENTE_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO,
+                hov ? new Color(0.08f, 0.18f, 0.28f, 1f) : COLOR_SLATE_OSCURO, colorBoton, hov ? 2.8f : 2f);
+    }
+
+    private void dibujarGuiaNivelTextos() {
+        fontTitulo.setColor(COLOR_CELESTE_BRILLANTE);
+        String titulo = "NIVEL " + nivel.getNumeroNivel() + "  ·  " + tutorialActual.getTitulo();
+        fontTitulo.draw(batch, titulo, TUTO_X + 32f, TUTO_Y + TUTO_ALTO - 22f);
+
+        fontPequena.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.78f);
+        String pausa = "EL RELOJ ESTÁ EN PAUSA";
+        glyphLayout.setText(fontPequena, pausa);
+        fontPequena.draw(batch, pausa, TUTO_X + TUTO_ANCHO - glyphLayout.width - 32f, TUTO_Y + TUTO_ALTO - 27f);
+
+        for (int i = 0; i < TOTAL_PAGINAS; i++) {
+            fontPequena.setColor(i == paginaTutorial ? Color.WHITE : COLOR_GRIS_CLARO);
+            glyphLayout.setText(fontPequena, TITULOS_PAGINAS[i]);
+            fontPequena.draw(batch, TITULOS_PAGINAS[i], getXPestana(i) + (PESTANA_ANCHO - glyphLayout.width) / 2f,
+                    PESTANA_Y + (PESTANA_ALTO + glyphLayout.height) / 2f);
+        }
+
+        if (paginaTutorial == 0) dibujarPaginaConceptoTextos();
+        else if (paginaTutorial == 1) dibujarPaginaConexionTextos();
+        else dibujarPaginaMisionTextos();
+
+        boolean ultima = (paginaTutorial == TOTAL_PAGINAS - 1);
+        String textoBoton = ultima ? "¡A JUGAR!" : "SIGUIENTE";
+        font.setColor(ultima ? COLOR_VERDE_TUTO : COLOR_CELESTE_BRILLANTE);
+        glyphLayout.setText(font, textoBoton);
+        font.draw(batch, textoBoton, TUTO_SIGUIENTE_X + (TUTO_BOTON_ANCHO - glyphLayout.width) / 2f,
+                TUTO_BOTON_Y + (TUTO_BOTON_ALTO + glyphLayout.height) / 2f);
+    }
+
+    private void dibujarBloqueTutorial(float x, float y, float w, float h, Color color) {
+        shapeRenderer.setColor(0.035f, 0.055f, 0.085f, 0.95f);
+        shapeRenderer.rect(x, y, w, h);
+        shapeRenderer.setColor(color);
+        shapeRenderer.rect(x, y, 8f, h);
+        dibujarBordeRect(x, y, w, h, new Color(color.r, color.g, color.b, 0.35f), 1.5f);
+    }
+
+    private void dibujarTextoBloqueTutorial(float x, float y, float w, float h, String etiqueta, String texto, Color color) {
+        fontPequena.setColor(color);
+        fontPequena.draw(batch, etiqueta, x + 30f, y + h - 20f);
+        fontTutorial.setColor(Color.WHITE);
+        fontTutorial.draw(batch, texto, x + 30f, y + h - 58f, w - 60f, Align.left, true);
+    }
+
+    private static final float PANEL_X = TUTO_X + 50f, PANEL_Y = TUTO_Y + 130f, PANEL_ANCHO = 380f, PANEL_ALTO = 450f;
+    private static final float BLOQUE_X = TUTO_X + 470f, BLOQUE_ANCHO = 680f;
+
+    private void dibujarPaginaConceptoShapes() {
+        dibujarCajaBorde(PANEL_X, PANEL_Y, PANEL_ANCHO, PANEL_ALTO, new Color(0.018f, 0.030f, 0.055f, 0.98f),
+                new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.55f), 1.5f);
+        shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.06f);
+        for (float g = 30f; g < PANEL_ANCHO; g += 30f) shapeRenderer.rectLine(PANEL_X + g, PANEL_Y, PANEL_X + g, PANEL_Y + PANEL_ALTO, 1f);
+        for (float g = 30f; g < PANEL_ALTO; g += 30f) shapeRenderer.rectLine(PANEL_X, PANEL_Y + g, PANEL_X + PANEL_ANCHO, PANEL_Y + g, 1f);
+
+        if (tutorialActual.getEsquema() == TutorialNivel.Esquema.SERIE_CON_SWITCH) {
+            float sx = PANEL_X + 70f, sy = PANEL_Y + 170f, sw = 240f, sh = 120f;
+            boolean cerrado = (tiempoTotal % 2f) < 1f;
+            dibujarCajaBorde(sx, sy, sw, sh, new Color(0.08f, 0.11f, 0.16f, 1f), cerrado ? COLOR_VERDE_TUTO : COLOR_GRIS_METAL, 3f);
+            dibujarPalancaSwitch(sx + 40f, sy + sh / 2f, sx + sw - 40f, sy + sh / 2f, cerrado, 40f);
+        }
+
+        dibujarBloqueTutorial(BLOQUE_X, TUTO_Y + 380f, BLOQUE_ANCHO, 200f, COLOR_NEON_CELESTE);
+        dibujarBloqueTutorial(BLOQUE_X, TUTO_Y + 130f, BLOQUE_ANCHO, 220f, COLOR_VERDE_TUTO);
+    }
+
+    private void dibujarPaginaConceptoTextos() {
+        TutorialNivel.Esquema e = tutorialActual.getEsquema();
+        String pieza;
+        if (e == TutorialNivel.Esquema.DIVISOR_AND) {
+            batch.draw(animAnd.getKeyFrame(tiempoTotal, true), PANEL_X + 20f, PANEL_Y + 60f, 340f, 340f);
+            pieza = "COMPUERTA AND";
+        } else if (e == TutorialNivel.Esquema.DIVISOR_OR) {
+            batch.draw(animOr.getKeyFrame(tiempoTotal, true), PANEL_X + 20f, PANEL_Y + 60f, 340f, 340f);
+            pieza = "COMPUERTA OR";
+        } else if (e == TutorialNivel.Esquema.SERIE_CON_SWITCH) {
+            boolean cerrado = (tiempoTotal % 2f) < 1f;
+            font.setColor(cerrado ? COLOR_VERDE_TUTO : COLOR_GRIS_CLARO);
+            String estado = cerrado ? "ON: la corriente pasa" : "OFF: el camino se corta";
+            glyphLayout.setText(font, estado);
+            font.draw(batch, estado, PANEL_X + (PANEL_ANCHO - glyphLayout.width) / 2f, PANEL_Y + 130f);
+            pieza = "INTERRUPTOR";
+        } else {
+            batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), PANEL_X + 30f, PANEL_Y + 70f, 320f, 320f);
+            pieza = "LED + RESISTENCIA";
+        }
+        fontPequena.setColor(COLOR_AMBAR_TUTO);
+        glyphLayout.setText(fontPequena, pieza);
+        fontPequena.draw(batch, pieza, PANEL_X + (PANEL_ANCHO - glyphLayout.width) / 2f, PANEL_Y + PANEL_ALTO - 22f);
+
+        dibujarTextoBloqueTutorial(BLOQUE_X, TUTO_Y + 380f, BLOQUE_ANCHO, 200f, "¿QUÉ ES?", tutorialActual.getConcepto(), COLOR_NEON_CELESTE);
+        dibujarTextoBloqueTutorial(BLOQUE_X, TUTO_Y + 130f, BLOQUE_ANCHO, 220f, "EN LA VIDA REAL", tutorialActual.getVidaReal(), COLOR_VERDE_TUTO);
+    }
+
+    private static final float ESQUEMA_X = TUTO_X + (TUTO_ANCHO - ESQUEMA_ANCHO) / 2f, ESQUEMA_Y = TUTO_Y + 340f;
+    private static final float PASOS_Y = TUTO_Y + 140f, PASOS_ALTO = 150f;
+
+    private float getAnchoPaso() {
+        int n = tutorialActual.getPasos().length;
+        return (TUTO_ANCHO - 100f - (n - 1) * 16f) / n;
+    }
+
+    private void dibujarPaginaConexionShapes() {
+        dibujarEsquemaShapes(ESQUEMA_X, ESQUEMA_Y, tutorialActual.getEsquema());
+        String[] pasos = tutorialActual.getPasos();
+        float ancho = getAnchoPaso();
+        for (int i = 0; i < pasos.length; i++) {
+            float px = TUTO_X + 50f + i * (ancho + 16f);
+            dibujarBloqueTutorial(px, PASOS_Y, ancho, PASOS_ALTO, COLOR_NEON_CELESTE);
+            shapeRenderer.setColor(COLOR_NEON_CELESTE);
+            shapeRenderer.circle(px + 40f, PASOS_Y + PASOS_ALTO - 34f, 18f);
+        }
+    }
+
+    private void dibujarPaginaConexionTextos() {
+        dibujarEsquemaTextos(ESQUEMA_X, ESQUEMA_Y, tutorialActual.getEsquema());
+        String[] pasos = tutorialActual.getPasos();
+        float ancho = getAnchoPaso();
+        for (int i = 0; i < pasos.length; i++) {
+            float px = TUTO_X + 50f + i * (ancho + 16f);
+            String numero = String.valueOf(i + 1);
+            font.setColor(COLOR_FONDO_NEGRO);
+            glyphLayout.setText(font, numero);
+            font.draw(batch, numero, px + 40f - glyphLayout.width / 2f, PASOS_Y + PASOS_ALTO - 34f + glyphLayout.height / 2f);
+            font.setColor(Color.WHITE);
+            font.draw(batch, pasos[i], px + 24f, PASOS_Y + PASOS_ALTO - 68f, ancho - 40f, Align.left, true);
+        }
+    }
+
+    private static final float TABLA_Y = TUTO_Y + 330f, TABLA_ALTO = 90f;
+    private static final float CONSEJO_Y = TUTO_Y + 200f, CONSEJO_ALTO = 90f;
+
+    private void dibujarPaginaMisionShapes() {
+        if (tutorialActual.tieneTablaVerdad()) {
+            boolean[] tabla = tutorialActual.getTablaVerdad();
+            boolean[][] entradas = {{false, false}, {true, false}, {false, true}, {true, true}};
+            float pw = 198f, gap = (ESQUEMA_ANCHO - 4f * pw) / 3f;
+            for (int r = 0; r < 4; r++) {
+                float px = ESQUEMA_X + r * (pw + gap), dotY = TABLA_Y + TABLA_ALTO * 0.42f;
+                boolean a = entradas[r][0], b = entradas[r][1], enc = tabla[r];
+                dibujarCajaBorde(px, TABLA_Y, pw, TABLA_ALTO, enc ? new Color(0.05f, 0.12f, 0.19f, 0.96f) : new Color(0.025f, 0.04f, 0.07f, 0.92f),
+                        enc ? COLOR_NEON_CELESTE : new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.45f), enc ? 1.9f : 1.1f);
+                shapeRenderer.setColor(a ? new Color(0.15f, 0.95f, 0.72f, 1f) : new Color(0.22f, 0.28f, 0.38f, 1f)); shapeRenderer.circle(px + 38f, dotY, 7f);
+                shapeRenderer.setColor(b ? new Color(0.15f, 0.95f, 0.72f, 1f) : new Color(0.22f, 0.28f, 0.38f, 1f)); shapeRenderer.circle(px + 84f, dotY, 7f);
+                dibujarFlechaHorizontal(px + 104f, px + 128f, dotY, enc ? COLOR_CELESTE_BRILLANTE : new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.65f));
+                if (enc) {
+                    shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.28f); shapeRenderer.circle(px + 155f, dotY, 12f);
+                    shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE); shapeRenderer.circle(px + 155f, dotY, 7f);
+                } else {
+                    shapeRenderer.setColor(0.20f, 0.26f, 0.35f, 1f); shapeRenderer.circle(px + 155f, dotY, 6f);
+                }
+            }
+        } else {
+            float pw = (ESQUEMA_ANCHO - 32f) / 2f;
+            dibujarBloqueTutorial(ESQUEMA_X, TABLA_Y, pw, TABLA_ALTO, COLOR_NEON_CELESTE);
+            dibujarBloqueTutorial(ESQUEMA_X + pw + 32f, TABLA_Y, pw, TABLA_ALTO, COLOR_NEON_CELESTE);
+        }
+        if (!tutorialActual.getConsejo().isEmpty()) {
+            dibujarBloqueTutorial(ESQUEMA_X, CONSEJO_Y, ESQUEMA_ANCHO, CONSEJO_ALTO, COLOR_AMBAR_TUTO);
+        }
+    }
+
+    private void dibujarPaginaMisionTextos() {
+        fontTitulo.setColor(Color.WHITE);
+        fontTitulo.draw(batch, tutorialActual.getMision(), TUTO_X + 100f, TUTO_Y + 560f, TUTO_ANCHO - 200f, Align.center, true);
+
+        if (tutorialActual.tieneTablaVerdad()) {
+            boolean[] tabla = tutorialActual.getTablaVerdad();
+            float pw = 198f, gap = (ESQUEMA_ANCHO - 4f * pw) / 3f;
+            fontPequena.setColor(COLOR_GRIS_CLARO);
+            fontPequena.draw(batch, "Así responde la compuerta según las palancas A y B:", ESQUEMA_X, TABLA_Y + TABLA_ALTO + 30f);
+            for (int r = 0; r < 4; r++) {
+                float px = ESQUEMA_X + r * (pw + gap), ty = TABLA_Y + 24f;
+                fontPequena.setColor(COLOR_GRIS_CLARO);
+                fontPequena.draw(batch, "A", px + 33f, ty);
+                fontPequena.draw(batch, "B", px + 79f, ty);
+                fontPequena.setColor(tabla[r] ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
+                fontPequena.draw(batch, tabla[r] ? "LED ON" : "LED OFF", px + 128f, ty);
+            }
+        } else {
+            float pw = (ESQUEMA_ANCHO - 32f) / 2f;
+            dibujarTextoReglaTutorial(ESQUEMA_X, pw, "Entra por el (+) del LED y sale por el (-)");
+            dibujarTextoReglaTutorial(ESQUEMA_X + pw + 32f, pw, "Protege siempre el LED con 220 Ohm");
+        }
+
+        if (!tutorialActual.getConsejo().isEmpty()) {
+            fontPequena.setColor(COLOR_AMBAR_TUTO);
+            fontPequena.draw(batch, "CONSEJO", ESQUEMA_X + 30f, CONSEJO_Y + CONSEJO_ALTO - 18f);
+            font.setColor(Color.WHITE);
+            font.draw(batch, tutorialActual.getConsejo(), ESQUEMA_X + 30f, CONSEJO_Y + CONSEJO_ALTO - 46f, ESQUEMA_ANCHO - 60f, Align.left, true);
+        }
+
+        fontPequena.setColor(COLOR_GRIS_CLARO);
+        String reloj = String.format("Tienes %.0f segundos. El circuito debe quedar encendido 5 segundos seguidos.", nivel.getTiempoLimite());
+        glyphLayout.setText(fontPequena, reloj);
+        fontPequena.draw(batch, reloj, TUTO_X + (TUTO_ANCHO - glyphLayout.width) / 2f, TUTO_Y + 160f);
+    }
+
+    private void dibujarTextoReglaTutorial(float x, float ancho, String texto) {
+        font.setColor(COLOR_CELESTE_BRILLANTE);
+        glyphLayout.setText(font, texto);
+        font.draw(batch, texto, x + (ancho - glyphLayout.width) / 2f, TABLA_Y + (TABLA_ALTO + glyphLayout.height) / 2f);
+    }
+
+    private void dibujarEsquemaShapes(float vx, float vy, TutorialNivel.Esquema esquema) {
+        float vw = ESQUEMA_ANCHO, vh = ESQUEMA_ALTO;
+        boolean esCompuerta = (esquema == TutorialNivel.Esquema.DIVISOR_AND || esquema == TutorialNivel.Esquema.DIVISOR_OR);
+        boolean esAnd = (esquema == TutorialNivel.Esquema.DIVISOR_AND);
+        boolean conSwitch = (esquema == TutorialNivel.Esquema.SERIE_CON_SWITCH);
         dibujarCajaBorde(vx, vy, vw, vh, new Color(0.018f, 0.030f, 0.055f, 0.98f),
                 new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.55f), 1.5f);
 
@@ -1309,7 +1554,6 @@ public class VistaNivel extends ScreenAdapter {
         for (float gx = vx + 28f; gx < vx + vw; gx += 28f) shapeRenderer.rectLine(gx, vy, gx, vy + vh, 1f);
         for (float gy = vy + 28f; gy < vy + vh; gy += 28f) shapeRenderer.rectLine(vx, gy, vx + vw, gy, 1f);
 
-        int num = (nivel != null) ? nivel.getNumeroNivel() : 1;
         float cy = vy + 128f, yRet = vy + 28f;
         float fx = vx + 44f, fy = vy + 46f, fw = 68f, fh = 148f;
         dibujarCajaBorde(fx, fy, fw, fh, new Color(0.11f, 0.15f, 0.22f, 1f), COLOR_GRIS_METAL, 1.8f);
@@ -1318,7 +1562,7 @@ public class VistaNivel extends ScreenAdapter {
 
         float posPinX = fx + fw, posPinY = cy + 24f, negPinY = vy + 66f;
 
-        if (num >= 3) {
+        if (esCompuerta) {
             float swX = vx + 166f, swY = vy + 80f, swW = 90f, swH = 96f, yA = cy + 22f, yB = cy - 22f;
             shapeRenderer.setColor(COLOR_NEON_CELESTE);
             shapeRenderer.rectLine(posPinX, posPinY, vx + 138f, posPinY, 3.2f);
@@ -1331,7 +1575,7 @@ public class VistaNivel extends ScreenAdapter {
             shapeRenderer.rectLine(swX + 24f, yB, swX + 24f, yA, 2.8f);
             shapeRenderer.setColor(0.15f, 0.95f, 0.72f, 1f);
             shapeRenderer.rectLine(swX + 24f, yA, swX + swW, yA, 3.2f);
-            boolean cerrBGuia = (num == 3);
+            boolean cerrBGuia = esAnd;
             if (cerrBGuia) {
                 shapeRenderer.rectLine(swX + 24f, yB, swX + swW, yB, 3.2f);
             } else {
@@ -1369,9 +1613,9 @@ public class VistaNivel extends ScreenAdapter {
             dibujarPulsoCableGuia(resOutX, resY, ledAnodoX, ledLegY, 0.72f);
             dibujarPulsoCableGuia(ledCatodoX, yRet, vx + 138f, yRet, 0.40f);
         } else {
-            float resInX = (num == 2) ? vx + 390f : vx + 290f, resOutX = resInX + 96f, resY = vy + 132f, ledAnodoX = vx + 656f, ledCatodoX = vx + 688f, ledLegY = vy + 97f;
+            float resInX = conSwitch ? vx + 390f : vx + 290f, resOutX = resInX + 96f, resY = vy + 132f, ledAnodoX = vx + 656f, ledCatodoX = vx + 688f, ledLegY = vy + 97f;
             shapeRenderer.setColor(COLOR_NEON_CELESTE);
-            if (num == 2) {
+            if (conSwitch) {
                 float swX = vx + 195f, swY = cy - 26f;
                 dibujarCajaBorde(swX, swY, 100f, 52f, new Color(0.06f, 0.09f, 0.14f, 1f), COLOR_GRIS_METAL, 1.6f);
                 shapeRenderer.setColor(0.15f, 0.95f, 0.72f, 1f);
@@ -1404,57 +1648,18 @@ public class VistaNivel extends ScreenAdapter {
 
         shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 1f); shapeRenderer.circle(posPinX, posPinY, 5.5f);
         shapeRenderer.setColor(0.25f, 0.62f, 1.0f, 1f); shapeRenderer.circle(posPinX, negPinY, 5.5f);
-
-        if (num == 3 || num == 4) {
-            boolean esOr = (num == 4);
-            boolean[][] filas = {{false, false, false}, {true, false, esOr}, {false, true, esOr}, {true, true, true}};
-            float pw = 198f, ph = 62f, gap = (vw - 4f * pw) / 3f, py = my + 102f;
-            for (int r = 0; r < 4; r++) {
-                float px = vx + r * (pw + gap), dotY = py + ph * 0.5f;
-                boolean a = filas[r][0], b = filas[r][1], enc = filas[r][2];
-                dibujarCajaBorde(px, py, pw, ph, enc ? new Color(0.05f, 0.12f, 0.19f, 0.96f) : new Color(0.025f, 0.04f, 0.07f, 0.92f),
-                        enc ? COLOR_NEON_CELESTE : new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.45f), enc ? 1.9f : 1.1f);
-                shapeRenderer.setColor(a ? new Color(0.15f, 0.95f, 0.72f, 1f) : new Color(0.22f, 0.28f, 0.38f, 1f)); shapeRenderer.circle(px + 38f, dotY, 6f);
-                shapeRenderer.setColor(b ? new Color(0.15f, 0.95f, 0.72f, 1f) : new Color(0.22f, 0.28f, 0.38f, 1f)); shapeRenderer.circle(px + 84f, dotY, 6f);
-                dibujarFlechaHorizontal(px + 104f, px + 128f, dotY, enc ? COLOR_CELESTE_BRILLANTE : new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.65f));
-                if (enc) {
-                    shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.28f); shapeRenderer.circle(px + 145f, dotY, 10.5f);
-                    shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE); shapeRenderer.circle(px + 145f, dotY, 6f);
-                } else {
-                    shapeRenderer.setColor(0.20f, 0.26f, 0.35f, 1f); shapeRenderer.circle(px + 145f, dotY, 5.5f);
-                }
-            }
-        } else {
-            float pw = 408f, ph = 54f, py = my + 106f;
-            dibujarCajaBorde(vx, py, pw, ph, new Color(0.03f, 0.06f, 0.11f, 0.95f), new Color(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.65f), 1.4f);
-            dibujarCajaBorde(vx + pw + 32f, py, pw, ph, new Color(0.03f, 0.06f, 0.11f, 0.95f), new Color(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.65f), 1.4f);
-        }
-
-        float btnW = 250f, btnH = 46f, btnX = mx + (mw - btnW) / 2f, btnY = my + 24f;
-        boolean hovBtn = (ratonMundo.x >= btnX && ratonMundo.x <= btnX + btnW && ratonMundo.y >= btnY && ratonMundo.y <= btnY + btnH);
-        dibujarCajaBorde(btnX, btnY, btnW, btnH, hovBtn ? new Color(0.08f, 0.17f, 0.28f, 1f) : COLOR_SLATE_OSCURO,
-                hovBtn ? COLOR_CELESTE_BRILLANTE : COLOR_NEON_CELESTE, hovBtn ? 2.4f : 1.8f);
     }
 
-    private void dibujarGuiaNivelTextos() {
-        float mx = 500f, my = 270f, mw = 920f, mh = 540f;
-        int num = (nivel != null) ? nivel.getNumeroNivel() : 1;
-
-        String tituloGuia = num == 3 ? "NIVEL 3  ·  COMPUERTA AND" : (num == 4 ? "NIVEL 4  ·  COMPUERTA OR" : (num == 2 ? "NIVEL 2  ·  INTERRUPTOR" : "NIVEL 1  ·  CIRCUITO LED"));
-        fontTitulo.setColor(COLOR_CELESTE_BRILLANTE);
-        fontTitulo.draw(batch, tituloGuia, mx + 28f, my + mh - 18f);
-
-        fontPequena.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.78f);
-        glyphLayout.setText(fontPequena, "PAUSA");
-        fontPequena.draw(batch, "PAUSA", mx + mw - glyphLayout.width - 28f, my + mh - 23f);
-
-        float vx = mx + 36f, vy = my + 226f, vw = mw - 72f;
+    private void dibujarEsquemaTextos(float vx, float vy, TutorialNivel.Esquema esquema) {
+        boolean esCompuerta = (esquema == TutorialNivel.Esquema.DIVISOR_AND || esquema == TutorialNivel.Esquema.DIVISOR_OR);
+        boolean esAnd = (esquema == TutorialNivel.Esquema.DIVISOR_AND);
+        boolean conSwitch = (esquema == TutorialNivel.Esquema.SERIE_CON_SWITCH);
         fontPequena.setColor(COLOR_CELESTE_BRILLANTE); fontPequena.draw(batch, "5V", vx + 64f, vy + 172f);
         fontPequena.setColor(1f, 0.45f, 0.45f, 1f); fontPequena.draw(batch, "+", vx + 94f, vy + 166f);
         fontPequena.setColor(0.45f, 0.78f, 1f, 1f); fontPequena.draw(batch, "-", vx + 96f, vy + 78f);
 
-        if (num >= 3) {
-            boolean esOr = (num == 4);
+        if (esCompuerta) {
+            boolean esOr = !esAnd;
             batch.draw((esOr ? animOr : animAnd).getKeyFrame(tiempoTotal, true), vx + 304f, vy + 64f, 128f, 128f);
             batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), vx + 470f, vy + 90f, 132f, 84f);
             batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), vx + 650f, vy + 66f, 126f, 126f);
@@ -1471,50 +1676,14 @@ public class VistaNivel extends ScreenAdapter {
             fontPequena.setColor(1f, 0.45f, 0.45f, 0.9f); fontPequena.draw(batch, "+", vx + 676f, vy + 106f);
             fontPequena.setColor(0.45f, 0.78f, 1f, 0.9f); fontPequena.draw(batch, "-", vx + 738f, vy + 106f);
         } else {
-            float resX = (num == 2) ? vx + 372f : vx + 272f;
+            float resX = conSwitch ? vx + 372f : vx + 272f;
             batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), resX, vy + 90f, 132f, 84f);
             batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), vx + 610f, vy + 66f, 126f, 126f);
             fontPequena.setColor(COLOR_GRIS_CLARO);
-            if (num == 2) fontPequena.draw(batch, "SWITCH", vx + 216f, vy + 172f);
+            if (conSwitch) fontPequena.draw(batch, "SWITCH", vx + 216f, vy + 172f);
             fontPequena.draw(batch, "220 Ohm", resX + 36f, vy + 190f);
             fontPequena.draw(batch, "LED", vx + 659f, vy + 202f);
         }
-
-        String regla = num == 3 ? "Conecta el esquema y activa AMBAS palancas (A y B) por 5s"
-                : (num == 4 ? "Conecta el esquema y activa AL MENOS UNA palanca (A o B) por 5s"
-                : (num == 2 ? "Conecta en serie y cierra el Switch (ON) por 5s" : "Conecta en serie usando la resistencia de 220 Ohm por 5s"));
-        font.setColor(Color.WHITE);
-        glyphLayout.setText(font, regla);
-        font.draw(batch, regla, mx + (mw - glyphLayout.width) / 2f, my + 204f);
-
-        if (num == 3 || num == 4) {
-            boolean esOr = (num == 4);
-            boolean[][] filas = {{false, false, false}, {true, false, esOr}, {false, true, esOr}, {true, true, true}};
-            float pw = 198f, ph = 62f, gap = (vw - 4f * pw) / 3f, py = my + 102f;
-            for (int r = 0; r < 4; r++) {
-                float px = vx + r * (pw + gap), ty = py + ph * 0.5f + 5f;
-                fontPequena.setColor(COLOR_GRIS_CLARO);
-                fontPequena.draw(batch, "A", px + 16f, ty);
-                fontPequena.draw(batch, "B", px + 62f, ty);
-                fontPequena.setColor(filas[r][2] ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_METAL);
-                fontPequena.draw(batch, filas[r][2] ? "ON" : "OFF", px + 160f, ty);
-            }
-        } else {
-            float pw = 408f, py = my + 106f;
-            fontPequena.setColor(COLOR_CELESTE_BRILLANTE);
-            String t1 = "Polaridad LED: entra por (+) y sale por (-)";
-            glyphLayout.setText(fontPequena, t1);
-            fontPequena.draw(batch, t1, vx + (pw - glyphLayout.width) / 2f, py + 33f);
-            String t2 = "Protege siempre el LED con 220 Ohm";
-            glyphLayout.setText(fontPequena, t2);
-            fontPequena.draw(batch, t2, vx + pw + 32f + (pw - glyphLayout.width) / 2f, py + 33f);
-        }
-
-        float btnW = 250f, btnH = 46f, btnX = mx + (mw - btnW) / 2f, btnY = my + 24f;
-        boolean hovBtn = (ratonMundo.x >= btnX && ratonMundo.x <= btnX + btnW && ratonMundo.y >= btnY && ratonMundo.y <= btnY + btnH);
-        font.setColor(hovBtn ? Color.WHITE : COLOR_CELESTE_BRILLANTE);
-        glyphLayout.setText(font, "ENTENDIDO");
-        font.draw(batch, glyphLayout, btnX + (btnW - glyphLayout.width) / 2f, btnY + (btnH + glyphLayout.height) / 2f);
     }
 
     private void dibujarFondoModal() {
@@ -1658,9 +1827,19 @@ public class VistaNivel extends ScreenAdapter {
 
     public void alternarGuiaNivel() {
         this.mostrandoGuiaNivel = !this.mostrandoGuiaNivel;
+        this.paginaTutorial = 0;
         if (!this.mostrandoGuiaNivel) saltarIntro();
         cancelarCable();
         sonar(TipoEfecto.CLICK_UI);
+    }
+
+    public void avanzarTutorial() {
+        if (paginaTutorial < TOTAL_PAGINAS - 1) {
+            paginaTutorial++;
+            sonar(TipoEfecto.CLICK_UI);
+        } else {
+            cerrarGuiaNivel();
+        }
     }
 
     public void cerrarGuiaNivel() {
@@ -1688,11 +1867,11 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         if (mostrandoGuiaNivel) {
-            float gmx = 500f, gmy = 270f, gmw = 920f, gmh = 540f;
-            float btnW = 250f, btnH = 46f, btnX = gmx + (gmw - btnW) / 2f, btnY = gmy + 24f;
-            boolean clicBoton = (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH);
-            boolean clicFuera = (mx < gmx || mx > gmx + gmw || my < gmy || my > gmy + gmh);
-            if (clicBoton || clicFuera) cerrarGuiaNivel();
+            boolean clicSiguiente = (mx >= TUTO_SIGUIENTE_X && mx <= TUTO_SIGUIENTE_X + TUTO_BOTON_ANCHO
+                    && my >= TUTO_BOTON_Y && my <= TUTO_BOTON_Y + TUTO_BOTON_ALTO);
+            boolean clicFuera = (mx < TUTO_X || mx > TUTO_X + TUTO_ANCHO || my < TUTO_Y || my > TUTO_Y + TUTO_ALTO);
+            if (clicSiguiente) avanzarTutorial();
+            else if (clicFuera) cerrarGuiaNivel();
             return true;
         }
 
@@ -1810,7 +1989,9 @@ public class VistaNivel extends ScreenAdapter {
 
     public void cargarNivel(Nivel nuevoNivel) {
         this.nivel = nuevoNivel;
-        this.mostrandoGuiaNivel = (nuevoNivel != null && (nuevoNivel.getNumeroNivel() == 3 || nuevoNivel.getNumeroNivel() == 4));
+        this.mostrandoGuiaNivel = (nuevoNivel != null);
+        this.paginaTutorial = 0;
+        this.tutorialActual = (nuevoNivel != null) ? nuevoNivel.obtenerTutorial() : null;
         if (this.controlador != null) this.controlador.setNivel(nuevoNivel);
     }
 
@@ -1841,6 +2022,7 @@ public class VistaNivel extends ScreenAdapter {
         if (font != null) font.dispose();
         if (fontTitulo != null) fontTitulo.dispose();
         if (fontPequena != null) fontPequena.dispose();
+        if (fontTutorial != null) fontTutorial.dispose();
         if (texturasCargadas != null) {
             for (Texture t : texturasCargadas) {
                 if (t != null) t.dispose();
