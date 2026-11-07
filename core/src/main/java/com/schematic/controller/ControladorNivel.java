@@ -336,6 +336,17 @@ public class ControladorNivel extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
+        if (vista != null && vista.estaMostrandoGuiaNivel()) {
+            if (keycode == Input.Keys.RIGHT || keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE) {
+                vista.avanzarTutorial();
+                return true;
+            }
+            if (keycode == Input.Keys.LEFT) {
+                vista.retrocederTutorial();
+                return true;
+            }
+        }
+
         if (keycode == Input.Keys.H) {
             if (vista != null) {
                 vista.alternarGuiaNivel();
@@ -357,19 +368,11 @@ public class ControladorNivel extends InputAdapter {
             }
         } else if (keycode == Input.Keys.SPACE) {
             if (vista != null) {
-                if (vista.estaMostrandoGuiaNivel()) {
-                    vista.cerrarGuiaNivel();
-                } else {
-                    vista.saltarIntro();
-                }
+                vista.saltarIntro();
                 return true;
             }
         } else if (keycode == Input.Keys.ENTER) {
             if (vista != null) {
-                if (vista.estaMostrandoGuiaNivel()) {
-                    vista.avanzarTutorial();
-                    return true;
-                }
                 if (nivel != null && nivel.estaGanado()) {
                     vista.siguienteNivel();
                     return true;

@@ -1279,16 +1279,17 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         fontPequena.setColor(COLOR_CELESTE_BRILLANTE);
-        glyphLayout.setText(fontPequena, "?  GUÍA (H)");
+        glyphLayout.setText(fontPequena, "?  TUTORIAL (H)");
         fontPequena.draw(batch, glyphLayout, 1430f + (160f - glyphLayout.width) / 2f, ALTO_VIRTUAL - 66f + (38f + glyphLayout.height) / 2f);
         fontPequena.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.68f);
-        fontPequena.draw(batch, "Clic Izq: Conectar / Switch   ·   Clic Der: Borrar   ·   H: Guía   ·   R: Reiniciar   ·   ESC: Menú", 40f, 36f);
+        fontPequena.draw(batch, "Arrastra piezas desde el almacén   ·   Clic en un pin y arrastra: Cable   ·   Clic Der: Borrar   ·   H: Tutorial   ·   R: Reiniciar   ·   ESC: Menú", 40f, 36f);
     }
 
     private static final float TUTO_X = 360f, TUTO_Y = 170f, TUTO_ANCHO = 1200f, TUTO_ALTO = 740f;
     private static final float TUTO_BOTON_ANCHO = 260f, TUTO_BOTON_ALTO = 56f;
     private static final float TUTO_BOTON_Y = TUTO_Y + 30f;
     private static final float TUTO_SIGUIENTE_X = TUTO_X + TUTO_ANCHO - 40f - TUTO_BOTON_ANCHO;
+    private static final float TUTO_ATRAS_X = TUTO_X + 40f;
     private static final float ESQUEMA_ANCHO = 848f, ESQUEMA_ALTO = 236f;
     private static final float PESTANA_ANCHO = 300f, PESTANA_ALTO = 40f, PESTANA_Y = TUTO_Y + TUTO_ALTO - 126f;
     private static final String[] TITULOS_PAGINAS = {"1   ¿QUÉ ES?", "2   ASÍ SE CONECTA", "3   TU MISIÓN"};
@@ -1320,7 +1321,8 @@ public class VistaNivel extends ScreenAdapter {
             float px = getXPestana(i);
             boolean actual = (i == paginaTutorial), vista = (i < paginaTutorial);
             Color fondo = actual ? new Color(0.06f, 0.16f, 0.24f, 1f) : new Color(0.03f, 0.05f, 0.09f, 0.95f);
-            Color borde = actual ? COLOR_CELESTE_BRILLANTE : (vista ? COLOR_NEON_CELESTE : COLOR_GRIS_METAL);
+            boolean hover = estaSobre(px, PESTANA_Y, PESTANA_ANCHO, PESTANA_ALTO);
+            Color borde = (actual || hover) ? COLOR_CELESTE_BRILLANTE : (vista ? COLOR_NEON_CELESTE : COLOR_GRIS_METAL);
             dibujarCajaBorde(px, PESTANA_Y, PESTANA_ANCHO, PESTANA_ALTO, fondo, borde, actual ? 2.2f : 1.3f);
             if (actual) {
                 shapeRenderer.setColor(COLOR_NEON_CELESTE);
@@ -1337,6 +1339,10 @@ public class VistaNivel extends ScreenAdapter {
         Color colorBoton = ultima ? COLOR_VERDE_TUTO : COLOR_NEON_CELESTE;
         dibujarCajaBorde(TUTO_SIGUIENTE_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO,
                 hov ? new Color(0.08f, 0.18f, 0.28f, 1f) : COLOR_SLATE_OSCURO, colorBoton, hov ? 2.8f : 2f);
+
+        boolean hovAtras = estaSobre(TUTO_ATRAS_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO);
+        dibujarCajaBorde(TUTO_ATRAS_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO,
+                hovAtras ? new Color(0.08f, 0.12f, 0.18f, 1f) : COLOR_CAJA_OSCURA, hovAtras ? COLOR_GRIS_CLARO : COLOR_GRIS_METAL, hovAtras ? 2.4f : 1.6f);
     }
 
     private void dibujarGuiaNivelTextos() {
@@ -1366,6 +1372,17 @@ public class VistaNivel extends ScreenAdapter {
         glyphLayout.setText(font, textoBoton);
         font.draw(batch, textoBoton, TUTO_SIGUIENTE_X + (TUTO_BOTON_ANCHO - glyphLayout.width) / 2f,
                 TUTO_BOTON_Y + (TUTO_BOTON_ALTO + glyphLayout.height) / 2f);
+
+        String textoAtras = (paginaTutorial == 0) ? "SALTAR" : "ATRÁS";
+        font.setColor(COLOR_GRIS_CLARO);
+        glyphLayout.setText(font, textoAtras);
+        font.draw(batch, textoAtras, TUTO_ATRAS_X + (TUTO_BOTON_ANCHO - glyphLayout.width) / 2f,
+                TUTO_BOTON_Y + (TUTO_BOTON_ALTO + glyphLayout.height) / 2f);
+
+        String ayuda = "Enter: siguiente   ·   Flechas: cambiar página   ·   Esc: cerrar";
+        fontPequena.setColor(COLOR_GRIS_METAL);
+        glyphLayout.setText(fontPequena, ayuda);
+        fontPequena.draw(batch, ayuda, TUTO_X + (TUTO_ANCHO - glyphLayout.width) / 2f, TUTO_BOTON_Y + (TUTO_BOTON_ALTO + glyphLayout.height) / 2f);
     }
 
     private void dibujarBloqueTutorial(float x, float y, float w, float h, Color color) {
@@ -1833,6 +1850,20 @@ public class VistaNivel extends ScreenAdapter {
         sonar(TipoEfecto.CLICK_UI);
     }
 
+    public void retrocederTutorial() {
+        if (paginaTutorial > 0) {
+            paginaTutorial--;
+            sonar(TipoEfecto.CLICK_UI);
+        }
+    }
+
+    private void irAPaginaTutorial(int pagina) {
+        if (pagina != paginaTutorial) {
+            paginaTutorial = pagina;
+            sonar(TipoEfecto.CLICK_UI);
+        }
+    }
+
     public void avanzarTutorial() {
         if (paginaTutorial < TOTAL_PAGINAS - 1) {
             paginaTutorial++;
@@ -1851,6 +1882,7 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     public boolean manejarClicUI(float mx, float my) {
+        ratonMundo.set(mx, my);
         boolean modalActivo = (nivel != null && ((nivel.estaGanado() && tiempoExitoAcumulado >= 1.2f) || faseDerrota == FASE_DERROTA_MODAL));
         if (modalActivo) {
             if (mx >= 630f && mx <= 930f && my >= 360f && my <= 420f) {
@@ -1867,11 +1899,16 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         if (mostrandoGuiaNivel) {
-            boolean clicSiguiente = (mx >= TUTO_SIGUIENTE_X && mx <= TUTO_SIGUIENTE_X + TUTO_BOTON_ANCHO
-                    && my >= TUTO_BOTON_Y && my <= TUTO_BOTON_Y + TUTO_BOTON_ALTO);
-            boolean clicFuera = (mx < TUTO_X || mx > TUTO_X + TUTO_ANCHO || my < TUTO_Y || my > TUTO_Y + TUTO_ALTO);
-            if (clicSiguiente) avanzarTutorial();
-            else if (clicFuera) cerrarGuiaNivel();
+            if (estaSobre(TUTO_SIGUIENTE_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO)) {
+                avanzarTutorial();
+            } else if (estaSobre(TUTO_ATRAS_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO)) {
+                if (paginaTutorial == 0) cerrarGuiaNivel();
+                else retrocederTutorial();
+            } else {
+                for (int i = 0; i < TOTAL_PAGINAS; i++) {
+                    if (estaSobre(getXPestana(i), PESTANA_Y, PESTANA_ANCHO, PESTANA_ALTO)) irAPaginaTutorial(i);
+                }
+            }
             return true;
         }
 
@@ -1932,7 +1969,19 @@ public class VistaNivel extends ScreenAdapter {
             return;
         }
 
-        if (mostrandoGuiaNivel) return;
+        if (mostrandoGuiaNivel) {
+            int botonHover = -1;
+            if (estaSobre(TUTO_SIGUIENTE_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO)) botonHover = 20;
+            else if (estaSobre(TUTO_ATRAS_X, TUTO_BOTON_Y, TUTO_BOTON_ANCHO, TUTO_BOTON_ALTO)) botonHover = 21;
+            for (int i = 0; i < TOTAL_PAGINAS; i++) {
+                if (estaSobre(getXPestana(i), PESTANA_Y, PESTANA_ANCHO, PESTANA_ALTO)) botonHover = 22 + i;
+            }
+            if (botonHover != ultimoUIHover) {
+                if (botonHover > 0) sonar(TipoEfecto.HOVER_UI);
+                ultimoUIHover = botonHover;
+            }
+            return;
+        }
 
         if (terminalBajoRaton != ultimoTerminalHover) {
             if (terminalBajoRaton != null) sonar(TipoEfecto.HOVER_UI);
