@@ -47,11 +47,16 @@ public class Nivel4 extends Nivel {
     }
 
     @Override
+    public boolean usaSwitchDivisor() {
+        return true;
+    }
+
+    @Override
     public String[] obtenerPasosGuia() {
         return new String[]{
             "1. Entrada",
             "2. Ramas A+B",
-            "3. 220 + LED",
+            "3. LED + 220",
             "4. A o B ON"
         };
     }
@@ -68,7 +73,7 @@ public class Nivel4 extends Nivel {
                 "La compuerta OR deja salir corriente si la entrada A O la entrada B está encendida. Con una basta.",
                 "El timbre de una casa con dos puertas: suena si tocan en la de enfrente O en la de atrás.",
                 TutorialNivel.Esquema.DIVISOR_OR,
-                new String[]{"Fuente (+) al Switch", "Salidas A y B a la OR", "OR a 220 Ohm y al LED", "LED (-) a la Fuente (-)"},
+                new String[]{"Fuente (+) al Switch", "Salidas A y B a la OR", "OR al (+) del LED", "LED (-) a 220 Ohm y a la Fuente (-)"},
                 "Enciende la palanca A o la B y mantén el LED prendido 5 segundos."
         ).conTablaVerdad(false, true, true, true)
          .conConsejo("Clic en la mitad de arriba del switch para A y en la de abajo para B.");
@@ -341,7 +346,7 @@ public class Nivel4 extends Nivel {
 
         if (!llegoATierra) {
             if (cablesSalida.isEmpty()) {
-                mensajeEstado = "Conecta la salida de OR a la resistencia 220 Ohm.";
+                mensajeEstado = "Conecta la salida de la OR al (+) del LED.";
             } else if (ultimoComponenteSalida instanceof Resistencia) {
                 if (!pasoPorLed) {
                     mensajeEstado = "Conecta la resistencia al polo (+) del LED.";
@@ -355,7 +360,7 @@ public class Nivel4 extends Nivel {
                     mensajeEstado = "Conecta LED (-) a 220 Ohm y luego a Fuente (-).";
                 }
             } else {
-                mensajeEstado = "Conecta la salida hacia 220 Ohm, LED y Fuente (-).";
+                mensajeEstado = "Conecta la salida al LED, luego a 220 Ohm y a la Fuente (-).";
             }
             return false;
         }

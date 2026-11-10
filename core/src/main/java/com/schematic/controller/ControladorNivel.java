@@ -94,46 +94,16 @@ public class ControladorNivel extends InputAdapter {
                 }
             }
 
-            if (nivel != null && mx >= 1645f && mx <= 1895f) {
-                if (my >= 720f && my <= 905f) {
-                    Nivel.CasillaInventario casilla = nivel.buscarCasilla("LED");
-                    if (casilla != null && casilla.puedeUsar()) {
-                        arrastrandoDesdeBarra = true;
-                        tipoComponenteArrastrado = "LED";
-                        posicionArrastre.set(mx, my);
-                        sonar(TipoEfecto.CLICK_UI);
-                        return true;
-                    }
-                } else if (my >= 515f && my <= 700f) {
-                    Nivel.CasillaInventario casilla = nivel.buscarCasilla("RESISTENCIA_220");
-                    if (casilla != null && casilla.puedeUsar()) {
-                        arrastrandoDesdeBarra = true;
-                        tipoComponenteArrastrado = "RESISTENCIA_220";
-                        posicionArrastre.set(mx, my);
-                        sonar(TipoEfecto.CLICK_UI);
-                        return true;
-                    }
-                } else if (my >= 310f && my <= 495f) {
-                    Nivel.CasillaInventario casilla = nivel.buscarCasilla("SWITCH");
-                    if (casilla != null && casilla.puedeUsar()) {
-                        arrastrandoDesdeBarra = true;
-                        tipoComponenteArrastrado = "SWITCH";
-                        posicionArrastre.set(mx, my);
-                        sonar(TipoEfecto.CLICK_UI);
-                        return true;
-                    }
-                } else if (my >= 105f && my <= 290f) {
-                    Nivel.CasillaInventario casAnd = nivel.buscarCasilla("AND");
-                    Nivel.CasillaInventario casOr = nivel.buscarCasilla("OR");
-                    Nivel.CasillaInventario casGate = (casAnd != null) ? casAnd : casOr;
-                    if (casGate != null && casGate.puedeUsar()) {
-                        arrastrandoDesdeBarra = true;
-                        tipoComponenteArrastrado = casGate.getTipo();
-                        posicionArrastre.set(mx, my);
-                        sonar(TipoEfecto.CLICK_UI);
-                        return true;
-                    }
+            String tipoCasilla = (vista != null && nivel != null) ? vista.obtenerTipoCasillaEn(mx, my) : null;
+            if (tipoCasilla != null) {
+                Nivel.CasillaInventario casilla = nivel.buscarCasilla(tipoCasilla);
+                if (casilla != null && casilla.puedeUsar()) {
+                    arrastrandoDesdeBarra = true;
+                    tipoComponenteArrastrado = tipoCasilla;
+                    posicionArrastre.set(mx, my);
+                    sonar(TipoEfecto.CLICK_UI);
                 }
+                return true;
             }
 
             if (vista != null) {
@@ -258,14 +228,14 @@ public class ControladorNivel extends InputAdapter {
                 if (nivel != null && mx >= 300f && mx < 1620f && my >= 100f && my <= 960f) {
                     float w = 240f;
                     float h = 240f;
-                    if ("LED".equals(tipoComponenteArrastrado)) {
+                    if (tipoComponenteArrastrado.startsWith("LED")) {
                         w = 240f; h = 240f;
                     } else if ("RESISTENCIA_220".equals(tipoComponenteArrastrado)) {
                         w = 270f; h = 172f;
                     } else if ("AND".equals(tipoComponenteArrastrado) || "OR".equals(tipoComponenteArrastrado)) {
                         w = 280f; h = 280f;
-                    } else if ("SWITCH".equals(tipoComponenteArrastrado)) {
-                        boolean esDoble = (nivel.getNumeroNivel() >= 3);
+                    } else if (tipoComponenteArrastrado.startsWith("SWITCH")) {
+                        boolean esDoble = nivel.esSwitchDivisor(tipoComponenteArrastrado);
                         w = esDoble ? 230f : 190f;
                         h = esDoble ? 180f : 110f;
                     }

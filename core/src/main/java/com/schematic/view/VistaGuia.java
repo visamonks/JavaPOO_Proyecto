@@ -193,14 +193,14 @@ public class VistaGuia extends ScreenAdapter {
                 "DIODO LED", "LUZ",
                 "Una pequeña luz que se enciende cuando la corriente pasa a través de ella.",
                 "Es la lucecita que te avisa que el cargador del celular está conectado.",
-                "Entra por la pata (+) roja y sale por la (-) azul. Siempre con resistencia.",
+                "Entra por la pata (+) roja y sale por la (-) azul. La resistencia va en la pata (-).",
                 new String[]{"APAGADO", "ENCENDIDO", "QUEMADO"}, 0));
 
         elementos.add(new ElementoGuia(
                 "RESISTENCIA", "PROTECCIÓN",
                 "Frena el exceso de corriente para que ninguna pieza se queme.",
                 "Como la llave del grifo: deja pasar el agua, pero sin que salga a chorro.",
-                "Ponla en serie con el LED. Funciona igual en cualquier sentido.",
+                "Conéctala a la pata (-) del LED. Funciona igual en cualquier sentido.",
                 new String[]{"NORMAL", "QUEMADA"}, 1));
 
         elementos.add(new ElementoGuia(

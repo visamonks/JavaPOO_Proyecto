@@ -6,6 +6,7 @@ public class LED extends Componente {
     private Terminal terminalAnodo;
     private Terminal terminalCatodo;
     private boolean quemado;
+    private String color = "AMARILLO";
 
     public LED(String identificador, float posicionX, float posicionY, boolean polaridadCorrecta) {
         super(identificador, posicionX, posicionY, 240.0f, 240.0f);
@@ -89,6 +90,14 @@ public class LED extends Componente {
         if (quemado) {
             this.estadoActual = "ERROR";
         }
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public Terminal getTerminalAnodo() {

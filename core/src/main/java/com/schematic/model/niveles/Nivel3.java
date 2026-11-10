@@ -43,11 +43,16 @@ public class Nivel3 extends Nivel {
     }
 
     @Override
+    public boolean usaSwitchDivisor() {
+        return true;
+    }
+
+    @Override
     public String[] obtenerPasosGuia() {
         return new String[]{
             "1. Entrada",
             "2. Ramas A·B",
-            "3. 220 + LED",
+            "3. LED + 220",
             "4. A y B ON"
         };
     }
@@ -64,7 +69,7 @@ public class Nivel3 extends Nivel {
                 "La compuerta AND solo deja salir corriente si sus dos entradas, A Y B, están encendidas.",
                 "Una caja fuerte con dos llaves: solo se abre si las dos personas giran su llave al mismo tiempo.",
                 TutorialNivel.Esquema.DIVISOR_AND,
-                new String[]{"Fuente (+) al Switch", "Salidas A y B a la AND", "AND a 220 Ohm y al LED", "LED (-) a la Fuente (-)"},
+                new String[]{"Fuente (+) al Switch", "Salidas A y B a la AND", "AND al (+) del LED", "LED (-) a 220 Ohm y a la Fuente (-)"},
                 "Enciende las palancas A y B a la vez por 5 segundos."
         ).conTablaVerdad(false, false, false, true)
          .conConsejo("Clic en la mitad de arriba del switch para A y en la de abajo para B.");
@@ -337,7 +342,7 @@ public class Nivel3 extends Nivel {
 
         if (!llegoATierra) {
             if (cablesSalida.isEmpty()) {
-                mensajeEstado = "Conecta la salida de AND a la resistencia 220 Ohm.";
+                mensajeEstado = "Conecta la salida de la AND al (+) del LED.";
             } else if (ultimoComponenteSalida instanceof Resistencia) {
                 if (!pasoPorLed) {
                     mensajeEstado = "Conecta la resistencia al polo (+) del LED.";
@@ -351,7 +356,7 @@ public class Nivel3 extends Nivel {
                     mensajeEstado = "Conecta LED (-) a 220 Ohm y luego a Fuente (-).";
                 }
             } else {
-                mensajeEstado = "Conecta la salida hacia 220 Ohm, LED y Fuente (-).";
+                mensajeEstado = "Conecta la salida al LED, luego a 220 Ohm y a la Fuente (-).";
             }
             return false;
         }

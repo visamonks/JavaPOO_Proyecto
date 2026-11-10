@@ -45,7 +45,7 @@ public class Nivel2 extends Nivel {
         return new String[]{
             "1. Fuente",
             "2. Switch",
-            "3. 220 + LED",
+            "3. LED + 220",
             "4. Switch ON"
         };
     }
@@ -62,7 +62,7 @@ public class Nivel2 extends Nivel {
                 "Un interruptor abre o cierra el camino. Si el camino está abierto, la corriente no puede pasar.",
                 "Es el apagador de tu cuarto: el foco siempre está conectado, pero solo prende cuando lo subes.",
                 TutorialNivel.Esquema.SERIE_CON_SWITCH,
-                new String[]{"Fuente (+) al Switch", "Switch a la resistencia", "Resistencia al (+) del LED", "LED (-) a la Fuente (-)"},
+                new String[]{"Fuente (+) al Switch", "Switch al (+) del LED", "LED (-) a la resistencia", "Resistencia a la Fuente (-)"},
                 "Arma el circuito y enciende el Switch (clic) por 5 segundos."
         ).conConsejo("Si lo apagas antes de tiempo, el contador vuelve a 0.");
     }
@@ -131,7 +131,7 @@ public class Nivel2 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = mensajeColocarPiezas("Objetivo: Conecta la fuente, el interruptor, la resistencia y el LED.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: Conecta la fuente, el interruptor, el LED y su resistencia.");
             this.ganado = false;
             this.completado = false;
             return false;

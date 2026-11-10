@@ -30,15 +30,15 @@ public class Nivel1 extends Nivel {
         this.componentes.add(new FuenteAlimentacion("FUENTE_PODER", 80f, 280f));
         this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+), resistencia 220 Ohm y LED.");
+        this.mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al LED y su pata (-) a la resistencia.");
     }
 
     @Override
     public String[] obtenerPasosGuia() {
         return new String[]{
             "1. Fuente",
-            "2. 220 Ohm",
-            "3. LED"
+            "2. LED",
+            "3. 220 Ohm"
         };
     }
 
@@ -54,7 +54,7 @@ public class Nivel1 extends Nivel {
                 "Un circuito es un camino cerrado: la corriente sale de la fuente, pasa por las piezas y regresa a ella.",
                 "Como una linterna: la pila empuja la corriente, el foco se enciende y la corriente vuelve a la pila.",
                 TutorialNivel.Esquema.SERIE,
-                new String[]{"Fuente (+) a la resistencia", "Resistencia al (+) del LED", "LED (-) a la Fuente (-)"},
+                new String[]{"Fuente (+) al (+) del LED", "LED (-) a la resistencia", "Resistencia a la Fuente (-)"},
                 "Enciende el LED y mantenlo prendido 5 segundos."
         ).conConsejo("Sin la resistencia de 220 Ohm el LED se quema.");
     }
@@ -126,7 +126,7 @@ public class Nivel1 extends Nivel {
                 res.setQuemada(false);
                 res.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = mensajeColocarPiezas("Objetivo: Conecta la fuente (+), la resistencia y el LED para encenderlo.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: Conecta la fuente (+) al LED y su pata (-) a la resistencia.");
             this.ganado = false;
             this.completado = false;
             return false;
