@@ -6,7 +6,8 @@ public class TutorialNivel {
         SERIE,
         SERIE_CON_SWITCH,
         DIVISOR_AND,
-        DIVISOR_OR
+        DIVISOR_OR,
+        RAMAS
     }
 
     private final String titulo;
@@ -18,6 +19,8 @@ public class TutorialNivel {
 
     private boolean[] tablaVerdad;
     private String consejo;
+    private String[][] ramas;
+    private String icono;
 
     public TutorialNivel(String titulo, String concepto, String vidaReal,
                          Esquema esquema, String[] pasos, String mision) {
@@ -35,6 +38,19 @@ public class TutorialNivel {
         this.tablaVerdad = new boolean[]{r00, r10, r01, r11};
         return this;
     }
+
+    public TutorialNivel conRamas(String[]... ramas) {
+        this.ramas = ramas;
+        return this;
+    }
+
+    public TutorialNivel conIcono(String icono) {
+        this.icono = icono;
+        return this;
+    }
+
+    public String[][] getRamas() { return ramas; }
+    public String getIcono() { return icono; }
 
     public TutorialNivel conConsejo(String consejo) {
         this.consejo = (consejo != null) ? consejo : "";

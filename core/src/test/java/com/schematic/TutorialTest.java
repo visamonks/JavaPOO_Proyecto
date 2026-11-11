@@ -41,6 +41,17 @@ public class TutorialTest {
     }
 
     @Test
+    public void testLosEsquemasPorRamasTienenRamas() {
+        for (int n = 1; n <= GestorNiveles.obtenerTotalNiveles(); n++) {
+            TutorialNivel t = GestorNiveles.crearNivel(n).obtenerTutorial();
+            if (t.getEsquema() == TutorialNivel.Esquema.RAMAS) {
+                assertNotNull(t.getRamas(), "El nivel " + n + " debe decir sus ramas.");
+                assertTrue(t.getRamas().length > 0);
+            }
+        }
+    }
+
+    @Test
     public void testTablaDeVerdadCoincideConLaCompuertaReal() {
         revisarTabla(GestorNiveles.crearNivel(3), true);
         revisarTabla(GestorNiveles.crearNivel(4), false);

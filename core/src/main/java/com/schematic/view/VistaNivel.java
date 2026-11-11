@@ -1476,7 +1476,35 @@ public class VistaNivel extends ScreenAdapter {
         dibujarBloqueTutorial(BLOQUE_X, TUTO_Y + 130f, BLOQUE_ANCHO, 220f, COLOR_VERDE_TUTO);
     }
 
+    private void dibujarIconoPrincipalTutorial(String icono) {
+        float cx = PANEL_X + PANEL_ANCHO / 2f, cy = PANEL_Y + PANEL_ALTO / 2f;
+        String nombre = "";
+        if (icono.equals("LED_DOS")) {
+            boolean izquierda = (tiempoTotal % 1.2f) < 0.6f;
+            for (int i = 0; i < 2; i++) {
+                boolean prendido = (i == 0) == izquierda;
+                TextureRegion f = (prendido ? animLedPrendiendo : animLedNormal).getKeyFrame(tiempoTotal, true);
+                if (!prendido) batch.setColor(0.6f, 0.6f, 0.6f, 1f);
+                batch.draw(f, cx - 175f + i * 180f, cy - 70f, 170f, 170f);
+                batch.setColor(Color.WHITE);
+            }
+            font.setColor(COLOR_GRIS_CLARO);
+            font.draw(batch, "IZQ", cx - 125f, cy - 80f);
+            font.draw(batch, "DER", cx + 55f, cy - 80f);
+            nombre = "DOS LEDs EN PARALELO";
+        }
+        fontPequena.setColor(COLOR_AMBAR_TUTO);
+        glyphLayout.setText(fontPequena, nombre);
+        fontPequena.draw(batch, nombre, PANEL_X + (PANEL_ANCHO - glyphLayout.width) / 2f, PANEL_Y + PANEL_ALTO - 22f);
+    }
+
     private void dibujarPaginaConceptoTextos() {
+        if (tutorialActual.getIcono() != null) {
+            dibujarIconoPrincipalTutorial(tutorialActual.getIcono());
+            dibujarTextoBloqueTutorial(BLOQUE_X, TUTO_Y + 380f, BLOQUE_ANCHO, 200f, "¿QUÉ ES?", tutorialActual.getConcepto(), COLOR_NEON_CELESTE);
+            dibujarTextoBloqueTutorial(BLOQUE_X, TUTO_Y + 130f, BLOQUE_ANCHO, 220f, "EN LA VIDA REAL", tutorialActual.getVidaReal(), COLOR_VERDE_TUTO);
+            return;
+        }
         TutorialNivel.Esquema e = tutorialActual.getEsquema();
         String pieza;
         if (e == TutorialNivel.Esquema.DIVISOR_AND) {
@@ -1614,7 +1642,153 @@ public class VistaNivel extends ScreenAdapter {
         font.draw(batch, texto, x + (ancho - glyphLayout.width) / 2f, TABLA_Y + (TABLA_ALTO + glyphLayout.height) / 2f);
     }
 
+    private static final float RAMA_TRONCO_X = 140f, RAMA_INICIO_X = 220f, RAMA_FIN_X = 800f;
+
+    private float[] calcularYRamas(float vy, int cantidad) {
+        float[] ys = new float[cantidad];
+        float paso = (ESQUEMA_ALTO - 60f) / cantidad;
+        for (int i = 0; i < cantidad; i++) {
+            ys[i] = vy + ESQUEMA_ALTO - 22f - paso * (i + 0.5f);
+        }
+        return ys;
+    }
+
+    private int contarColumnas(String[][] ramas) {
+        int columnas = 1;
+        for (String[] rama : ramas) columnas = Math.max(columnas, rama.length);
+        return columnas;
+    }
+
+    private float xColumna(float vx, int col, int columnas) {
+        if (columnas == 1) return vx + (RAMA_INICIO_X + RAMA_FIN_X) / 2f - 60f;
+        return vx + RAMA_INICIO_X + col * (RAMA_FIN_X - 80f - RAMA_INICIO_X) / (columnas - 1);
+    }
+
+    private String tipoToken(String token) {
+        int i = token.indexOf(':');
+        return (i >= 0) ? token.substring(0, i) : token;
+    }
+
+    private String etiquetaToken(String token) {
+        int i = token.indexOf(':');
+        return (i >= 0) ? token.substring(i + 1) : "";
+    }
+
+    private void dibujarRamasShapes(float vx, float vy, String[][] ramas) {
+        dibujarCajaBorde(vx, vy, ESQUEMA_ANCHO, ESQUEMA_ALTO, new Color(0.018f, 0.030f, 0.055f, 0.98f),
+                new Color(COLOR_GRIS_METAL.r, COLOR_GRIS_METAL.g, COLOR_GRIS_METAL.b, 0.55f), 1.5f);
+        shapeRenderer.setColor(COLOR_NEON_CELESTE.r, COLOR_NEON_CELESTE.g, COLOR_NEON_CELESTE.b, 0.06f);
+        for (float gx = vx + 28f; gx < vx + ESQUEMA_ANCHO; gx += 28f) shapeRenderer.rectLine(gx, vy, gx, vy + ESQUEMA_ALTO, 1f);
+        for (float gy = vy + 28f; gy < vy + ESQUEMA_ALTO; gy += 28f) shapeRenderer.rectLine(vx, gy, vx + ESQUEMA_ANCHO, gy, 1f);
+
+        float fx = vx + 44f, fy = vy + 46f, fw = 68f, fh = 148f;
+        dibujarCajaBorde(fx, fy, fw, fh, new Color(0.11f, 0.15f, 0.22f, 1f), COLOR_GRIS_METAL, 1.8f);
+        float posPinX = fx + fw, posPinY = vy + 152f, negPinY = vy + 66f, yRet = vy + 22f;
+
+        float[] ys = calcularYRamas(vy, ramas.length);
+        int columnas = contarColumnas(ramas);
+        float troncoX = vx + RAMA_TRONCO_X, finX = vx + RAMA_FIN_X;
+
+        float yTroncoMin = posPinY, yTroncoMax = posPinY;
+        for (int r = 0; r < ramas.length; r++) {
+            String primero = tipoToken(ramas[r][0]);
+            if (!primero.isEmpty() && !primero.equals("|")) {
+                yTroncoMin = Math.min(yTroncoMin, ys[r]);
+                yTroncoMax = Math.max(yTroncoMax, ys[r]);
+            }
+        }
+        shapeRenderer.setColor(COLOR_NEON_CELESTE);
+        shapeRenderer.rectLine(posPinX, posPinY, troncoX, posPinY, 3.2f);
+        shapeRenderer.rectLine(troncoX, yTroncoMin, troncoX, yTroncoMax, 3.2f);
+
+        float yFinMax = yRet;
+        for (int r = 0; r < ramas.length; r++) {
+            String[] rama = ramas[r];
+            float y = ys[r];
+            float xAnterior = -1f;
+            int primeraCol = -1;
+            for (int c = 0; c < rama.length; c++) {
+                String tipo = tipoToken(rama[c]);
+                if (tipo.isEmpty()) continue;
+                float x = xColumna(vx, c, columnas);
+                shapeRenderer.setColor(COLOR_NEON_CELESTE);
+                if (tipo.equals("|")) {
+                    shapeRenderer.rectLine(x, ys[r - 1], x, y, 3.0f);
+                    shapeRenderer.circle(x, ys[r - 1], 5f);
+                    if (xAnterior >= 0) shapeRenderer.rectLine(xAnterior, y, x, y, 3.0f);
+                    xAnterior = x;
+                    if (primeraCol < 0) primeraCol = c;
+                    continue;
+                }
+                float medio = tipo.startsWith("LED") ? 6f : 34f;
+                if (primeraCol < 0) {
+                    primeraCol = c;
+                    shapeRenderer.rectLine(troncoX, y, x - medio, y, 3.0f);
+                } else {
+                    shapeRenderer.rectLine(xAnterior, y, x - medio, y, 3.0f);
+                }
+                if (tipo.equals("SW")) {
+                    dibujarCajaBorde(x - 34f, y - 16f, 68f, 32f, new Color(0.06f, 0.09f, 0.14f, 1f), COLOR_GRIS_METAL, 1.4f);
+                    dibujarPalancaSwitch(x - 22f, y, x + 22f, y, true, 10f);
+                }
+                xAnterior = x + medio;
+            }
+            shapeRenderer.setColor(COLOR_NEON_CELESTE);
+            shapeRenderer.rectLine(xAnterior, y, finX, y, 3.0f);
+            yFinMax = Math.max(yFinMax, y);
+            if (r == 0) dibujarPulsoCableGuia(troncoX, y, finX, y, 0.0f);
+        }
+
+        shapeRenderer.setColor(0.20f, 0.68f, 1.0f, 0.90f);
+        shapeRenderer.rectLine(finX, yFinMax, finX, yRet, 3.0f);
+        shapeRenderer.rectLine(finX, yRet, troncoX - 10f, yRet, 3.0f);
+        shapeRenderer.rectLine(troncoX - 10f, yRet, troncoX - 10f, negPinY, 3.0f);
+        shapeRenderer.rectLine(troncoX - 10f, negPinY, posPinX, negPinY, 3.0f);
+        dibujarPulsoCableGuia(finX, yRet, troncoX - 10f, yRet, 0.5f);
+
+        shapeRenderer.setColor(0.95f, 0.25f, 0.25f, 1f); shapeRenderer.circle(posPinX, posPinY, 5.5f);
+        shapeRenderer.setColor(0.25f, 0.62f, 1.0f, 1f); shapeRenderer.circle(posPinX, negPinY, 5.5f);
+    }
+
+    private void dibujarRamasTextos(float vx, float vy, String[][] ramas) {
+        fontPequena.setColor(COLOR_CELESTE_BRILLANTE); fontPequena.draw(batch, "5V", vx + 64f, vy + 172f);
+        fontPequena.setColor(1f, 0.45f, 0.45f, 1f); fontPequena.draw(batch, "+", vx + 94f, vy + 166f);
+        fontPequena.setColor(0.45f, 0.78f, 1f, 1f); fontPequena.draw(batch, "-", vx + 96f, vy + 78f);
+
+        float[] ys = calcularYRamas(vy, ramas.length);
+        int columnas = contarColumnas(ramas);
+        float tam = Math.min(104f, (ESQUEMA_ALTO - 60f) / ramas.length + 10f);
+        for (int r = 0; r < ramas.length; r++) {
+            for (int c = 0; c < ramas[r].length; c++) {
+                String tipo = tipoToken(ramas[r][c]);
+                if (tipo.isEmpty() || tipo.equals("|")) continue;
+                float x = xColumna(vx, c, columnas), y = ys[r];
+                dibujarIconoToken(tipo, x, y, tam);
+                String etiqueta = etiquetaToken(ramas[r][c]);
+                if (!etiqueta.isEmpty()) {
+                    fontPequena.setColor(COLOR_GRIS_CLARO);
+                    glyphLayout.setText(fontPequena, etiqueta);
+                    fontPequena.draw(batch, etiqueta, x - glyphLayout.width / 2f, y + tam / 2f + 6f);
+                }
+            }
+        }
+    }
+
+    private void dibujarIconoToken(String tipo, float x, float y, float tam) {
+        if (tipo.equals("R")) {
+            batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), x - tam * 0.7f, y - tam * 0.45f, tam * 1.4f, tam * 0.9f);
+        } else if (tipo.startsWith("LED")) {
+            batch.setColor(colorDeLed(tipo.startsWith("LED_") ? tipo.substring(4) : "AMARILLO"));
+            batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), x - tam / 2f, y - tam * 0.35f, tam, tam);
+            batch.setColor(Color.WHITE);
+        }
+    }
+
     private void dibujarEsquemaShapes(float vx, float vy, TutorialNivel.Esquema esquema) {
+        if (esquema == TutorialNivel.Esquema.RAMAS) {
+            dibujarRamasShapes(vx, vy, tutorialActual.getRamas());
+            return;
+        }
         float vw = ESQUEMA_ANCHO, vh = ESQUEMA_ALTO;
         boolean esCompuerta = (esquema == TutorialNivel.Esquema.DIVISOR_AND || esquema == TutorialNivel.Esquema.DIVISOR_OR);
         boolean esAnd = (esquema == TutorialNivel.Esquema.DIVISOR_AND);
@@ -1729,6 +1903,10 @@ public class VistaNivel extends ScreenAdapter {
     }
 
     private void dibujarEsquemaTextos(float vx, float vy, TutorialNivel.Esquema esquema) {
+        if (esquema == TutorialNivel.Esquema.RAMAS) {
+            dibujarRamasTextos(vx, vy, tutorialActual.getRamas());
+            return;
+        }
         boolean esCompuerta = (esquema == TutorialNivel.Esquema.DIVISOR_AND || esquema == TutorialNivel.Esquema.DIVISOR_OR);
         boolean esAnd = (esquema == TutorialNivel.Esquema.DIVISOR_AND);
         boolean conSwitch = (esquema == TutorialNivel.Esquema.SERIE_CON_SWITCH);

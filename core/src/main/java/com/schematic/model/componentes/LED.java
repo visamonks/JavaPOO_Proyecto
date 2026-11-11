@@ -6,7 +6,7 @@ public class LED extends Componente {
     private Terminal terminalAnodo;
     private Terminal terminalCatodo;
     private boolean quemado;
-    private String color = "AMARILLO";
+    private String color = "";
 
     public LED(String identificador, float posicionX, float posicionY, boolean polaridadCorrecta) {
         super(identificador, posicionX, posicionY, 240.0f, 240.0f);

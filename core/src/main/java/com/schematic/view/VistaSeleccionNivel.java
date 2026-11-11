@@ -214,11 +214,11 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         );
         datosNiveles[4] = new InfoNivel(
                 5,
-                "CIRCUITO FINAL",
-                "MAESTRO",
-                "35s",
-                "Sistema Integral - Compuertas - Diodos",
-                "El examen definitivo de esquematicos. Integra compuertas, interruptores y protecciones contrarreloj."
+                "DIRECCIONALES",
+                "PARALELO",
+                "60s",
+                "Fuente - Palanca A/B - 2 Resistencias - 2 LEDs",
+                "Dos LEDs en paralelo, uno por cada lado. Prende la izquierda y luego la derecha."
         );
     }
 
@@ -679,7 +679,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                     dibujarEsquemaCompuertaOR(cx, cy, sel);
                     break;
                 case 4:
-                    dibujarEsquemaCircuitoCombinado(cx, cy, sel);
+                    dibujarIconoDireccionales(cx, cy, sel);
                     break;
             }
         }
@@ -790,25 +790,18 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         shapeRenderer.circle(cx + 85f, cy, 5f);
     }
 
-    private void dibujarEsquemaCircuitoCombinado(float cx, float cy, boolean sel) {
-        shapeRenderer.setColor(0.12f, 0.16f, 0.24f, 0.95f);
-        shapeRenderer.rect(cx - 48f, cy - 34f, 96f, 68f);
-
-        Color colPin = sel ? COLOR_NEON_CYAN : COLOR_AMBAR;
-        shapeRenderer.setColor(colPin);
-        dibujarRectContorno(cx - 48f, cy - 34f, 96f, 68f, 2.5f);
-
-        for (int p = 0; p < 4; p++) {
-            float py = cy - 24f + (p * 16f);
-            shapeRenderer.rectLine(cx - 68f, py, cx - 48f, py, 3f);
-            shapeRenderer.rectLine(cx + 48f, py, cx + 68f, py, 3f);
-        }
-
-        float pulsoChip = 1f + MathUtils.sin(tiempoTotal * 10f) * 0.15f;
-        shapeRenderer.setColor(COLOR_VERDE.r, COLOR_VERDE.g, COLOR_VERDE.b, 0.9f);
-        shapeRenderer.circle(cx, cy, 14f * pulsoChip);
-        shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.circle(cx, cy, 6f);
+    private void dibujarIconoDireccionales(float cx, float cy, boolean sel) {
+        boolean izquierda = (tiempoTotal % 1.2f) < 0.6f;
+        Color apagada = new Color(0.30f, 0.30f, 0.20f, 1f);
+        Color prendida = new Color(1f, 0.80f, 0.20f, 1f);
+        shapeRenderer.setColor(izquierda ? prendida : apagada);
+        shapeRenderer.triangle(cx - 85f, cy, cx - 35f, cy + 32f, cx - 35f, cy - 32f);
+        shapeRenderer.rect(cx - 35f, cy - 12f, 22f, 24f);
+        shapeRenderer.setColor(!izquierda ? prendida : apagada);
+        shapeRenderer.triangle(cx + 85f, cy, cx + 35f, cy + 32f, cx + 35f, cy - 32f);
+        shapeRenderer.rect(cx + 13f, cy - 12f, 22f, 24f);
+        shapeRenderer.setColor(sel ? COLOR_NEON_CYAN : COLOR_CELESTE_BRILLANTE);
+        shapeRenderer.circle(cx, cy, 8f);
     }
 
     private void dibujarElectronMascota(float mx, float my) {
