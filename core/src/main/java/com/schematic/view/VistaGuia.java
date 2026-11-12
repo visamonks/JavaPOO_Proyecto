@@ -55,6 +55,9 @@ public class VistaGuia extends ScreenAdapter {
     private Animation<TextureRegion> animLedMuriendo;
     private Animation<TextureRegion> animResistenciaNormal;
     private Animation<TextureRegion> animResistenciaFallo;
+    private Animation<TextureRegion> animCapacitorVacio;
+    private Animation<TextureRegion> animCapacitorCargado;
+    private Animation<TextureRegion> animCapacitorExplotado;
 
     private Color colorFondo = new Color(0.02f, 0.03f, 0.06f, 1f);
     private Color colorCaja = new Color(0.05f, 0.07f, 0.11f, 0.96f);
@@ -161,6 +164,9 @@ public class VistaGuia extends ScreenAdapter {
     private void cargarAnimaciones() {
         animAnd = cargarAnimacion("and", 12, 0.12f);
         animOr = cargarAnimacion("or", 12, 0.12f);
+        animCapacitorVacio = cargarAnimacion("capacitor_vacio", 8, 0.14f);
+        animCapacitorCargado = cargarAnimacion("capacitor_cargado", 8, 0.10f);
+        animCapacitorExplotado = cargarAnimacion("capacitor_explotado", 8, 0.08f);
         animLedNormal = cargarAnimacion("led_normal", 10, 0.12f);
         animLedPrendiendo = cargarAnimacion("led_prendiendo", 8, 0.10f);
         animLedMuriendo = cargarAnimacion("led_muriendo", 10, 0.14f);
@@ -230,6 +236,13 @@ public class VistaGuia extends ScreenAdapter {
                 "La luz de la escalera: la prendes desde el apagador de abajo O el de arriba.",
                 "Con una sola entrada encendida es suficiente.",
                 new String[]{"0 + 0 = 0", "1 + 0 = 1", "1 + 1 = 1"}, 5));
+
+        elementos.add(new ElementoGuia(
+                "CAPACITOR", "ALMACÉN",
+                "Guarda energía como un tanque pequeño y la suelta poco a poco.",
+                "La lucecita del cargador que tarda en apagarse cuando lo desconectas.",
+                "La pata larga es (+) y va hacia la corriente. Si lo conectas al revés, explota.",
+                new String[]{"VACÍO", "CARGADO", "EXPLOTADO"}, 8));
 
         elementos.add(new ElementoGuia(
                 "CABLES", "CONEXIÓN",
@@ -831,6 +844,11 @@ public class VistaGuia extends ScreenAdapter {
             batch.draw(animAnd.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
         } else if (item.tipoVisual == 5) {
             batch.draw(animOr.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
+        } else if (item.tipoVisual == 8) {
+            Animation<TextureRegion> anim = animCapacitorVacio;
+            if (item.estadoSeleccionado == 1) anim = animCapacitorCargado;
+            else if (item.estadoSeleccionado == 2) anim = animCapacitorExplotado;
+            batch.draw(anim.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
         } else if (item.tipoVisual == 2) {
             boolean on = (item.estadoSeleccionado == 0);
             String voltaje = on ? "5.00 V" : "0.00 V";

@@ -7,6 +7,7 @@ public class LED extends Componente {
     private Terminal terminalCatodo;
     private boolean quemado;
     private String color = "";
+    private float brillo = 1f;
 
     public LED(String identificador, float posicionX, float posicionY, boolean polaridadCorrecta) {
         super(identificador, posicionX, posicionY, 240.0f, 240.0f);
@@ -90,6 +91,14 @@ public class LED extends Componente {
         if (quemado) {
             this.estadoActual = "ERROR";
         }
+    }
+
+    public float getBrillo() {
+        return brillo;
+    }
+
+    public void setBrillo(float brillo) {
+        this.brillo = Math.max(0f, Math.min(1f, brillo));
     }
 
     public String getColor() {

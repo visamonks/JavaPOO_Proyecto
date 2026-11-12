@@ -60,6 +60,7 @@ public class VistaNivel extends ScreenAdapter {
     private List<Texture> texturasCargadas;
     private Animation<TextureRegion> animLedNormal, animLedPrendiendo, animLedMuriendo;
     private Animation<TextureRegion> animResistenciaNormal, animResistenciaFallo, animAnd, animOr;
+    private Animation<TextureRegion> animCapacitorVacio, animCapacitorCargado, animCapacitorExplotado;
 
     private boolean mostrandoGuiaNivel;
     private int paginaTutorial;
@@ -153,6 +154,9 @@ public class VistaNivel extends ScreenAdapter {
         animResistenciaFallo = cargarAnimacion("resistencia_fail", 15, 0.15f);
         animAnd = cargarAnimacion("and", 12, 0.12f);
         animOr = cargarAnimacion("or", 12, 0.12f);
+        animCapacitorVacio = cargarAnimacion("capacitor_vacio", 8, 0.14f);
+        animCapacitorCargado = cargarAnimacion("capacitor_cargado", 8, 0.10f);
+        animCapacitorExplotado = cargarAnimacion("capacitor_explotado", 8, 0.08f);
     }
 
     private Animation<TextureRegion> cargarAnimacion(String carpeta, int cantidadFrames, float duracionFrame) {
@@ -794,6 +798,8 @@ public class VistaNivel extends ScreenAdapter {
                 frame = animAnd.getKeyFrame(tiempoTotal, true); fw = 136f; fh = 136f;
             } else if ("OR".equals(tipo)) {
                 frame = animOr.getKeyFrame(tiempoTotal, true); fw = 136f; fh = 136f;
+            } else if ("CAPACITOR".equals(tipo)) {
+                frame = animCapacitorCargado.getKeyFrame(tiempoTotal, true); fw = 140f; fh = 140f;
             }
             Color tinte = tipo.startsWith("LED_") ? colorDeLed(tipo.substring(4)) : Color.WHITE;
             dibujarSlotInventario(casilla, y, alto, frame, fw * escala, fh * escala, tinte);
@@ -827,6 +833,7 @@ public class VistaNivel extends ScreenAdapter {
         else if ("RESISTENCIA_220".equals(tipo)) batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), pos.x - 135f, pos.y - 86f, 270f, 172f);
         else if ("AND".equals(tipo)) batch.draw(animAnd.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
         else if ("OR".equals(tipo)) batch.draw(animOr.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
+        else if ("CAPACITOR".equals(tipo)) batch.draw(animCapacitorVacio.getKeyFrame(tiempoTotal, true), pos.x - 120f, pos.y - 120f, 240f, 240f);
         else if (tipo != null && tipo.startsWith("SWITCH")) {
             boolean esDoble = (nivel != null && nivel.esSwitchDivisor(tipo));
             batch.end();
@@ -1159,13 +1166,31 @@ public class VistaNivel extends ScreenAdapter {
                 LED led = (LED) comp;
                 TextureRegion f = led.estaQuemado() ? animLedMuriendo.getKeyFrame(tiempoAnimError, false)
                         : ("EXITO".equals(led.getEstadoActual()) ? animLedPrendiendo.getKeyFrame(tiempoTotal, true) : animLedNormal.getKeyFrame(tiempoTotal, true));
-                batch.setColor(colorDeLed(led.getColor()));
+                Color tinte = colorDeLed(led.getColor());
+                if ("EXITO".equals(led.getEstadoActual()) && led.getBrillo() < 1f) {
+                    batch.setColor(tinte);
+                    batch.draw(animLedNormal.getKeyFrame(tiempoTotal, true), x, y, w, h);
+                    batch.setColor(tinte.r, tinte.g, tinte.b, led.getBrillo());
+                } else {
+                    batch.setColor(tinte);
+                }
                 batch.draw(f, x, y, w, h);
                 batch.setColor(Color.WHITE);
                 fontPequena.setColor(1f, 0.42f, 0.42f, 0.90f); fontPequena.draw(batch, "+", x + 54f, y + 88f);
                 fontPequena.setColor(0.42f, 0.78f, 1f, 0.90f); fontPequena.draw(batch, "-", x + 174f, y + 88f);
                 fontPequena.setColor(COLOR_GRIS_CLARO); glyphLayout.setText(fontPequena, nombreDeLed(led.getColor()));
                 fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h - 6f);
+            } else if (comp instanceof Capacitor) {
+                Capacitor cap = (Capacitor) comp;
+                Animation<TextureRegion> anim = cap.tieneCarga() ? animCapacitorCargado : animCapacitorVacio;
+                if (cap.isExplotado()) anim = animCapacitorExplotado;
+                batch.draw(anim.getKeyFrame(tiempoTotal, true), x, y, w, h);
+                fontPequena.setColor(1f, 0.42f, 0.42f, 0.90f); fontPequena.draw(batch, "+", x + 64f, y + 46f);
+                fontPequena.setColor(0.42f, 0.78f, 1f, 0.90f); fontPequena.draw(batch, "-", x + 170f, y + 52f);
+                String texto = cap.isExplotado() ? "CAPACITOR EXPLOTADO" : "CAPACITOR " + Math.round(cap.getCarga() * 100f) + "%";
+                fontPequena.setColor(cap.tieneCarga() ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO);
+                glyphLayout.setText(fontPequena, texto);
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h + 4f);
             } else if (comp instanceof Resistencia) {
                 Resistencia res = (Resistencia) comp;
                 TextureRegion f = "ERROR".equals(res.getEstadoActual()) ? animResistenciaFallo.getKeyFrame(tiempoAnimError, true) : animResistenciaNormal.getKeyFrame(tiempoTotal, true);
@@ -1499,6 +1524,17 @@ public class VistaNivel extends ScreenAdapter {
             font.draw(batch, "DER", cx + 55f, cy - 80f);
             nombre = "DOS LEDs EN PARALELO";
         }
+        if (icono.equals("CAP")) {
+            float ciclo = (tiempoTotal % 6f) / 6f;
+            float carga = ciclo < 0.4f ? ciclo / 0.4f : Math.max(0f, 1f - (ciclo - 0.4f) / 0.6f);
+            Animation<TextureRegion> anim = carga > 0.05f ? animCapacitorCargado : animCapacitorVacio;
+            batch.draw(anim.getKeyFrame(tiempoTotal, true), cx - 150f, cy - 120f, 300f, 300f);
+            font.setColor(carga > 0.05f ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO);
+            String texto = (ciclo < 0.4f ? "CARGANDO " : "SOLTANDO ") + Math.round(carga * 100f) + "%";
+            glyphLayout.setText(font, texto);
+            font.draw(batch, texto, cx - glyphLayout.width / 2f, cy - 140f);
+            nombre = "CAPACITOR";
+        }
         if (icono.equals("SEMAFORO")) {
             int prendida = ((int) (tiempoTotal / 0.9f)) % 3;
             String[] colores = {"ROJO", "AMARILLO", "VERDE"};
@@ -1797,6 +1833,8 @@ public class VistaNivel extends ScreenAdapter {
     private void dibujarIconoToken(String tipo, float x, float y, float tam) {
         if (tipo.equals("R")) {
             batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), x - tam * 0.7f, y - tam * 0.45f, tam * 1.4f, tam * 0.9f);
+        } else if (tipo.equals("CAP")) {
+            batch.draw(animCapacitorCargado.getKeyFrame(tiempoTotal, true), x - tam * 0.55f, y - tam * 0.42f, tam * 1.1f, tam * 1.1f);
         } else if (tipo.startsWith("LED")) {
             batch.setColor(colorDeLed(tipo.startsWith("LED_") ? tipo.substring(4) : "AMARILLO"));
             batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), x - tam / 2f, y - tam * 0.35f, tam, tam);

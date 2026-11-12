@@ -198,6 +198,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         datosNiveles[5] = new InfoNivel(6, "SEMAFORO", "SECUENCIA", "75s",
                 "Fuente - 3 Interruptores - 3 Resistencias - 3 LEDs",
                 "Verde, amarillo y rojo en orden, una luz a la vez.");
+        datosNiveles[6] = new InfoNivel(7, "CAPACITOR", "ENERGIA", "70s",
+                "Fuente - Interruptor - Capacitor - Resistencia - LED",
+                "Guarda energia y mantiene el LED prendido sin fuente.");
     }
 
     private void cargarProgresoJugador() {
@@ -662,6 +665,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 case 5:
                     dibujarIconoSemaforo(cx, cy, sel);
                     break;
+                case 6:
+                    dibujarIconoCapacitor(cx, cy, sel);
+                    break;
             }
         }
     }
@@ -769,6 +775,18 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
         shapeRenderer.rectLine(cx + 38f, cy, cx + 85f, cy, 3.5f);
         shapeRenderer.circle(cx + 85f, cy, 5f);
+    }
+
+    private void dibujarIconoCapacitor(float cx, float cy, boolean sel) {
+        float carga = 0.5f + 0.5f * MathUtils.sin(tiempoTotal * 1.5f);
+        shapeRenderer.setColor(0.27f, 0.51f, 0.80f, 1f);
+        shapeRenderer.rect(cx - 30f, cy - 40f, 60f, 80f);
+        shapeRenderer.setColor(1f, 0.85f, 0.20f, 1f);
+        shapeRenderer.rect(cx - 24f, cy - 34f, 48f, 68f * carga);
+        shapeRenderer.setColor(sel ? COLOR_NEON_CYAN : COLOR_TEXTO_MUTED);
+        dibujarRectContorno(cx - 30f, cy - 40f, 60f, 80f, 2.5f);
+        shapeRenderer.rectLine(cx - 14f, cy - 40f, cx - 14f, cy - 66f, 3f);
+        shapeRenderer.rectLine(cx + 14f, cy - 40f, cx + 14f, cy - 58f, 3f);
     }
 
     private void dibujarIconoSemaforo(float cx, float cy, boolean sel) {

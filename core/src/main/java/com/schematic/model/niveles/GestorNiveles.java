@@ -2,7 +2,7 @@ package com.schematic.model.niveles;
 
 public class GestorNiveles {
 
-    public static final int TOTAL_NIVELES = 6;
+    public static final int TOTAL_NIVELES = 7;
 
     public static Nivel crearNivel(int numero) {
         switch (numero) {
@@ -18,6 +18,8 @@ public class GestorNiveles {
                 return new Nivel5();
             case 6:
                 return new Nivel6();
+            case 7:
+                return new Nivel7();
             default:
                 return new Nivel1();
         }

@@ -2,6 +2,7 @@ package com.schematic.view;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.schematic.model.componentes.Capacitor;
 import com.schematic.model.componentes.Componente;
 import com.schematic.model.componentes.LED;
 import com.schematic.model.componentes.Terminal;
@@ -92,7 +93,7 @@ public class EnrutadorCables {
     private int direccionDeSalida(Terminal t) {
         Componente c = t.getComponentePadre();
         if (c == null) return 0;
-        if (c instanceof LED) return 3;
+        if (c instanceof LED || c instanceof Capacitor) return 3;
         return (t.getOffsetX() < c.getAncho() / 2f) ? 2 : 0;
     }
 

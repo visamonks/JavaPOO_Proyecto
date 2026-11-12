@@ -202,6 +202,8 @@ public abstract class Nivel {
                 return new Switch(siguienteId("SW_"), x, y, false, false);
             }
             return new Switch(siguienteId("SW_"), x, y, false);
+        } else if ("CAPACITOR".equals(tipo)) {
+            return new Capacitor(siguienteId("C_"), x, y);
         } else if ("AND".equals(tipo)) {
             return new CompuertaAND("AND_1", x, y, false, false);
         } else if ("OR".equals(tipo)) {
@@ -247,6 +249,9 @@ public abstract class Nivel {
             CasillaInventario casilla = null;
             if (((Switch) comp).isDoble()) casilla = buscarCasilla("SWITCH_DIVISOR");
             if (casilla == null) casilla = buscarCasilla("SWITCH");
+            if (casilla != null) casilla.incrementar();
+        } else if (comp instanceof Capacitor) {
+            CasillaInventario casilla = buscarCasilla("CAPACITOR");
             if (casilla != null) casilla.incrementar();
         } else if (comp instanceof CompuertaAND) {
             CasillaInventario casilla = buscarCasilla("AND");
@@ -367,7 +372,10 @@ public abstract class Nivel {
                 t.setValorLogico(false);
             }
             c.setEstadoActual("NEUTRO");
-            if (c instanceof LED) ((LED) c).setQuemado(false);
+            if (c instanceof LED) {
+                ((LED) c).setQuemado(false);
+                ((LED) c).setBrillo(1f);
+            }
             if (c instanceof Resistencia) ((Resistencia) c).setQuemada(false);
         }
         for (Cable c : cables) {
@@ -395,13 +403,39 @@ public abstract class Nivel {
         return true;
     }
 
+    protected boolean revisarCapacitorAlReves(Capacitor capacitor, Terminal salida, FuenteAlimentacion fuente, boolean hayCorriente) {
+        boolean alReves = estanConectados(salida, capacitor.getTerminalNegativo())
+                || estanConectados(capacitor.getTerminalPositivo(), fuente.getTerminalNegativo());
+        if (!alReves && !capacitor.isExplotado()) return false;
+        if (alReves && hayCorriente) capacitor.explotar();
+        if (capacitor.isExplotado()) {
+            capacitor.evaluarEstado();
+            for (Cable c : buscarCablesConTerminal(capacitor.getTerminalPositivo())) c.setTieneEnergia(true);
+            for (Cable c : buscarCablesConTerminal(capacitor.getTerminalNegativo())) c.setTieneEnergia(true);
+            mensajeEstado = "¡EL CAPACITOR EXPLOTÓ! Estaba al revés: su pata larga (+) va hacia la corriente.";
+        } else {
+            mensajeEstado = "Capacitor al revés: si le llega corriente va a explotar. Su pata larga (+) va hacia la corriente.";
+        }
+        return true;
+    }
+
+    private Cable siguienteCableDelRecorrido(Terminal actual, Recorrido r) {
+        for (Cable c : buscarCablesConTerminal(actual)) {
+            if (r.cables.contains(c)) continue;
+            Terminal otro = c.getOtroTerminal(actual);
+            if (otro != null && otro.getComponentePadre() instanceof Capacitor) continue;
+            return c;
+        }
+        return null;
+    }
+
     protected Recorrido recorrerHastaTierra(Terminal inicio, FuenteAlimentacion fuente) {
         Recorrido r = new Recorrido();
         Set<Componente> visitadas = new HashSet<>();
         Terminal actual = inicio;
 
         while (actual != null) {
-            Cable cable = buscarCableConTerminal(actual);
+            Cable cable = siguienteCableDelRecorrido(actual, r);
             if (cable == null) break;
             r.cables.add(cable);
 
