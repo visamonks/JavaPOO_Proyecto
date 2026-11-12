@@ -1465,6 +1465,12 @@ public class VistaNivel extends ScreenAdapter {
         for (float g = 30f; g < PANEL_ANCHO; g += 30f) shapeRenderer.rectLine(PANEL_X + g, PANEL_Y, PANEL_X + g, PANEL_Y + PANEL_ALTO, 1f);
         for (float g = 30f; g < PANEL_ALTO; g += 30f) shapeRenderer.rectLine(PANEL_X, PANEL_Y + g, PANEL_X + PANEL_ANCHO, PANEL_Y + g, 1f);
 
+        if ("SEMAFORO".equals(tutorialActual.getIcono())) {
+            float cx = PANEL_X + PANEL_ANCHO / 2f, cy = PANEL_Y + PANEL_ALTO / 2f;
+            dibujarCajaBorde(cx - 80f, cy - 175f, 160f, 375f, new Color(0.10f, 0.11f, 0.14f, 1f), COLOR_GRIS_METAL, 3f);
+            shapeRenderer.setColor(0.10f, 0.11f, 0.14f, 1f);
+            shapeRenderer.rect(cx - 12f, cy - 225f, 24f, 50f);
+        }
         if (tutorialActual.getEsquema() == TutorialNivel.Esquema.SERIE_CON_SWITCH) {
             float sx = PANEL_X + 70f, sy = PANEL_Y + 170f, sw = 240f, sh = 120f;
             boolean cerrado = (tiempoTotal % 2f) < 1f;
@@ -1492,6 +1498,20 @@ public class VistaNivel extends ScreenAdapter {
             font.draw(batch, "IZQ", cx - 125f, cy - 80f);
             font.draw(batch, "DER", cx + 55f, cy - 80f);
             nombre = "DOS LEDs EN PARALELO";
+        }
+        if (icono.equals("SEMAFORO")) {
+            int prendida = ((int) (tiempoTotal / 0.9f)) % 3;
+            String[] colores = {"ROJO", "AMARILLO", "VERDE"};
+            for (int i = 0; i < 3; i++) {
+                boolean on = (2 - prendida) == i;
+                Color c = colorDeLed(colores[i]);
+                float brillo = on ? 1f : 0.35f;
+                batch.setColor(c.r * brillo, c.g * brillo, c.b * brillo, 1f);
+                TextureRegion f = (on ? animLedPrendiendo : animLedNormal).getKeyFrame(tiempoTotal, true);
+                batch.draw(f, cx - 65f, cy + 70f - i * 115f, 130f, 130f);
+            }
+            batch.setColor(Color.WHITE);
+            nombre = "VERDE  ->  AMARILLO  ->  ROJO";
         }
         fontPequena.setColor(COLOR_AMBAR_TUTO);
         glyphLayout.setText(fontPequena, nombre);

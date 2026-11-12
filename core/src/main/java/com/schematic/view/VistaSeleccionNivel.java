@@ -65,9 +65,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     private static final float ALTO_VIRTUAL = Constantes.ALTO_VENTANA;
 
     private static final int CANTIDAD_NIVELES = GestorNiveles.TOTAL_NIVELES;
-    private static final float CARD_ANCHO = 310f;
+    private static final float CARD_ESPACIADO = 24f;
+    private static final float CARD_ANCHO = Math.min(310f, (ANCHO_VIRTUAL - 120f - (CANTIDAD_NIVELES - 1) * CARD_ESPACIADO) / CANTIDAD_NIVELES);
     private static final float CARD_ALTO = 460f;
-    private static final float CARD_ESPACIADO = 28f;
     private static final float CARDS_TOTAL_ANCHO = (CANTIDAD_NIVELES * CARD_ANCHO) + ((CANTIDAD_NIVELES - 1) * CARD_ESPACIADO);
     private static final float CARDS_INICIO_X = (ANCHO_VIRTUAL - CARDS_TOTAL_ANCHO) / 2f;
     private static final float CARDS_BASE_Y = 250f;
@@ -180,46 +180,24 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     }
 
     private void inicializarDatosNiveles() {
-        datosNiveles[0] = new InfoNivel(
-                1,
-                "ENCIENDE EL LED",
-                "BASICO",
-                "30s",
+        datosNiveles[0] = new InfoNivel(1, "ENCIENDE EL LED", "BASICO", "30s",
                 "Fuente DC - Resistencia 220 Ohm - LED",
-                "La base de la electronica. Conecta la fuente al LED intercalando una resistencia para protegerlo."
-        );
-        datosNiveles[1] = new InfoNivel(
-                2,
-                "CIRCUITO CON SWITCH",
-                "INTERMEDIO",
-                "30s",
+                "Tu primer circuito: lleva la corriente al LED sin quemarlo.");
+        datosNiveles[1] = new InfoNivel(2, "INTERRUPTOR", "INTERMEDIO", "30s",
                 "Fuente DC - Interruptor - Resistencia - LED",
-                "Aprende a controlar la corriente. Un interruptor en serie permite abrir o cerrar el paso de electrones."
-        );
-        datosNiveles[2] = new InfoNivel(
-                3,
-                "COMPUERTA AND",
-                "LOGICA I",
-                "50s",
+                "Como el apagador de tu cuarto: abre y cierra el camino.");
+        datosNiveles[2] = new InfoNivel(3, "COMPUERTA AND", "LOGICA I", "50s",
                 "Fuente - Switch A/B - Compuerta AND - 220 Ohm - LED",
-                "Conecta el Switch Divisor a la compuerta AND. Ambas palancas (A y B) deben estar en ON para encender el LED."
-        );
-        datosNiveles[3] = new InfoNivel(
-                4,
-                "COMPUERTA OR",
-                "LOGICA II",
-                "50s",
+                "Caja fuerte de dos llaves: necesita A Y B encendidas.");
+        datosNiveles[3] = new InfoNivel(4, "COMPUERTA OR", "LOGICA II", "50s",
                 "Fuente - Switch A/B - Compuerta OR - 220 Ohm - LED",
-                "Conecta el Switch Divisor a la compuerta OR. Con que AL MENOS UNA palanca (A o B) este en ON, el LED encendera."
-        );
-        datosNiveles[4] = new InfoNivel(
-                5,
-                "DIRECCIONALES",
-                "PARALELO",
-                "60s",
+                "Timbre de dos puertas: basta con A O con B.");
+        datosNiveles[4] = new InfoNivel(5, "DIRECCIONALES", "PARALELO", "60s",
                 "Fuente - Palanca A/B - 2 Resistencias - 2 LEDs",
-                "Dos LEDs en paralelo, uno por cada lado. Prende la izquierda y luego la derecha."
-        );
+                "Dos LEDs en paralelo: prende la izquierda y luego la derecha.");
+        datosNiveles[5] = new InfoNivel(6, "SEMAFORO", "SECUENCIA", "75s",
+                "Fuente - 3 Interruptores - 3 Resistencias - 3 LEDs",
+                "Verde, amarillo y rojo en orden, una luz a la vez.");
     }
 
     private void cargarProgresoJugador() {
@@ -681,6 +659,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 case 4:
                     dibujarIconoDireccionales(cx, cy, sel);
                     break;
+                case 5:
+                    dibujarIconoSemaforo(cx, cy, sel);
+                    break;
             }
         }
     }
@@ -788,6 +769,21 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
         shapeRenderer.rectLine(cx + 38f, cy, cx + 85f, cy, 3.5f);
         shapeRenderer.circle(cx + 85f, cy, 5f);
+    }
+
+    private void dibujarIconoSemaforo(float cx, float cy, boolean sel) {
+        shapeRenderer.setColor(0.12f, 0.14f, 0.18f, 1f);
+        shapeRenderer.rect(cx - 26f, cy - 62f, 52f, 124f);
+        shapeRenderer.setColor(sel ? COLOR_NEON_CYAN : COLOR_TEXTO_MUTED);
+        dibujarRectContorno(cx - 26f, cy - 62f, 52f, 124f, 2.5f);
+        int prendida = ((int) (tiempoTotal / 0.8f)) % 3;
+        Color[] colores = {new Color(1f, 0.25f, 0.25f, 1f), new Color(1f, 0.80f, 0.20f, 1f), new Color(0.25f, 0.95f, 0.40f, 1f)};
+        for (int i = 0; i < 3; i++) {
+            boolean on = (2 - prendida) == i;
+            Color c = colores[i];
+            shapeRenderer.setColor(c.r * (on ? 1f : 0.3f), c.g * (on ? 1f : 0.3f), c.b * (on ? 1f : 0.3f), 1f);
+            shapeRenderer.circle(cx, cy + 38f - i * 38f, 14f);
+        }
     }
 
     private void dibujarIconoDireccionales(float cx, float cy, boolean sel) {
@@ -1002,7 +998,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
             float infoY = y + 148f;
 
             fontPequena.setColor(COLOR_AMBAR);
-            fontPequena.draw(batch, "DIFICULTAD: " + info.categoria + "  (" + info.tiempo + ")", infoX, infoY);
+            fontPequena.draw(batch, info.categoria + "  ·  " + info.tiempo, infoX, infoY);
 
             fontCardDetalle.setColor(desb ? COLOR_TEXTO_MUTED : new Color(0.38f, 0.42f, 0.50f, 1f));
             fontCardDetalle.draw(batch, info.descripcion, infoX, infoY - 20f, CARD_ANCHO - 48f, Align.left, true);

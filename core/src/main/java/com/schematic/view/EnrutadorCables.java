@@ -19,7 +19,7 @@ public class EnrutadorCables {
     private static final float COSTO_VUELTA = 60f;
     private static final float COSTO_ENCIMAR = 3f;
 
-    private static final float MIN_X = 10f, MAX_X = 1610f, MIN_Y = 70f, MAX_Y = 980f;
+    private static final float MIN_X = 10f, MAX_X = 1610f, MIN_Y = 112f, MAX_Y = 980f;
 
     private static final int[] DX = {1, 0, -1, 0};
     private static final int[] DY = {0, 1, 0, -1};
