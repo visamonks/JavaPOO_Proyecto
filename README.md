@@ -41,7 +41,7 @@ Cada nivel relaciona una idea de electrónica con algo de la vida diaria.
 
 ## Piezas
 
-LED (amarillo, rojo o verde), resistencia de 220 Ohm, fuente de 5 V, interruptor, switch divisor A/B, compuertas AND y OR, **capacitor** (si se conecta al revés, explota), **chip 555** (cambia de cara según su modo) y **potenciómetro**. La **guía de componentes** del menú muestra cada pieza con qué es, un ejemplo de la vida diaria y una regla de oro; la tarjeta del 555 explica para qué sirve cada pin y cuáles se usan en cada modo.
+LED (amarillo, rojo o verde), resistencia de 220 Ohm, fuente de 5 V, interruptor, switch divisor A/B, compuertas AND y OR, **capacitor** (si se conecta al revés, explota), **chip 555** (cambia de cara según su modo) y **potenciómetro**. La **guía de componentes** del menú muestra cada pieza con qué es, un ejemplo de la vida diaria y una regla de oro; en la tarjeta del 555 puedes tocar cada pin (VCC, GND, OUT, C y TRIG) para ver qué hace, a dónde se conecta y qué pasa si lo olvidas, además de cuáles se usan en cada modo.
 
 ## Ejecutar
 

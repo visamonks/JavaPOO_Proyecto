@@ -256,9 +256,7 @@ public class VistaGuia extends ScreenAdapter {
                 "", "", "",
                 new String[]{"LOS PINES", "ASTABLE", "MONOESTABLE"}, 9);
         chip.textosPorEstado = new String[][]{
-            {"¿QUÉ ES?", "Un chip que mide el tiempo. VCC recibe la energía de la Fuente (+), GND la regresa a la Fuente (-) y OUT es la salida que prende el LED.",
-             "LOS OTROS PINES", "C va a la pata (+) del capacitor: es el reloj del chip. TRIG es el gatillo: un toque con corriente arranca el tiempo.",
-             "REGLA DE ORO", "VCC, GND, C y OUT van siempre. TRIG solo se usa en MONOESTABLE. Haz clic en el chip para cambiar de modo."},
+            {},
             {"¿QUÉ HACE?", "En ASTABLE la salida OUT se prende y se apaga sola, una y otra vez, sin que toques nada.",
              "EN LA VIDA DIARIA", "Las luces de una ambulancia o la direccional del carro.",
              "PINES QUE USAS", "VCC a la Fuente (+), GND a la Fuente (-), C al capacitor (+) y OUT al LED. TRIG se queda libre."},
@@ -288,6 +286,45 @@ public class VistaGuia extends ScreenAdapter {
                 "Como carros en una carretera: solo avanzan si el camino está completo.",
                 "Si ves electrones moviéndose, tu circuito está cerrado.",
                 new String[]{"FLUYENDO", "PAUSADO"}, 7));
+    }
+
+    private static final String[] PINES_555 = {"VCC", "TRIG", "GND", "OUT", "C"};
+    private static final float[] PINES_555_Y = {236f, 201f, 166f, 236f, 166f};
+    private static final float ESCALA_555 = 460f / 360f;
+    private static final float PIN_CAJA_ANCHO = 78f;
+    private static final float PIN_CAJA_ALTO = 38f;
+
+    private static final String[][] TEXTOS_PINES_555 = {
+        {"PIN VCC: LA ENERGÍA", "Es la entrada de energía del chip. Sin VCC el 555 está apagado y ningún otro pin funciona.",
+         "¿A DÓNDE VA?", "Siempre a la Fuente (+). En un chip 555 real es la pata 8.",
+         "SI LO OLVIDAS", "El chip no despierta: OUT nunca se prende, ni en ASTABLE ni en MONOESTABLE."},
+        {"PIN TRIG: EL GATILLO", "Es el botón de arranque. Cuando recibe un toque de corriente, el chip empieza a contar el tiempo.",
+         "¿A DÓNDE VA?", "Solo en MONOESTABLE, a un botón conectado a la Fuente (+). En ASTABLE se queda libre. En un chip real es la pata 2.",
+         "SI LO OLVIDAS", "En MONOESTABLE el chip se queda esperando para siempre y la luz nunca se prende."},
+        {"PIN GND: EL REGRESO", "Es la salida de la corriente de vuelta a la fuente. Junto con VCC cierra el circuito del chip.",
+         "¿A DÓNDE VA?", "Siempre a la Fuente (-). En un chip 555 real es la pata 1.",
+         "SI LO OLVIDAS", "La corriente no tiene por dónde regresar y el chip se queda apagado."},
+        {"PIN OUT: LA SALIDA", "Es el pin que entrega el resultado: se prende y se apaga según el modo y el tiempo del chip.",
+         "¿A DÓNDE VA?", "A la pata (+) del LED. La pata (-) del LED va a la resistencia de 220 Ohm y de ahí a la Fuente (-). En un chip real es la pata 3.",
+         "SI LO OLVIDAS", "El chip trabaja por dentro, pero no hay ninguna luz que muestre lo que hace."},
+        {"PIN C: EL RELOJ", "Aquí va el capacitor. El chip mide cuánto tarda en llenarse y vaciarse: ese es su tiempo.",
+         "¿A DÓNDE VA?", "A la pata (+) del capacitor. La pata (-) del capacitor va a la Fuente (-). En un chip real son las patas 6 y 7.",
+         "SI LO OLVIDAS", "El chip no tiene con qué medir el tiempo: OUT no parpadea ni cuenta."}
+    };
+
+    private int pinSeleccionado = 0;
+
+    private boolean mostrandoPines555(ElementoGuia item) {
+        return item.tipoVisual == 9 && item.estadoSeleccionado == 0;
+    }
+
+    private float getPinCajaX(int i) {
+        if (i < 3) return VISUAL_X + 10f + 78f * ESCALA_555 - PIN_CAJA_ANCHO + 8f;
+        return VISUAL_X + 10f + 284f * ESCALA_555 - 8f;
+    }
+
+    private float getPinCajaY(int i) {
+        return VISUAL_Y + 10f + PINES_555_Y[i] * ESCALA_555 - 29f;
     }
 
     private static class ElementoGuia {
@@ -347,6 +384,20 @@ public class VistaGuia extends ScreenAdapter {
                 }
 
                 ElementoGuia item = elementos.get(indice);
+                if (mostrandoPines555(item)) {
+                    for (int i = 0; i < PINES_555.length; i++) {
+                        if (estaAdentro(mx, my, getPinCajaX(i), getPinCajaY(i), PIN_CAJA_ANCHO, PIN_CAJA_ALTO)) {
+                            pinSeleccionado = i;
+                            sonar(TipoEfecto.CONMUTAR_SWITCH);
+                            return true;
+                        }
+                    }
+                    if (estaAdentro(mx, my, VISUAL_X, VISUAL_Y, VISUAL_LADO, VISUAL_LADO)) {
+                        pinSeleccionado = (pinSeleccionado + 1) % PINES_555.length;
+                        sonar(TipoEfecto.CONMUTAR_SWITCH);
+                        return true;
+                    }
+                }
                 int cantidad = item.nombresEstados.length;
                 for (int b = 0; b < cantidad; b++) {
                     if (estaAdentro(mx, my, getBotonEstadoX(b, cantidad), BOTON_ESTADO_Y, getBotonEstadoAncho(cantidad), BOTON_ESTADO_ALTO)) {
@@ -678,6 +729,22 @@ public class VistaGuia extends ScreenAdapter {
         dibujarBloqueShape(getBloqueY(1), colorVerde);
         dibujarBloqueShape(getBloqueY(2), colorAmbar);
 
+        if (mostrandoPines555(item)) {
+            for (int i = 0; i < PINES_555.length; i++) {
+                float px = getPinCajaX(i), py = getPinCajaY(i);
+                boolean sel = (pinSeleccionado == i);
+                boolean hPin = estaAdentro(mx, my, px, py, PIN_CAJA_ANCHO, PIN_CAJA_ALTO);
+                if (sel) {
+                    float brillo = 0.25f + 0.15f * MathUtils.sin(tiempo * 5f);
+                    shapeRenderer.setColor(colorNeon.r, colorNeon.g, colorNeon.b, brillo);
+                    shapeRenderer.rect(px - 6f, py - 6f, PIN_CAJA_ANCHO + 12f, PIN_CAJA_ALTO + 12f);
+                }
+                shapeRenderer.setColor(sel ? new Color(0.06f, 0.16f, 0.24f, 1f) : colorSlate);
+                shapeRenderer.rect(px, py, PIN_CAJA_ANCHO, PIN_CAJA_ALTO);
+                dibujarBorde(px, py, PIN_CAJA_ANCHO, PIN_CAJA_ALTO, sel ? colorBrillante : (hPin ? colorNeon : colorMetal), sel ? 2.8f : 1.5f);
+            }
+        }
+
         shapeRenderer.translate(VISUAL_X + 20f, VISUAL_Y + 10f, 0f);
         shapeRenderer.scale(2f, 2f, 1f);
         dibujarProceduralShapes(item, 0f, 0f, 220f, 230f);
@@ -853,10 +920,11 @@ public class VistaGuia extends ScreenAdapter {
             fontPequena.draw(batch, nom, bx + (bw - layout.width) / 2f, BOTON_ESTADO_Y + (BOTON_ESTADO_ALTO + layout.height) / 2f);
         }
         fontPequena.setColor(colorMetal);
-        fontPequena.draw(batch, "Toca la pieza o un botón para ver sus estados", VISUAL_X, BOTON_ESTADO_Y - 14f);
+        String ayuda = mostrandoPines555(item) ? "Toca un pin del chip para ver qué hace" : "Toca la pieza o un botón para ver sus estados";
+        fontPequena.draw(batch, ayuda, VISUAL_X, BOTON_ESTADO_Y - 14f);
 
         if (item.textosPorEstado != null) {
-            String[] textos = item.textosPorEstado[item.estadoSeleccionado];
+            String[] textos = mostrandoPines555(item) ? TEXTOS_PINES_555[pinSeleccionado] : item.textosPorEstado[item.estadoSeleccionado];
             dibujarBloqueTexto(getBloqueY(0), textos[0], textos[1], colorNeon);
             dibujarBloqueTexto(getBloqueY(1), textos[2], textos[3], colorVerde);
             dibujarBloqueTexto(getBloqueY(2), textos[4], textos[5], colorAmbar);
@@ -875,18 +943,32 @@ public class VistaGuia extends ScreenAdapter {
     }
 
     private void dibujarPines555(float x, float y, float escala, int estado) {
-        String[] nombres = {"VCC", "TRIG", "GND", "OUT", "C"};
-        float[] pinY = {236f, 201f, 166f, 236f, 166f};
-        for (int i = 0; i < nombres.length; i++) {
+        for (int i = 0; i < PINES_555.length; i++) {
             Color color = colorNeon;
-            if (nombres[i].equals("TRIG")) {
+            if (estado == 0) {
+                color = (pinSeleccionado == i) ? Color.WHITE : colorClaro;
+            } else if (PINES_555[i].equals("TRIG")) {
                 if (estado == 1) color = colorMetal;
-                else if (estado == 2) color = colorAmbar;
+                else color = colorAmbar;
             }
             fontTexto.setColor(color);
-            layout.setText(fontTexto, nombres[i]);
-            float px = (i < 3) ? x + 78f * escala - layout.width : x + 284f * escala;
-            fontTexto.draw(batch, nombres[i], px, y + pinY[i] * escala);
+            layout.setText(fontTexto, PINES_555[i]);
+            float px;
+            if (estado == 0) px = getPinCajaX(i) + (PIN_CAJA_ANCHO - layout.width) / 2f;
+            else px = (i < 3) ? x + 78f * escala - layout.width : x + 284f * escala;
+            fontTexto.draw(batch, PINES_555[i], px, y + PINES_555_Y[i] * escala);
+        }
+        if (estado == 0) {
+            String[] papeles = {"energía", "gatillo", "regreso", "salida", "reloj"};
+            for (int i = 0; i < PINES_555.length; i++) {
+                float rx = VISUAL_X + ((i < 3) ? 50f : 270f);
+                float ry = VISUAL_Y + 130f - ((i < 3) ? i : i - 3) * 38f;
+                boolean sel = (pinSeleccionado == i);
+                fontPequena.setColor(sel ? colorBrillante : colorNeon);
+                fontPequena.draw(batch, PINES_555[i], rx, ry);
+                fontPequena.setColor(sel ? Color.WHITE : colorMetal);
+                fontPequena.draw(batch, papeles[i], rx + 60f, ry);
+            }
         }
     }
 
