@@ -30,7 +30,7 @@ public class VistaMenu extends ScreenAdapter {
     private GestorAudio gestorAudio;
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
-    private BitmapFont fontTitulo;
+    private final LetreroNeon letrero = new LetreroNeon();
     private BitmapFont fontBotones;
     private BitmapFont fontDetalle;
     private OrthographicCamera camara;
@@ -88,10 +88,6 @@ public class VistaMenu extends ScreenAdapter {
         this.camara = new OrthographicCamera();
         this.viewport = new FitViewport(ANCHO, ALTO, camara);
         this.viewport.apply();
-
-        this.fontTitulo = new BitmapFont();
-        this.fontTitulo.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        this.fontTitulo.getData().setScale(7.2f);
 
         this.fontBotones = new BitmapFont();
         this.fontBotones.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
@@ -268,6 +264,7 @@ public class VistaMenu extends ScreenAdapter {
 
         if (estadoActual == PANTALLA_MENU) {
             dibujarCajaCartelPrincipal();
+            dibujarCartelPrincipalShortCircuit();
             dibujarBotonesMenu();
         } else {
             dibujarCajaTrabajando();
@@ -276,7 +273,6 @@ public class VistaMenu extends ScreenAdapter {
 
         batch.begin();
         if (estadoActual == PANTALLA_MENU) {
-            dibujarCartelPrincipalShortCircuit();
             dibujarTextosBotonesMenu();
         } else {
             dibujarTextosTrabajando();
@@ -591,32 +587,31 @@ public class VistaMenu extends ScreenAdapter {
         float cartelY = 760f + oscY;
 
         String titulo = "SHORT CIRCUIT!";
-        glyphLayout.setText(fontTitulo, titulo);
-        float tituloX = (ANCHO - glyphLayout.width) / 2f + oscX + jitterX;
-        float tituloY = cartelY + (cartelH + glyphLayout.height) / 2f + jitterY;
+        float unidad = 16.5f;
+        float tituloX = (ANCHO - letrero.medirAncho(titulo, unidad)) / 2f + oscX + jitterX;
+        float tituloY = cartelY + (cartelH - letrero.medirAlto(unidad)) / 2f + jitterY;
 
-        for (int off = 28; off >= 4; off -= 3) {
-            float f = (float) off / 28f;
-            fontTitulo.setColor(
+        for (int off = 18; off >= 3; off -= 3) {
+            float f = off / 18f;
+            shapeRenderer.setColor(
                     MathUtils.lerp(0.02f, 0.12f, f),
                     MathUtils.lerp(0.08f, 0.32f, f),
                     MathUtils.lerp(0.18f, 0.55f, f),
-                    0.92f
+                    1f
             );
-            fontTitulo.draw(batch, titulo, tituloX + off, tituloY - off);
+            letrero.dibujar(shapeRenderer, titulo, tituloX + off, tituloY - off, unidad, 15f, true);
         }
 
-        fontTitulo.setColor(COLOR_NEON_CELESTE);
-        fontTitulo.draw(batch, titulo, tituloX, tituloY);
-
-        fontTitulo.setColor(COLOR_CELESTE_BRILLANTE);
-        fontTitulo.draw(batch, titulo, tituloX - 2.5f, tituloY + 2.5f);
+        shapeRenderer.setColor(COLOR_NEON_CELESTE);
+        letrero.dibujar(shapeRenderer, titulo, tituloX, tituloY, unidad, 15f, true);
 
         float flash = MathUtils.sin(tiempoTotal * 7.5f);
         if (flash > 0.65f) {
-            fontTitulo.setColor(1f, 1f, 1f, 0.98f);
-            fontTitulo.draw(batch, titulo, tituloX - 3.5f, tituloY + 3.5f);
+            shapeRenderer.setColor(1f, 1f, 1f, 1f);
+        } else {
+            shapeRenderer.setColor(COLOR_CELESTE_BRILLANTE);
         }
+        letrero.dibujar(shapeRenderer, titulo, tituloX - 1.5f, tituloY + 1.5f, unidad, 5f, false);
     }
 
     private void dibujarBotonesMenu() {
@@ -838,9 +833,6 @@ public class VistaMenu extends ScreenAdapter {
         }
         if (shapeRenderer != null) {
             shapeRenderer.dispose();
-        }
-        if (fontTitulo != null) {
-            fontTitulo.dispose();
         }
         if (fontBotones != null) {
             fontBotones.dispose();

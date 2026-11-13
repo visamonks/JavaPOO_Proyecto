@@ -58,6 +58,7 @@ public class VistaConfiguraciones extends ScreenAdapter {
     private final Color COLOR_VERDE = new Color(0.20f, 0.95f, 0.45f, 1f);
     private final Color COLOR_ROJO = new Color(0.95f, 0.28f, 0.28f, 1f);
     private final Color COLOR_TEXTO_MUTED = new Color(0.52f, 0.64f, 0.78f, 1f);
+    private final BarraAtajos atajos = new BarraAtajos(COLOR_CELESTE_BRILLANTE, COLOR_TEXTO_MUTED);
     private final Color COLOR_TEXTO_BLANCO = new Color(0.96f, 0.98f, 1.00f, 1f);
 
     private static final float ANCHO_VIRTUAL = Constantes.ANCHO_VENTANA;
@@ -904,10 +905,8 @@ public class VistaConfiguraciones extends ScreenAdapter {
         fontBotones.setColor((animVolver > 0.05f) ? COLOR_NEON_CYAN : COLOR_TEXTO_BLANCO);
         fontBotones.draw(batch, "VOLVER", 70f + (280f - layout.width) / 2f, 60f + 42f);
 
-        fontPequena.setColor(new Color(0.40f, 0.50f, 0.65f, 0.8f));
-        String ayuda = "[ESC] Volver   |   [F] Pantalla Completa   |   [A / D o Flechas] Volumen   |   [Clic en Electron] Interactuar";
-        layout.setText(fontPequena, ayuda);
-        fontPequena.draw(batch, ayuda, (ANCHO_VIRTUAL - layout.width) / 2f, 28f);
+        atajos.dibujarCentrado(batch, fontPequena, ANCHO_VIRTUAL / 2f, 28f,
+                "ESC", "Volver", "F", "Pantalla completa", "A / D", "Volumen", "CLIC EN EL ELECTRÓN", "Interactuar");
     }
 
     @Override

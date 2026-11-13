@@ -142,7 +142,7 @@ public class Nivel5 extends Nivel {
         } else if (!izquierdaPrendida && !derechaPrendida) {
             mensajeEstado = "Mueve la palanca: arriba (A) = izquierda, abajo (B) = derecha.";
         } else {
-            mensajeEstado = String.format("Izquierda %.1f / %.1f s   ·   Derecha %.1f / %.1f s",
+            mensajeEstado = String.format("Izquierda %.1f de %.1f s, derecha %.1f de %.1f s",
                     tiempoIzquierda, TIEMPO_POR_LADO, tiempoDerecha, TIEMPO_POR_LADO);
         }
         return izquierdaPrendida || derechaPrendida;

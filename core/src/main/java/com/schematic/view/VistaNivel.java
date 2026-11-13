@@ -93,6 +93,7 @@ public class VistaNivel extends ScreenAdapter {
     private final Color COLOR_GRIS_CLARO = new Color(0.65f, 0.76f, 0.88f, 1f);
     private final Color COLOR_NEON_CELESTE = new Color(0.0f, 0.88f, 1.0f, 1f);
     private final Color COLOR_CELESTE_BRILLANTE = new Color(0.60f, 0.95f, 1.0f, 1f);
+    private final BarraAtajos atajos = new BarraAtajos(COLOR_CELESTE_BRILLANTE, new Color(0.65f, 0.76f, 0.88f, 0.75f));
     private final Color COLOR_CAJA_OSCURA = new Color(0.05f, 0.07f, 0.11f, 0.96f);
 
     private static class ParticulaChispa {
@@ -1079,14 +1080,17 @@ public class VistaNivel extends ScreenAdapter {
 
         rutasCables.clear();
         enrutador.prepararMesa(nivel.getComponentes());
-        for (Cable cable : nivel.getCables()) {
-            Terminal t1 = cable.getTerminalOrigen(), t2 = cable.getTerminalDestino();
-            if (t1 == null || t2 == null) continue;
-            Vector2 codo = cable.tieneCodoPersonalizado()
-                    ? new Vector2(cable.getCodoPersonalizadoX(), cable.getCodoPersonalizadoY()) : null;
-            List<Vector2> ruta = enrutador.calcularRuta(t1, t2, codo);
-            enrutador.marcarComoUsada(ruta);
-            rutasCables.put(cable, ruta);
+        for (int vuelta = 0; vuelta < 2; vuelta++) {
+            for (Cable cable : nivel.getCables()) {
+                Terminal t1 = cable.getTerminalOrigen(), t2 = cable.getTerminalDestino();
+                if (t1 == null || t2 == null) continue;
+                Vector2 codo = cable.tieneCodoPersonalizado()
+                        ? new Vector2(cable.getCodoPersonalizadoX(), cable.getCodoPersonalizadoY()) : null;
+                if (vuelta == 1) enrutador.olvidarRuta(rutasCables.get(cable));
+                List<Vector2> ruta = enrutador.calcularRuta(t1, t2, codo);
+                enrutador.marcarComoUsada(ruta, t1, t2);
+                rutasCables.put(cable, ruta);
+            }
         }
     }
 
@@ -1195,7 +1199,7 @@ public class VistaNivel extends ScreenAdapter {
                 fontPequena.draw(batch, "GND", x + 18f, y + 166f);
                 fontPequena.draw(batch, "OUT", x + w - 66f, y + 236f);
                 fontPequena.draw(batch, "C", x + w - 60f, y + 166f);
-                String modo = chip.isAstable() ? "555  ·  ASTABLE" : "555  ·  MONOESTABLE";
+                String modo = chip.isAstable() ? "MODO ASTABLE" : "MODO MONOESTABLE";
                 fontPequena.setColor(chip.isSalidaAlta() ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO);
                 glyphLayout.setText(fontPequena, modo);
                 fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + 92f);
@@ -1381,10 +1385,11 @@ public class VistaNivel extends ScreenAdapter {
         }
 
         fontPequena.setColor(COLOR_CELESTE_BRILLANTE);
-        glyphLayout.setText(fontPequena, "?  TUTORIAL (H)");
+        glyphLayout.setText(fontPequena, "VER TUTORIAL (H)");
         fontPequena.draw(batch, glyphLayout, 1430f + (160f - glyphLayout.width) / 2f, ALTO_VIRTUAL - 66f + (38f + glyphLayout.height) / 2f);
-        fontPequena.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.68f);
-        fontPequena.draw(batch, "Arrastra piezas desde el almacén   ·   Clic en un pin y arrastra: Cable   ·   Clic Der: Borrar   ·   H: Tutorial   ·   R: Reiniciar   ·   ESC: Menú", 40f, 36f);
+        atajos.dibujar(batch, fontPequena, 40f, 36f,
+                "ARRASTRA", "Piezas del almacén", "CLIC EN UN PIN", "Crear cable", "CLIC DERECHO", "Borrar",
+                "H", "Tutorial", "R", "Reiniciar", "ESC", "Menú");
     }
 
     private static final float TUTO_X = 360f, TUTO_Y = 170f, TUTO_ANCHO = 1200f, TUTO_ALTO = 740f;
@@ -1449,7 +1454,7 @@ public class VistaNivel extends ScreenAdapter {
 
     private void dibujarGuiaNivelTextos() {
         fontTitulo.setColor(COLOR_CELESTE_BRILLANTE);
-        String titulo = "NIVEL " + nivel.getNumeroNivel() + "  ·  " + tutorialActual.getTitulo();
+        String titulo = "NIVEL " + nivel.getNumeroNivel() + ":  " + tutorialActual.getTitulo();
         fontTitulo.draw(batch, titulo, TUTO_X + 32f, TUTO_Y + TUTO_ALTO - 22f);
 
         fontPequena.setColor(COLOR_GRIS_CLARO.r, COLOR_GRIS_CLARO.g, COLOR_GRIS_CLARO.b, 0.78f);
@@ -1481,10 +1486,9 @@ public class VistaNivel extends ScreenAdapter {
         font.draw(batch, textoAtras, TUTO_ATRAS_X + (TUTO_BOTON_ANCHO - glyphLayout.width) / 2f,
                 TUTO_BOTON_Y + (TUTO_BOTON_ALTO + glyphLayout.height) / 2f);
 
-        String ayuda = "Enter: siguiente   ·   Flechas: cambiar página   ·   Esc: cerrar";
-        fontPequena.setColor(COLOR_GRIS_METAL);
-        glyphLayout.setText(fontPequena, ayuda);
-        fontPequena.draw(batch, ayuda, TUTO_X + (TUTO_ANCHO - glyphLayout.width) / 2f, TUTO_BOTON_Y + (TUTO_BOTON_ALTO + glyphLayout.height) / 2f);
+        glyphLayout.setText(fontPequena, "ENTER");
+        atajos.dibujarCentrado(batch, fontPequena, TUTO_X + TUTO_ANCHO / 2f, TUTO_BOTON_Y + (TUTO_BOTON_ALTO + glyphLayout.height) / 2f,
+                "ENTER", "Siguiente", "FLECHAS", "Cambiar página", "ESC", "Cerrar");
     }
 
     private void dibujarBloqueTutorial(float x, float y, float w, float h, Color color) {
@@ -1580,7 +1584,7 @@ public class VistaNivel extends ScreenAdapter {
                 batch.draw(f, cx - 65f, cy + 70f - i * 115f, 130f, 130f);
             }
             batch.setColor(Color.WHITE);
-            nombre = "VERDE  ->  AMARILLO  ->  ROJO";
+            nombre = "PRIMERO VERDE, LUEGO AMARILLO Y AL FINAL ROJO";
         }
         fontPequena.setColor(COLOR_AMBAR_TUTO);
         glyphLayout.setText(fontPequena, nombre);

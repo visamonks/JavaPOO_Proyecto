@@ -68,6 +68,7 @@ public class VistaGuia extends ScreenAdapter {
     private Color colorBrillante = new Color(0.60f, 0.95f, 1.0f, 1f);
     private Color colorMetal = new Color(0.30f, 0.38f, 0.48f, 1f);
     private Color colorClaro = new Color(0.65f, 0.76f, 0.88f, 1f);
+    private final BarraAtajos atajos = new BarraAtajos(colorBrillante, colorMetal);
     private Color colorAmbar = new Color(1.0f, 0.76f, 0.20f, 1f);
     private Color colorVerde = new Color(0.20f, 0.95f, 0.45f, 1f);
     private Color colorRojo = new Color(0.95f, 0.25f, 0.25f, 1f);
@@ -955,10 +956,8 @@ public class VistaGuia extends ScreenAdapter {
         fontBotones.setColor(hoverVolver > 0.5f ? Color.WHITE : colorBrillante);
         fontBotones.draw(batch, txt, tx, ty);
 
-        String atajos = "ESC: Volver   |   Flechas o teclas 1-8: Cambiar de pieza";
-        layout.setText(fontPequena, atajos);
-        fontPequena.setColor(colorMetal);
-        fontPequena.draw(batch, atajos, (Constantes.ANCHO_VENTANA - layout.width) / 2f + 120f, 52f);
+        atajos.dibujarCentrado(batch, fontPequena, Constantes.ANCHO_VENTANA / 2f + 120f, 52f,
+                "ESC", "Volver", "FLECHAS", "Cambiar de pieza", "1 A 9", "Ir directo a una pieza");
     }
 
     @Override

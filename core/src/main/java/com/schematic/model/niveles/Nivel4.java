@@ -55,7 +55,7 @@ public class Nivel4 extends Nivel {
     public String[] obtenerPasosGuia() {
         return new String[]{
             "1. Entrada",
-            "2. Ramas A+B",
+            "2. Ramas A y B",
             "3. LED + 220",
             "4. A o B ON"
         };

@@ -59,6 +59,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     private final Color COLOR_VERDE = new Color(0.20f, 0.95f, 0.45f, 1f);
     private final Color COLOR_ROJO = new Color(0.95f, 0.28f, 0.28f, 1f);
     private final Color COLOR_TEXTO_MUTED = new Color(0.52f, 0.64f, 0.78f, 1f);
+    private final BarraAtajos atajos = new BarraAtajos(COLOR_CELESTE_BRILLANTE, COLOR_TEXTO_MUTED);
     private final Color COLOR_TEXTO_BLANCO = new Color(0.96f, 0.98f, 1.00f, 1f);
 
     private static final float ANCHO_VIRTUAL = Constantes.ANCHO_VENTANA;
@@ -701,30 +702,28 @@ public class VistaSeleccionNivel extends ScreenAdapter {
     private void dibujarEsquemaLedResistencia(float cx, float cy, boolean sel) {
         Color colLinea = sel ? COLOR_NEON_CYAN : COLOR_CELESTE_BRILLANTE;
         shapeRenderer.setColor(colLinea);
+        shapeRenderer.rectLine(cx - 95f, cy, cx - 60f, cy, 3f);
 
-        shapeRenderer.rectLine(cx - 95f, cy, cx - 45f, cy, 3f);
+        shapeRenderer.setColor(COLOR_VERDE);
+        float lx = cx - 60f;
+        shapeRenderer.triangle(lx, cy - 18f, lx, cy + 18f, lx + 30f, cy);
+        shapeRenderer.rectLine(lx + 30f, cy - 18f, lx + 30f, cy + 18f, 4f);
+        float pulsoLuz = 1f + MathUtils.sin(tiempoTotal * 8f) * 0.2f;
+        shapeRenderer.rectLine(lx + 18f, cy + 18f, lx + 30f * pulsoLuz, cy + 30f * pulsoLuz, 2.5f);
+        shapeRenderer.rectLine(lx + 26f, cy + 12f, lx + 38f * pulsoLuz, cy + 24f * pulsoLuz, 2.5f);
+
+        shapeRenderer.setColor(colLinea);
+        shapeRenderer.rectLine(lx + 30f, cy, cx + 15f, cy, 3f);
 
         shapeRenderer.setColor(COLOR_AMBAR);
-        float rx = cx - 45f;
+        float rx = cx + 15f;
         shapeRenderer.rectLine(rx, cy, rx + 10f, cy + 16f, 3f);
         shapeRenderer.rectLine(rx + 10f, cy + 16f, rx + 20f, cy - 16f, 3f);
         shapeRenderer.rectLine(rx + 20f, cy - 16f, rx + 30f, cy + 16f, 3f);
         shapeRenderer.rectLine(rx + 30f, cy + 16f, rx + 40f, cy, 3f);
 
         shapeRenderer.setColor(colLinea);
-        shapeRenderer.rectLine(cx - 5f, cy, cx + 25f, cy, 3f);
-
-        shapeRenderer.setColor(COLOR_VERDE);
-        float lx = cx + 25f;
-        shapeRenderer.triangle(lx, cy - 18f, lx, cy + 18f, lx + 30f, cy);
-        shapeRenderer.rectLine(lx + 30f, cy - 18f, lx + 30f, cy + 18f, 4f);
-
-        float pulsoLuz = 1f + MathUtils.sin(tiempoTotal * 8f) * 0.2f;
-        shapeRenderer.rectLine(lx + 18f, cy + 18f, lx + 30f * pulsoLuz, cy + 30f * pulsoLuz, 2.5f);
-        shapeRenderer.rectLine(lx + 26f, cy + 12f, lx + 38f * pulsoLuz, cy + 24f * pulsoLuz, 2.5f);
-
-        shapeRenderer.setColor(colLinea);
-        shapeRenderer.rectLine(lx + 30f, cy, cx + 95f, cy, 3f);
+        shapeRenderer.rectLine(rx + 40f, cy, cx + 95f, cy, 3f);
     }
 
     private void dibujarEsquemaSwitch(float cx, float cy, boolean sel) {
@@ -1043,7 +1042,10 @@ public class VistaSeleccionNivel extends ScreenAdapter {
             float infoY = y + 148f;
 
             fontPequena.setColor(COLOR_AMBAR);
-            fontPequena.draw(batch, info.categoria + "  ·  " + info.tiempo, infoX, infoY);
+            fontPequena.draw(batch, info.categoria, infoX, infoY);
+            layout.setText(fontPequena, info.categoria);
+            fontPequena.setColor(COLOR_TEXTO_MUTED);
+            fontPequena.draw(batch, info.tiempo, infoX + layout.width + 14f, infoY);
 
             fontCardDetalle.setColor(desb ? COLOR_TEXTO_MUTED : new Color(0.38f, 0.42f, 0.50f, 1f));
             fontCardDetalle.draw(batch, info.descripcion, infoX, infoY - 20f, CARD_ANCHO - 48f, Align.left, true);
@@ -1072,15 +1074,13 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         float modoW = 260f;
         float modoX = ANCHO_VIRTUAL - modoW - 70f;
         float modoY = ALTO_VIRTUAL - 80f;
-        String txtModo = modoLibreDesbloqueado ? "MODO LIBRE: [ON]" : "MODO LIBRE: [OFF]";
+        String txtModo = modoLibreDesbloqueado ? "MODO LIBRE: ACTIVADO" : "MODO LIBRE: APAGADO";
         layout.setText(fontPequena, txtModo);
         fontPequena.setColor(modoLibreDesbloqueado ? COLOR_VERDE : COLOR_TEXTO_MUTED);
         fontPequena.draw(batch, txtModo, modoX + (modoW - layout.width) / 2f, modoY + 32f);
 
-        fontPequena.setColor(new Color(0.40f, 0.50f, 0.65f, 0.8f));
-        String ayuda = "A / D o Flechas Cambiar nivel   |   [Enter / Clic] Iniciar   |   [Clic en Electron] Interactuar   |   [U] Modo Libre";
-        layout.setText(fontPequena, ayuda);
-        fontPequena.draw(batch, ayuda, (ANCHO_VIRTUAL - layout.width) / 2f, 28f);
+        atajos.dibujarCentrado(batch, fontPequena, ANCHO_VIRTUAL / 2f, 28f,
+                "A / D", "Cambiar nivel", "ENTER", "Iniciar", "CLIC EN EL ELECTRÓN", "Interactuar", "U", "Modo libre");
     }
 
     @Override
