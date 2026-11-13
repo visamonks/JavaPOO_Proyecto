@@ -1,5 +1,6 @@
 package com.schematic.controller;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputAdapter;
@@ -12,6 +13,7 @@ import com.schematic.audio.TipoEfecto;
 import com.schematic.model.componentes.Cable;
 import com.schematic.model.componentes.Componente;
 import com.schematic.model.componentes.FuenteAlimentacion;
+import com.schematic.model.componentes.Potenciometro;
 import com.schematic.model.componentes.Switch;
 import com.schematic.model.componentes.Temporizador555;
 import com.schematic.model.componentes.Terminal;
@@ -42,6 +44,8 @@ public class ControladorNivel extends InputAdapter {
 
     private Cable cableArrastrandoCodo;
     private boolean arrastrandoCodo;
+
+    private boolean arrastrandoBarraPotenciometro = false;
 
     public ControladorNivel(Nivel nivel) {
         this(nivel, null, null, null);
@@ -84,6 +88,16 @@ public class ControladorNivel extends InputAdapter {
         if (button == Buttons.LEFT) {
             if (vista != null && vista.manejarClicUI(mx, my)) {
                 return true;
+            }
+
+            if (vista != null && vista.estaSobreBarraPotenciometro(mx, my)) {
+                arrastrandoBarraPotenciometro = true;
+                vista.moverBarraPotenciometro(mx);
+                nivel.actualizar(0f);
+                return true;
+            }
+            if (vista != null && !(vista.obtenerComponenteBajoRaton(mx, my) instanceof Potenciometro)) {
+                vista.cerrarBarraPotenciometro();
             }
 
             if (vista != null) {
@@ -182,6 +196,12 @@ public class ControladorNivel extends InputAdapter {
             vista.actualizarPosicionCursor(mx, my);
         }
 
+        if (arrastrandoBarraPotenciometro && vista != null) {
+            vista.moverBarraPotenciometro(mx);
+            nivel.actualizar(0f);
+            return true;
+        }
+
         if (arrastrandoCodo && cableArrastrandoCodo != null) {
             cableArrastrandoCodo.setCodoPersonalizado(mx, my);
             return true;
@@ -219,6 +239,12 @@ public class ControladorNivel extends InputAdapter {
         float my = mundo.y;
 
         if (button == Buttons.LEFT) {
+            if (arrastrandoBarraPotenciometro) {
+                arrastrandoBarraPotenciometro = false;
+                sonar(TipoEfecto.CLICK_UI);
+                return true;
+            }
+
             if (arrastrandoCodo) {
                 arrastrandoCodo = false;
                 cableArrastrandoCodo = null;
@@ -233,6 +259,8 @@ public class ControladorNivel extends InputAdapter {
                         w = 240f; h = 240f;
                     } else if ("RESISTENCIA_220".equals(tipoComponenteArrastrado)) {
                         w = 270f; h = 172f;
+                    } else if ("POTENCIOMETRO".equals(tipoComponenteArrastrado)) {
+                        w = 280f; h = 280f;
                     } else if ("555".equals(tipoComponenteArrastrado)) {
                         w = 360f; h = 360f;
                     } else if ("AND".equals(tipoComponenteArrastrado) || "OR".equals(tipoComponenteArrastrado)) {
@@ -270,7 +298,10 @@ public class ControladorNivel extends InputAdapter {
                     if (componenteSeleccionado.getPosicionX() > maxX) {
                         componenteSeleccionado.actualizarPosicion(maxX, componenteSeleccionado.getPosicionY());
                     }
-                    if (componenteSeleccionado instanceof Temporizador555 && distArrastre < 15f) {
+                    if (componenteSeleccionado instanceof Potenciometro && distArrastre < 15f) {
+                        if (vista != null) vista.alternarBarraPotenciometro((Potenciometro) componenteSeleccionado);
+                        sonar(TipoEfecto.CLICK_UI);
+                    } else if (componenteSeleccionado instanceof Temporizador555 && distArrastre < 15f) {
                         ((Temporizador555) componenteSeleccionado).cambiarModo();
                         nivel.actualizar(0f);
                         sonar(TipoEfecto.CONMUTAR_SWITCH);
@@ -299,6 +330,22 @@ public class ControladorNivel extends InputAdapter {
             }
         }
 
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        if (vista == null || nivel == null) return false;
+        Vector3 mundo = obtenerCoordenadasMundo(Gdx.input.getX(), Gdx.input.getY());
+        Componente comp = vista.obtenerComponenteBajoRaton(mundo.x, mundo.y);
+        if (comp instanceof Potenciometro) {
+            Potenciometro pot = (Potenciometro) comp;
+            if (amountY < 0) pot.subir();
+            else pot.bajar();
+            nivel.actualizar(0f);
+            sonar(TipoEfecto.HOVER_UI);
+            return true;
+        }
         return false;
     }
 

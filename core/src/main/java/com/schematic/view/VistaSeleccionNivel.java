@@ -67,9 +67,13 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
     private static final int CANTIDAD_NIVELES = GestorNiveles.TOTAL_NIVELES;
     private static final float CARD_ESPACIADO = 24f;
-    private static final float CARD_ANCHO = Math.min(310f, (ANCHO_VIRTUAL - 120f - (CANTIDAD_NIVELES - 1) * CARD_ESPACIADO) / CANTIDAD_NIVELES);
+    private static final int NIVELES_POR_PAGINA = 5;
+    private static final int CARDS_VISIBLES = Math.min(CANTIDAD_NIVELES, NIVELES_POR_PAGINA);
+    private static final int TOTAL_PAGINAS = (CANTIDAD_NIVELES + NIVELES_POR_PAGINA - 1) / NIVELES_POR_PAGINA;
+    private static final float CARD_ANCHO = Math.min(310f, (ANCHO_VIRTUAL - 120f - (CARDS_VISIBLES - 1) * CARD_ESPACIADO) / CARDS_VISIBLES);
     private static final float CARD_ALTO = 460f;
-    private static final float CARDS_TOTAL_ANCHO = (CANTIDAD_NIVELES * CARD_ANCHO) + ((CANTIDAD_NIVELES - 1) * CARD_ESPACIADO);
+    private static final float CARDS_TOTAL_ANCHO = (CARDS_VISIBLES * CARD_ANCHO) + ((CARDS_VISIBLES - 1) * CARD_ESPACIADO);
+    private static final float FLECHA_PAGINA_ANCHO = 48f, FLECHA_PAGINA_ALTO = 96f;
     private static final float CARDS_INICIO_X = (ANCHO_VIRTUAL - CARDS_TOTAL_ANCHO) / 2f;
     private static final float CARDS_BASE_Y = 250f;
 
@@ -208,6 +212,48 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         datosNiveles[8] = new InfoNivel(9, "PASILLO", "555 MONO", "80s",
                 "Fuente - Boton - Chip 555 - Capacitor - Resistencia - LED",
                 "Un toque al boton y la luz se apaga sola a los 3 s.");
+        datosNiveles[9] = new InfoNivel(10, "DIMMER", "AJUSTE", "80s",
+                "Fuente - Interruptor - Potenciometro - Resistencia - LED",
+                "Gira la perilla y deja la luz a media intensidad.");
+    }
+
+    private int getPagina() {
+        return nivelSeleccionado / NIVELES_POR_PAGINA;
+    }
+
+    private boolean estaEnPagina(int indice) {
+        return indice / NIVELES_POR_PAGINA == getPagina();
+    }
+
+    private float getCardX(int indice) {
+        return CARDS_INICIO_X + (indice % NIVELES_POR_PAGINA) * (CARD_ANCHO + CARD_ESPACIADO);
+    }
+
+    private float getFlechaPaginaY() {
+        return CARDS_BASE_Y + CARD_ALTO / 2f - FLECHA_PAGINA_ALTO / 2f;
+    }
+
+    private void cambiarPagina(int direccion) {
+        int pagina = MathUtils.clamp(getPagina() + direccion, 0, TOTAL_PAGINAS - 1);
+        seleccionarNivel(pagina * NIVELES_POR_PAGINA);
+    }
+
+    private void dibujarFlechasPagina(float mx, float my) {
+        if (TOTAL_PAGINAS <= 1) return;
+        float y = getFlechaPaginaY();
+        float xIzq = CARDS_INICIO_X - FLECHA_PAGINA_ANCHO - 14f;
+        float xDer = CARDS_INICIO_X + CARDS_TOTAL_ANCHO + 14f;
+        for (int k = 0; k < 2; k++) {
+            float x = (k == 0) ? xIzq : xDer;
+            boolean activa = (k == 0) ? getPagina() > 0 : getPagina() < TOTAL_PAGINAS - 1;
+            boolean hover = activa && estaDentro(mx, my, x, y, FLECHA_PAGINA_ANCHO, FLECHA_PAGINA_ALTO);
+            shapeRenderer.setColor(COLOR_CARD_FONDO);
+            shapeRenderer.rect(x, y, FLECHA_PAGINA_ANCHO, FLECHA_PAGINA_ALTO);
+            shapeRenderer.setColor(activa ? (hover ? Color.WHITE : COLOR_NEON_CYAN) : COLOR_TEXTO_MUTED);
+            dibujarRectContorno(x, y, FLECHA_PAGINA_ANCHO, FLECHA_PAGINA_ALTO, 2.5f);
+            float cx = x + FLECHA_PAGINA_ANCHO / 2f, cy = y + FLECHA_PAGINA_ALTO / 2f, punta = (k == 0) ? -12f : 12f;
+            shapeRenderer.triangle(cx + punta, cy, cx - punta, cy + 18f, cx - punta, cy - 18f);
+        }
     }
 
     private void cargarProgresoJugador() {
@@ -243,6 +289,18 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 float mx = mundo.x;
                 float my = mundo.y;
 
+                if (TOTAL_PAGINAS > 1) {
+                    float yFlecha = getFlechaPaginaY();
+                    if (estaDentro(mx, my, CARDS_INICIO_X - FLECHA_PAGINA_ANCHO - 14f, yFlecha, FLECHA_PAGINA_ANCHO, FLECHA_PAGINA_ALTO)) {
+                        cambiarPagina(-1);
+                        return true;
+                    }
+                    if (estaDentro(mx, my, CARDS_INICIO_X + CARDS_TOTAL_ANCHO + 14f, yFlecha, FLECHA_PAGINA_ANCHO, FLECHA_PAGINA_ALTO)) {
+                        cambiarPagina(1);
+                        return true;
+                    }
+                }
+
                 float distElectron = Vector2.dst(mx, my, electronX, electronY);
                 if (distElectron <= RADIO_INTERACCION_ELECTRON) {
                     acariciarElectron();
@@ -250,7 +308,8 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 }
 
                 for (int i = 0; i < CANTIDAD_NIVELES; i++) {
-                    float bx = CARDS_INICIO_X + i * (CARD_ANCHO + CARD_ESPACIADO);
+                    if (!estaEnPagina(i)) continue;
+                    float bx = getCardX(i);
                     float by = CARDS_BASE_Y + (animHoverCards[i] * 12f);
                     if (estaDentro(mx, my, bx, by, CARD_ANCHO, CARD_ALTO)) {
                         if (nivelSeleccionado == i && estaDesbloqueado(i)) {
@@ -420,6 +479,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         dibujarFondoGrid();
         dibujarRayosDecorativos();
         dibujarBasesTarjetas(mx, my);
+        dibujarFlechasPagina(mx, my);
         dibujarEsquemasEnTarjetas();
         dibujarBotonVolverShape(mx, my);
         dibujarBotonIniciarShape(mx, my);
@@ -465,7 +525,8 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
         indiceHover = -1;
         for (int i = 0; i < CANTIDAD_NIVELES; i++) {
-            float bx = CARDS_INICIO_X + i * (CARD_ANCHO + CARD_ESPACIADO);
+            if (!estaEnPagina(i)) continue;
+            float bx = getCardX(i);
             float by = CARDS_BASE_Y;
             boolean hovered = estaDentro(mx, my, bx, by, CARD_ANCHO, CARD_ALTO);
             if (hovered) indiceHover = i;
@@ -475,7 +536,7 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         }
 
         int indexDestino = (indiceHover >= 0) ? indiceHover : nivelSeleccionado;
-        float cardCentroX = CARDS_INICIO_X + indexDestino * (CARD_ANCHO + CARD_ESPACIADO) + (CARD_ANCHO / 2f);
+        float cardCentroX = getCardX(indexDestino) + (CARD_ANCHO / 2f);
         float cardTopY = CARDS_BASE_Y + CARD_ALTO + 72f;
 
         float floatOffset = MathUtils.sin(tiempoTotal * 4.2f) * 10f;
@@ -572,7 +633,8 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
     private void dibujarBasesTarjetas(float mx, float my) {
         for (int i = 0; i < CANTIDAD_NIVELES; i++) {
-            float x = CARDS_INICIO_X + i * (CARD_ANCHO + CARD_ESPACIADO);
+            if (!estaEnPagina(i)) continue;
+            float x = getCardX(i);
             float y = CARDS_BASE_Y + (animHoverCards[i] * 14f);
             boolean sel = (nivelSeleccionado == i);
             boolean desb = estaDesbloqueado(i);
@@ -641,7 +703,8 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
     private void dibujarEsquemasEnTarjetas() {
         for (int i = 0; i < CANTIDAD_NIVELES; i++) {
-            float x = CARDS_INICIO_X + i * (CARD_ANCHO + CARD_ESPACIADO);
+            if (!estaEnPagina(i)) continue;
+            float x = getCardX(i);
             float y = CARDS_BASE_Y + (animHoverCards[i] * 14f);
             float cx = x + (CARD_ANCHO / 2f);
             float cy = y + 175f + (155f / 2f);
@@ -680,6 +743,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                     break;
                 case 8:
                     dibujarIcono555(cx, cy, sel, false);
+                    break;
+                case 9:
+                    dibujarIconoDimmer(cx, cy, sel);
                     break;
             }
         }
@@ -786,6 +852,17 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
         shapeRenderer.rectLine(cx + 38f, cy, cx + 85f, cy, 3.5f);
         shapeRenderer.circle(cx + 85f, cy, 5f);
+    }
+
+    private void dibujarIconoDimmer(float cx, float cy, boolean sel) {
+        float valor = 0.5f + 0.5f * MathUtils.sin(tiempoTotal * 1.4f);
+        shapeRenderer.setColor(0.55f, 0.58f, 0.66f, 1f);
+        shapeRenderer.circle(cx - 30f, cy, 34f);
+        shapeRenderer.setColor(sel ? COLOR_NEON_CYAN : COLOR_TEXTO_MUTED);
+        float angulo = 225f - 270f * valor;
+        shapeRenderer.rectLine(cx - 30f, cy, cx - 30f + 28f * MathUtils.cosDeg(angulo), cy + 28f * MathUtils.sinDeg(angulo), 4f);
+        shapeRenderer.setColor(1f, 0.85f, 0.30f, 0.25f + 0.75f * valor);
+        shapeRenderer.circle(cx + 50f, cy, 22f);
     }
 
     private void dibujarIcono555(float cx, float cy, boolean sel, boolean parpadea) {
@@ -1011,14 +1088,16 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
         int maxDesbloqueado = (progreso != null) ? progreso.getNivelMaximoDesbloqueado() : 1;
         int completados = Math.max(0, maxDesbloqueado - 1);
-        String txtProgreso = "COMPLETADOS: " + completados + " / " + CANTIDAD_NIVELES;
+        String txtProgreso = "COMPLETADOS: " + completados + " / " + CANTIDAD_NIVELES
+                + (TOTAL_PAGINAS > 1 ? "     PAGINA " + (getPagina() + 1) + " / " + TOTAL_PAGINAS : "");
         fontPequena.setColor(COLOR_AMBAR);
         fontPequena.draw(batch, txtProgreso, 70f, ALTO_VIRTUAL - 80f);
     }
 
     private void dibujarTextosTarjetas() {
         for (int i = 0; i < CANTIDAD_NIVELES; i++) {
-            float x = CARDS_INICIO_X + i * (CARD_ANCHO + CARD_ESPACIADO);
+            if (!estaEnPagina(i)) continue;
+            float x = getCardX(i);
             float y = CARDS_BASE_Y + (animHoverCards[i] * 14f);
             InfoNivel info = datosNiveles[i];
             boolean desb = estaDesbloqueado(i);

@@ -60,6 +60,7 @@ public class VistaGuia extends ScreenAdapter {
     private Animation<TextureRegion> animCapacitorExplotado;
     private Animation<TextureRegion> anim555Astable;
     private Animation<TextureRegion> anim555Monoestable;
+    private Animation<TextureRegion> animPotenciometro;
 
     private Color colorFondo = new Color(0.02f, 0.03f, 0.06f, 1f);
     private Color colorCaja = new Color(0.05f, 0.07f, 0.11f, 0.96f);
@@ -172,6 +173,7 @@ public class VistaGuia extends ScreenAdapter {
         animCapacitorExplotado = cargarAnimacion("capacitor_explotado", 8, 0.08f);
         anim555Astable = cargarAnimacion("555_astable", 10, 0.07f);
         anim555Monoestable = cargarAnimacion("555_monoestable", 10, 0.20f);
+        animPotenciometro = cargarAnimacion("potenciometro", 8, 0.14f);
         animLedNormal = cargarAnimacion("led_normal", 10, 0.12f);
         animLedPrendiendo = cargarAnimacion("led_prendiendo", 8, 0.10f);
         animLedMuriendo = cargarAnimacion("led_muriendo", 10, 0.14f);
@@ -265,6 +267,13 @@ public class VistaGuia extends ScreenAdapter {
              "PINES QUE USAS", "VCC, GND, C y OUT igual que en ASTABLE. TRIG va a un botón conectado a la Fuente (+)."}
         };
         elementos.add(chip);
+
+        elementos.add(new ElementoGuia(
+                "POTENCIÓMETRO", "AJUSTE",
+                "Una resistencia que cambia al girar su perilla: deja pasar más o menos corriente.",
+                "El regulador de luz de un cuarto o la perilla del volumen de una bocina.",
+                "Haz clic en él y arrastra la perilla de su barra. Deja también la resistencia de 220 Ohm.",
+                new String[]{"20%", "50%", "100%"}, 10));
 
         elementos.add(new ElementoGuia(
                 "CABLES", "CONEXIÓN",
@@ -515,8 +524,13 @@ public class VistaGuia extends ScreenAdapter {
         for (int i = 0; i < elementos.size(); i++) {
             String nombre = elementos.get(i).nombre;
             layout.setText(fontPequena, nombre);
+            if (layout.width > ancho - 10f) {
+                fontPequena.getData().setScale(1.05f * (ancho - 10f) / layout.width);
+                layout.setText(fontPequena, nombre);
+            }
             fontPequena.setColor(i == indice ? Color.WHITE : colorClaro);
             fontPequena.draw(batch, nombre, getSelectorX(i) + (ancho - layout.width) / 2f, SELECTOR_Y + (SELECTOR_ALTO + layout.height) / 2f);
+            fontPequena.getData().setScale(1.05f);
         }
     }
 
@@ -890,6 +904,14 @@ public class VistaGuia extends ScreenAdapter {
             batch.draw(animAnd.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
         } else if (item.tipoVisual == 5) {
             batch.draw(animOr.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
+        } else if (item.tipoVisual == 10) {
+            float valor = (item.estadoSeleccionado == 0) ? 0.2f : (item.estadoSeleccionado == 1 ? 0.5f : 1f);
+            batch.draw(animPotenciometro.getKeyFrame(tiempo, true), vx + 20f, vy + 150f, 300f, 300f);
+            batch.setColor(1f, 1f, 1f, 0.3f);
+            batch.draw(animLedNormal.getKeyFrame(tiempo, true), vx + 300f, vy + 40f, 170f, 170f);
+            batch.setColor(1f, 1f, 1f, valor);
+            batch.draw(animLedPrendiendo.getKeyFrame(tiempo, true), vx + 300f, vy + 40f, 170f, 170f);
+            batch.setColor(Color.WHITE);
         } else if (item.tipoVisual == 9) {
             Animation<TextureRegion> anim = (item.estadoSeleccionado == 1) ? anim555Astable : anim555Monoestable;
             batch.draw(anim.getKeyFrame(tiempo, true), vx + 10f, vy + 10f, 460f, 460f);

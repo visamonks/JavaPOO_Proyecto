@@ -204,6 +204,8 @@ public abstract class Nivel {
             return new Switch(siguienteId("SW_"), x, y, false);
         } else if ("CAPACITOR".equals(tipo)) {
             return new Capacitor(siguienteId("C_"), x, y);
+        } else if ("POTENCIOMETRO".equals(tipo)) {
+            return new Potenciometro(siguienteId("P_"), x, y);
         } else if ("555".equals(tipo)) {
             return new Temporizador555(siguienteId("U_"), x, y, false);
         } else if ("AND".equals(tipo)) {
@@ -257,6 +259,9 @@ public abstract class Nivel {
             if (casilla != null) casilla.incrementar();
         } else if (comp instanceof Temporizador555) {
             CasillaInventario casilla = buscarCasilla("555");
+            if (casilla != null) casilla.incrementar();
+        } else if (comp instanceof Potenciometro) {
+            CasillaInventario casilla = buscarCasilla("POTENCIOMETRO");
             if (casilla != null) casilla.incrementar();
         } else if (comp instanceof CompuertaAND) {
             CasillaInventario casilla = buscarCasilla("AND");
@@ -346,6 +351,7 @@ public abstract class Nivel {
         public Componente ultimaPieza;
         public Resistencia resistencia;
         public LED led;
+        public Potenciometro potenciometro;
         public final List<Cable> cables = new ArrayList<>();
     }
 
@@ -474,6 +480,10 @@ public abstract class Nivel {
                 r.pasoPorResistencia = true;
                 r.resistencia = res;
                 actual = (destino == res.getTerminalEntrada()) ? res.getTerminalSalida() : res.getTerminalEntrada();
+            } else if (pieza instanceof Potenciometro) {
+                Potenciometro pot = (Potenciometro) pieza;
+                r.potenciometro = pot;
+                actual = (destino == pot.getTerminalEntrada()) ? pot.getTerminalSalida() : pot.getTerminalEntrada();
             } else if (pieza instanceof LED) {
                 LED led = (LED) pieza;
                 if (destino == led.getTerminalCatodo()) {

@@ -5,6 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.schematic.model.componentes.Capacitor;
 import com.schematic.model.componentes.Componente;
 import com.schematic.model.componentes.LED;
+import com.schematic.model.componentes.Potenciometro;
 import com.schematic.model.componentes.Resistencia;
 import com.schematic.model.componentes.Terminal;
 
@@ -160,7 +161,7 @@ public class EnrutadorCables {
         }
         int haciaAfuera = (t.getOffsetX() < c.getAncho() / 2f) ? 2 : 0;
         int preferida;
-        if (c instanceof LED || c instanceof Capacitor) {
+        if (c instanceof LED || c instanceof Capacitor || c instanceof Potenciometro) {
             preferida = 3;
             agregarSalida(lista, t, 3, 0f);
             agregarSalida(lista, t, haciaAfuera, COSTO_OTRA_SALIDA);

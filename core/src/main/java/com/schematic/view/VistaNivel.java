@@ -60,7 +60,7 @@ public class VistaNivel extends ScreenAdapter {
     private List<Texture> texturasCargadas;
     private Animation<TextureRegion> animLedNormal, animLedPrendiendo, animLedMuriendo;
     private Animation<TextureRegion> animResistenciaNormal, animResistenciaFallo, animAnd, animOr;
-    private Animation<TextureRegion> animCapacitorVacio, animCapacitorCargado, animCapacitorExplotado, anim555Astable, anim555Monoestable;
+    private Animation<TextureRegion> animCapacitorVacio, animCapacitorCargado, animCapacitorExplotado, anim555Astable, anim555Monoestable, animPotenciometro;
 
     private boolean mostrandoGuiaNivel;
     private int paginaTutorial;
@@ -160,6 +160,7 @@ public class VistaNivel extends ScreenAdapter {
         animCapacitorExplotado = cargarAnimacion("capacitor_explotado", 8, 0.08f);
         anim555Astable = cargarAnimacion("555_astable", 10, 0.07f);
         anim555Monoestable = cargarAnimacion("555_monoestable", 10, 0.20f);
+        animPotenciometro = cargarAnimacion("potenciometro", 8, 0.14f);
     }
 
     private Animation<TextureRegion> cargarAnimacion(String carpeta, int cantidadFrames, float duracionFrame) {
@@ -255,6 +256,17 @@ public class VistaNivel extends ScreenAdapter {
         }
         batch.end();
         Gdx.gl.glEnable(GL20.GL_BLEND);
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        dibujarPerillasPotenciometro();
+        dibujarBarraPotenciometroShapes();
+        shapeRenderer.end();
+        if (potenciometroAbierto != null) {
+            batch.begin();
+            dibujarBarraPotenciometroTextos();
+            batch.end();
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+        }
 
         dibujarEfectosDerrota();
 
@@ -805,6 +817,8 @@ public class VistaNivel extends ScreenAdapter {
                 frame = animCapacitorCargado.getKeyFrame(tiempoTotal, true); fw = 140f; fh = 140f;
             } else if ("555".equals(tipo)) {
                 frame = anim555Monoestable.getKeyFrame(tiempoTotal, true); fw = 170f; fh = 170f;
+            } else if ("POTENCIOMETRO".equals(tipo)) {
+                frame = animPotenciometro.getKeyFrame(tiempoTotal, true); fw = 140f; fh = 140f;
             }
             Color tinte = tipo.startsWith("LED_") ? colorDeLed(tipo.substring(4)) : Color.WHITE;
             dibujarSlotInventario(casilla, y, alto, frame, fw * escala, fh * escala, tinte);
@@ -840,6 +854,7 @@ public class VistaNivel extends ScreenAdapter {
         else if ("OR".equals(tipo)) batch.draw(animOr.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
         else if ("CAPACITOR".equals(tipo)) batch.draw(animCapacitorVacio.getKeyFrame(tiempoTotal, true), pos.x - 120f, pos.y - 120f, 240f, 240f);
         else if ("555".equals(tipo)) batch.draw(anim555Monoestable.getKeyFrame(tiempoTotal, true), pos.x - 180f, pos.y - 180f, 360f, 360f);
+        else if ("POTENCIOMETRO".equals(tipo)) batch.draw(animPotenciometro.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
         else if (tipo != null && tipo.startsWith("SWITCH")) {
             boolean esDoble = (nivel != null && nivel.esSwitchDivisor(tipo));
             batch.end();
@@ -1189,6 +1204,16 @@ public class VistaNivel extends ScreenAdapter {
                 fontPequena.setColor(0.42f, 0.78f, 1f, 0.90f); fontPequena.draw(batch, "-", x + 174f, y + 88f);
                 fontPequena.setColor(COLOR_GRIS_CLARO); glyphLayout.setText(fontPequena, nombreDeLed(led.getColor()));
                 fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h - 6f);
+            } else if (comp instanceof Potenciometro) {
+                Potenciometro pot = (Potenciometro) comp;
+                batch.draw(animPotenciometro.getKeyFrame(tiempoTotal, true), x, y, w, h);
+                String texto = "INTENSIDAD " + pot.getPorcentaje() + "%";
+                fontPequena.setColor(COLOR_CELESTE_BRILLANTE);
+                glyphLayout.setText(fontPequena, texto);
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h - 18f);
+                fontPequena.setColor(COLOR_GRIS_METAL);
+                fontPequena.draw(batch, "-", x + 54f, y + 154f);
+                fontPequena.draw(batch, "+", x + w - 66f, y + 154f);
             } else if (comp instanceof Temporizador555) {
                 Temporizador555 chip = (Temporizador555) comp;
                 Animation<TextureRegion> anim = chip.isAstable() ? anim555Astable : anim555Monoestable;
@@ -1266,6 +1291,110 @@ public class VistaNivel extends ScreenAdapter {
         Nivel.CasillaInventario casilla = sw.isDoble() ? nivel.buscarCasilla("SWITCH_DIVISOR") : null;
         if (casilla == null) casilla = nivel.buscarCasilla("SWITCH");
         return (casilla != null) ? casilla.getTitulo().toUpperCase() : "SWITCH";
+    }
+
+    private static final float BARRA_POT_ANCHO = 400f, BARRA_POT_ALTO = 96f;
+    private Potenciometro potenciometroAbierto;
+
+    public void alternarBarraPotenciometro(Potenciometro pot) {
+        potenciometroAbierto = (potenciometroAbierto == pot) ? null : pot;
+    }
+
+    public void cerrarBarraPotenciometro() {
+        potenciometroAbierto = null;
+    }
+
+    private float getBarraPotX() {
+        float x = potenciometroAbierto.getPosicionX() + potenciometroAbierto.getAncho() / 2f - BARRA_POT_ANCHO / 2f;
+        return MathUtils.clamp(x, 310f, 1600f - BARRA_POT_ANCHO);
+    }
+
+    private float getBarraPotY() {
+        float y = potenciometroAbierto.getPosicionY() + potenciometroAbierto.getAlto() + 6f;
+        if (y + BARRA_POT_ALTO > 975f) y = potenciometroAbierto.getPosicionY() - BARRA_POT_ALTO - 6f;
+        return y;
+    }
+
+    public boolean estaSobreBarraPotenciometro(float mx, float my) {
+        if (potenciometroAbierto == null) return false;
+        float x = getBarraPotX(), y = getBarraPotY();
+        return mx >= x && mx <= x + BARRA_POT_ANCHO && my >= y && my <= y + BARRA_POT_ALTO;
+    }
+
+    public void moverBarraPotenciometro(float mx) {
+        if (potenciometroAbierto == null) return;
+        float inicio = getBarraPotX() + 40f, fin = getBarraPotX() + BARRA_POT_ANCHO - 40f;
+        potenciometroAbierto.setValor((mx - inicio) / (fin - inicio));
+    }
+
+    private void dibujarBarraPotenciometroShapes() {
+        if (potenciometroAbierto != null && !nivel.getComponentes().contains(potenciometroAbierto)) {
+            potenciometroAbierto = null;
+        }
+        if (potenciometroAbierto == null) return;
+        float x = getBarraPotX(), y = getBarraPotY();
+        float inicio = x + 40f, fin = x + BARRA_POT_ANCHO - 40f, ty = y + 34f;
+        float valor = potenciometroAbierto.getValor();
+        Color ambar = new Color(1f, 0.80f, 0.20f, 1f);
+
+        shapeRenderer.setColor(0f, 0f, 0f, 0.55f);
+        shapeRenderer.rect(x + 8f, y - 8f, BARRA_POT_ANCHO, BARRA_POT_ALTO);
+        dibujarCajaBorde(x, y, BARRA_POT_ANCHO, BARRA_POT_ALTO, new Color(0.04f, 0.06f, 0.10f, 0.97f), ambar, 2f);
+
+        shapeRenderer.setColor(0.16f, 0.19f, 0.25f, 1f);
+        shapeRenderer.rect(inicio, ty - 6f, fin - inicio, 12f);
+        shapeRenderer.circle(inicio, ty, 6f);
+        shapeRenderer.circle(fin, ty, 6f);
+        shapeRenderer.setColor(ambar);
+        shapeRenderer.rect(inicio, ty - 6f, (fin - inicio) * valor, 12f);
+        shapeRenderer.circle(inicio, ty, 6f);
+        for (int k = 0; k <= 10; k++) {
+            float tx = inicio + (fin - inicio) * k / 10f;
+            shapeRenderer.setColor(0.55f, 0.62f, 0.72f, 0.8f);
+            shapeRenderer.rect(tx - 1f, ty - 20f, 2f, (k % 5 == 0) ? 9f : 5f);
+        }
+
+        float px = inicio + (fin - inicio) * valor;
+        shapeRenderer.setColor(COLOR_FONDO_NEGRO);
+        shapeRenderer.circle(px, ty, 18f);
+        shapeRenderer.setColor(ambar);
+        shapeRenderer.circle(px, ty, 14f);
+        shapeRenderer.setColor(1f, 1f, 1f, 0.95f);
+        shapeRenderer.circle(px, ty, 5f);
+    }
+
+    private void dibujarBarraPotenciometroTextos() {
+        float x = getBarraPotX(), y = getBarraPotY();
+        fontPequena.setColor(1f, 0.80f, 0.20f, 1f);
+        fontPequena.draw(batch, "BRILLO", x + 20f, y + BARRA_POT_ALTO - 12f);
+        String porcentaje = potenciometroAbierto.getPorcentaje() + "%";
+        glyphLayout.setText(fontPequena, porcentaje);
+        fontPequena.setColor(Color.WHITE);
+        fontPequena.draw(batch, porcentaje, x + BARRA_POT_ANCHO - 20f - glyphLayout.width, y + BARRA_POT_ALTO - 12f);
+        String ayuda = "Arrastra la perilla";
+        glyphLayout.setText(fontPequena, ayuda);
+        fontPequena.setColor(COLOR_GRIS_METAL);
+        fontPequena.draw(batch, ayuda, x + (BARRA_POT_ANCHO - glyphLayout.width) / 2f, y + BARRA_POT_ALTO - 12f);
+    }
+
+    private void dibujarPerillasPotenciometro() {
+        if (nivel == null) return;
+        for (Componente comp : nivel.getComponentes()) {
+            if (!(comp instanceof Potenciometro)) continue;
+            Potenciometro pot = (Potenciometro) comp;
+            float cx = pot.getPosicionX() + 140f, cy = pot.getPosicionY() + 149f;
+            float angulo = 225f - 270f * pot.getValor();
+            float px = cx + 40f * MathUtils.cosDeg(angulo), py = cy + 40f * MathUtils.sinDeg(angulo);
+            shapeRenderer.setColor(COLOR_FONDO_NEGRO);
+            shapeRenderer.circle(px, py, 8f);
+            shapeRenderer.setColor(1f, 0.80f, 0.20f, 1f);
+            shapeRenderer.circle(px, py, 5.5f);
+            float bx = pot.getPosicionX() + 70f, by = pot.getPosicionY() + 14f, bw = 140f;
+            shapeRenderer.setColor(0.08f, 0.10f, 0.14f, 1f);
+            shapeRenderer.rect(bx, by, bw, 10f);
+            shapeRenderer.setColor(1f, 0.85f, 0.30f, 1f);
+            shapeRenderer.rect(bx, by, bw * pot.getValor(), 10f);
+        }
     }
 
     private void dibujarBotonGuiaSuperiorShape() {
@@ -1549,6 +1678,20 @@ public class VistaNivel extends ScreenAdapter {
             font.draw(batch, "IZQ", cx - 125f, cy - 80f);
             font.draw(batch, "DER", cx + 55f, cy - 80f);
             nombre = "DOS LEDs EN PARALELO";
+        }
+        if (icono.equals("POT")) {
+            float valor = 0.5f + 0.5f * MathUtils.sin(tiempoTotal * 1.2f);
+            batch.draw(animPotenciometro.getKeyFrame(tiempoTotal, true), cx - 150f, cy - 60f, 300f, 300f);
+            batch.setColor(1f, 1f, 1f, 0.25f);
+            batch.draw(animLedNormal.getKeyFrame(tiempoTotal, true), cx - 60f, cy - 215f, 120f, 120f);
+            batch.setColor(1f, 1f, 1f, valor);
+            batch.draw(animLedPrendiendo.getKeyFrame(tiempoTotal, true), cx - 60f, cy - 215f, 120f, 120f);
+            batch.setColor(Color.WHITE);
+            font.setColor(COLOR_CELESTE_BRILLANTE);
+            String texto = Math.round(valor * 100f) + "%";
+            glyphLayout.setText(font, texto);
+            font.draw(batch, texto, cx + 70f, cy - 150f);
+            nombre = "POTENCIÓMETRO";
         }
         if (icono.equals("555A") || icono.equals("555M")) {
             boolean astable = icono.equals("555A");
@@ -1870,6 +2013,8 @@ public class VistaNivel extends ScreenAdapter {
     private void dibujarIconoToken(String tipo, float x, float y, float tam) {
         if (tipo.equals("R")) {
             batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), x - tam * 0.7f, y - tam * 0.45f, tam * 1.4f, tam * 0.9f);
+        } else if (tipo.equals("POT")) {
+            batch.draw(animPotenciometro.getKeyFrame(tiempoTotal, true), x - tam * 0.6f, y - tam * 0.5f, tam * 1.2f, tam * 1.2f);
         } else if (tipo.equals("555A") || tipo.equals("555M")) {
             Animation<TextureRegion> anim = tipo.equals("555A") ? anim555Astable : anim555Monoestable;
             batch.draw(anim.getKeyFrame(tiempoTotal, true), x - tam * 0.75f, y - tam * 0.75f, tam * 1.5f, tam * 1.5f);
