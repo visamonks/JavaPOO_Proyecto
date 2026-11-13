@@ -204,6 +204,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         datosNiveles[7] = new InfoNivel(8, "AMBULANCIA", "555 ASTABLE", "75s",
                 "Fuente - Chip 555 - Capacitor - Resistencia - LED rojo",
                 "El 555 hace parpadear la luz solo, como una ambulancia.");
+        datosNiveles[8] = new InfoNivel(9, "PASILLO", "555 MONO", "80s",
+                "Fuente - Boton - Chip 555 - Capacitor - Resistencia - LED",
+                "Un toque al boton y la luz se apaga sola a los 3 s.");
     }
 
     private void cargarProgresoJugador() {
@@ -673,6 +676,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                     break;
                 case 7:
                     dibujarIcono555(cx, cy, sel, true);
+                    break;
+                case 8:
+                    dibujarIcono555(cx, cy, sel, false);
                     break;
             }
         }
