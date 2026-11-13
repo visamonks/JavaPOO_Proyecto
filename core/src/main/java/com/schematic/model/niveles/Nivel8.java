@@ -4,7 +4,7 @@ import com.schematic.model.componentes.*;
 
 public class Nivel8 extends Nivel {
 
-    public static final float TIEMPO_LIMITE = 75.0f;
+    public static final float TIEMPO_LIMITE = 180.0f;
     public static final int PARPADEOS_PARA_GANAR = 5;
 
     private boolean paso1Listo;
@@ -35,18 +35,7 @@ public class Nivel8 extends Nivel {
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
         this.inventario.add(new CasillaInventario("CAPACITOR", "Capacitor", 1));
         this.inventario.add(new CasillaInventario("555", "Chip 555", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al pin VCC del 555.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{"1. VCC y GND", "2. Capacitor", "3. LED + 220", "4. Astable"};
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        Temporizador555 chip = buscar555();
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, chip != null && chip.isAstable() && paso3Listo};
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: luces que parpadeen solas.");
     }
 
     @Override
@@ -56,7 +45,7 @@ public class Nivel8 extends Nivel {
                 "El chip 555 es un temporizador. En modo ASTABLE se prende y se apaga solo, una y otra vez, como un corazón que late.",
                 "Las luces de una ambulancia o la direccional del carro parpadean solas: adentro hay un temporizador como el 555.",
                 TutorialNivel.Esquema.RAMAS,
-                new String[]{"Fuente (+) a VCC y GND a (-)", "Pin C al capacitor (+)", "OUT al (+) del LED y su (-) a 220 Ohm", "Capacitor (-) y 220 Ohm a (-)"},
+                new String[]{"Un chip sin energía no hace nada. La guía del 555 explica sus pines.", "El 555 mide el tiempo con ayuda de un capacitor.", "La luz va conectada a lo que el chip entrega.", "Un chip dormido no parpadea."},
                 "Haz que la luz de la ambulancia parpadee 5 veces."
         ).conRamas(new String[]{"555A:ASTABLE", "LED_ROJO", "R"}, new String[]{"|", "CAP"})
          .conIcono("555A")
@@ -90,7 +79,7 @@ public class Nivel8 extends Nivel {
         Temporizador555 chip = buscar555();
         Capacitor capacitor = buscarCapacitor();
         if (chip == null || capacitor == null || buscarCablesConTerminal(positivo).isEmpty()) {
-            mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al pin VCC del 555.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: luces que parpadeen solas.");
             return false;
         }
 
@@ -110,18 +99,18 @@ public class Nivel8 extends Nivel {
         chip.avanzar(deltaActual, listo, false);
 
         if (cableVcc == null) {
-            mensajeEstado = "Conecta la Fuente (+) al pin VCC del 555 (arriba a la izquierda).";
+            mensajeEstado = "El 555 no tiene energía.";
             return false;
         }
         cableVcc.setTieneEnergia(true);
         if (cableGnd == null) {
-            mensajeEstado = "Conecta el pin GND del 555 (abajo a la izquierda) a la Fuente (-).";
+            mensajeEstado = "La corriente no sale del 555: su regreso está abierto.";
             return false;
         }
         cableGnd.setTieneEnergia(true);
         if (revisarCapacitorAlReves(capacitor, chip.getTerminalCapacitor(), fuente, true)) return false;
         if (!paso2Listo) {
-            mensajeEstado = "El 555 necesita un capacitor para medir el tiempo: el pin C va a su pata (+) y su pata (-) a la Fuente (-).";
+            mensajeEstado = "El 555 no tiene con qué medir el tiempo.";
             return false;
         }
         cableC.setTieneEnergia(true);
@@ -131,7 +120,7 @@ public class Nivel8 extends Nivel {
             return false;
         }
         if (!chip.isAstable()) {
-            mensajeEstado = "El 555 está dormido en MONOESTABLE. Haz clic en él para pasarlo a ASTABLE.";
+            mensajeEstado = "El 555 está dormido en MONOESTABLE: en este modo no parpadea.";
             return false;
         }
 

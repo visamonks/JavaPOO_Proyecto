@@ -4,7 +4,7 @@ import com.schematic.model.componentes.*;
 
 public class Nivel9 extends Nivel {
 
-    public static final float TIEMPO_LIMITE = 80.0f;
+    public static final float TIEMPO_LIMITE = 180.0f;
 
     private boolean paso1Listo;
     private boolean paso2Listo;
@@ -35,17 +35,7 @@ public class Nivel9 extends Nivel {
         this.inventario.add(new CasillaInventario("SWITCH", "Botón", 1));
         this.inventario.add(new CasillaInventario("CAPACITOR", "Capacitor", 1));
         this.inventario.add(new CasillaInventario("555", "Chip 555", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al pin VCC del 555.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{"1. VCC, GND, C", "2. Botón a TRIG", "3. LED + 220", "4. Un toque"};
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, ganado};
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: una luz que se apague sola.");
     }
 
     @Override
@@ -55,7 +45,7 @@ public class Nivel9 extends Nivel {
                 "En modo MONOESTABLE el 555 espera dormido. Con un toque en su pin TRIG despierta, prende su salida unos segundos y vuelve a dormir.",
                 "La luz del pasillo de un edificio: presionas el botón una vez, se queda prendida un rato y luego se apaga sola para ahorrar energía.",
                 TutorialNivel.Esquema.RAMAS,
-                new String[]{"Fuente (+) a VCC y GND a (-)", "Fuente (+) al botón y botón a TRIG", "Pin C al capacitor y OUT al (+) del LED", "LED (-) a 220 Ohm; 220 y capacitor (-) a (-)"},
+                new String[]{"El 555 necesita lo mismo que en la ambulancia para funcionar.", "Algo tiene que darle el toque de arranque.", "Un solo toque basta: el chip cuenta el tiempo solo.", "¿En qué modo se queda el chip esperando un toque?"},
                 "Presiona el botón una vez y deja que la luz del pasillo se apague sola después de 3 segundos."
         ).conRamas(new String[]{"SW:BOTON", "555M:MONO", "LED", "R"}, new String[]{"", "|", "CAP"})
          .conIcono("555M")
@@ -85,7 +75,7 @@ public class Nivel9 extends Nivel {
         Capacitor capacitor = buscarCapacitor();
         Switch boton = buscarSwitches().isEmpty() ? null : buscarSwitches().get(0);
         if (chip == null || capacitor == null || boton == null || buscarCablesConTerminal(positivo).isEmpty()) {
-            mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al pin VCC del 555.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: una luz que se apague sola.");
             return false;
         }
 
@@ -108,20 +98,20 @@ public class Nivel9 extends Nivel {
         chip.avanzar(deltaActual, listo, disparo);
 
         if (cableVcc == null || cableGnd == null) {
-            mensajeEstado = "Alimenta el 555: Fuente (+) a VCC y GND a la Fuente (-).";
+            mensajeEstado = "El 555 no tiene energía o su regreso está abierto.";
             return false;
         }
         cableVcc.setTieneEnergia(true);
         cableGnd.setTieneEnergia(true);
         if (revisarCapacitorAlReves(capacitor, chip.getTerminalCapacitor(), fuente, true)) return false;
         if (cableC == null || capATierra == null) {
-            mensajeEstado = "El 555 necesita su capacitor: el pin C va a su pata (+) y su pata (-) a la Fuente (-).";
+            mensajeEstado = "El 555 no tiene con qué medir el tiempo.";
             return false;
         }
         cableC.setTieneEnergia(true);
         capATierra.setTieneEnergia(true);
         if (!paso2Listo) {
-            mensajeEstado = "Conecta la Fuente (+) al botón y la salida del botón al pin TRIG.";
+            mensajeEstado = "Nada puede darle el toque de arranque al 555.";
             return false;
         }
         haciaBoton.setTieneEnergia(true);
@@ -133,7 +123,7 @@ public class Nivel9 extends Nivel {
             return false;
         }
         if (chip.isAstable()) {
-            mensajeEstado = "El pasillo necesita el 555 en MONOESTABLE (gorro de dormir). Haz clic en él.";
+            mensajeEstado = "En este modo el 555 no espera ningún toque.";
             return false;
         }
 

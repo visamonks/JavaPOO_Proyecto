@@ -90,19 +90,8 @@ public abstract class Nivel {
 
     public abstract boolean evaluarCircuitoCompleto();
 
-    public String[] obtenerPasosGuia() {
-        return null;
-    }
-
-    public boolean[] obtenerEstadoPasosGuia() {
-        return null;
-    }
-
     public TutorialNivel obtenerTutorial() {
-        String[] pasos = obtenerPasosGuia();
-        if (pasos == null) {
-            pasos = new String[]{"Coloca las piezas", "Conéctalas con cables", "Enciende el circuito"};
-        }
+        String[] pasos = {"Coloca las piezas", "Conéctalas con cables", "Enciende el circuito"};
         return new TutorialNivel(
                 tituloReto,
                 "Arma el circuito con las piezas del almacén.",
@@ -439,7 +428,7 @@ public abstract class Nivel {
             for (Cable c : buscarCablesConTerminal(capacitor.getTerminalNegativo())) c.setTieneEnergia(true);
             mensajeEstado = "¡EL CAPACITOR EXPLOTÓ! Estaba al revés: su pata larga (+) va hacia la corriente.";
         } else {
-            mensajeEstado = "Capacitor al revés: si le llega corriente va a explotar. Su pata larga (+) va hacia la corriente.";
+            mensajeEstado = "Cuidado: ese capacitor está al revés.";
         }
         return true;
     }
@@ -508,7 +497,7 @@ public abstract class Nivel {
             return false;
         }
         if (r.polaridadInvertida) {
-            mensajeEstado = "Polaridad invertida: entra por el (+) rojo del LED y sal por el (-) azul.";
+            mensajeEstado = "Polaridad invertida: el LED está al revés y no deja pasar la corriente.";
             return false;
         }
         if (r.llegoATierra && r.pasoPorLed && !r.pasoPorResistencia) {
@@ -519,7 +508,7 @@ public abstract class Nivel {
                 for (Cable c : r.cables) c.setTieneEnergia(true);
                 mensajeEstado = "¡EL LED SE HA QUEMADO! Faltó la resistencia de 220 Ohm.";
             } else {
-                mensajeEstado = "Agrega la resistencia de 220 Ohm para proteger el LED.";
+                mensajeEstado = "Al LED le falta su protección.";
             }
             return false;
         }
@@ -529,18 +518,18 @@ public abstract class Nivel {
     protected boolean revisarSalidaCompleta(Recorrido r) {
         if (!r.llegoATierra) {
             if (r.cables.isEmpty()) {
-                mensajeEstado = "Conecta la salida al (+) del LED.";
+                mensajeEstado = "La corriente todavía no llega al LED.";
             } else if (r.ultimaPieza instanceof LED && !r.pasoPorResistencia) {
-                mensajeEstado = "Conecta el (-) del LED a la resistencia de 220 Ohm.";
+                mensajeEstado = "La corriente se queda atorada en el LED.";
             } else if (r.ultimaPieza instanceof Resistencia && !r.pasoPorLed) {
-                mensajeEstado = "Conecta la resistencia al (+) del LED.";
+                mensajeEstado = "La corriente se queda atorada en la resistencia.";
             } else {
-                mensajeEstado = "Cierra el circuito: lleva el cable hasta la Fuente (-).";
+                mensajeEstado = "El circuito está abierto: la corriente no regresa a la fuente.";
             }
             return false;
         }
         if (!r.pasoPorLed) {
-            mensajeEstado = "Falta poner el LED en el camino de salida.";
+            mensajeEstado = "La corriente pasa, pero no hay ninguna luz en su camino.";
             return false;
         }
         return true;

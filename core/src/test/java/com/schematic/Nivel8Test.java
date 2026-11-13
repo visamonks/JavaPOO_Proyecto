@@ -91,7 +91,7 @@ public class Nivel8Test {
         chip.cambiarModo();
         for (int i = 0; i < 4; i++) nivel.actualizar(0.5f);
         assertEquals(0, chip.getPulsos());
-        assertTrue(nivel.getMensajeEstado().contains("capacitor"));
+        assertTrue(nivel.getMensajeEstado().contains("medir el tiempo"));
     }
 
     @Test

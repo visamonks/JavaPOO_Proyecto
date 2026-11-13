@@ -60,8 +60,8 @@ public class Nivel3Test {
     public void testInicializacionComponentesTiempoEInventario() {
         assertEquals(3, nivel.getNumeroNivel());
         assertEquals("NIVEL 3: COMPUERTA LÓGICA AND", nivel.getTituloReto());
-        assertEquals(50.0f, nivel.getTiempoLimite(), 0.001f);
-        assertEquals(50.0f, nivel.getTiempoRestante(), 0.001f);
+        assertEquals(100.0f, nivel.getTiempoLimite(), 0.001f);
+        assertEquals(100.0f, nivel.getTiempoRestante(), 0.001f);
         assertEquals(5, nivel.getComponentes().size(), "Tras colocar las piezas debe haber 5 componentes en el tablero.");
 
         assertNotNull(fuente);
@@ -234,7 +234,7 @@ public class Nivel3Test {
     }
 
     @Test
-    public void testReiniciarNivelRestaura50SegundosYLimpiaCables() {
+    public void testReiniciarNivelRestaura100SegundosYLimpiaCables() {
         conectarCircuitoCompuertaANDCompleto();
         switchDivisor.setCerradoA(true);
         switchDivisor.setCerradoB(true);

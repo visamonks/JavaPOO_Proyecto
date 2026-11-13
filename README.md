@@ -4,11 +4,12 @@ Videojuego en Java que enseña diagramas esquemáticos y circuitos mediante acer
 
 ## Cómo jugar
 
-1. Antes de cada nivel aparece un **tutorial de 3 páginas**: qué es la pieza nueva, cómo se conecta y cuál es tu misión. Mientras lo lees, el reloj está en pausa.
-2. Arrastra las piezas desde el **almacén** (derecha) a la mesa. Solo la fuente empieza colocada.
-3. Haz clic en un pin y arrastra hasta otro para poner un cable. Los cables buscan solos el camino más corto, rodean las piezas y no se cruzan si pueden evitarlo.
-4. Arma el LED siempre igual: la corriente entra por su pata (+) y la **resistencia va en su pata (-)**.
-5. Cumple la misión del nivel antes de que se acabe el tiempo.
+1. Antes de cada nivel aparece un **tutorial de 3 páginas**: qué es la pieza nueva, unas **pistas** y cuál es tu misión. Solo el nivel 1 muestra el circuito completo; desde el nivel 2 las pistas no dicen cómo conectar, así que toca pensar, probar y aprender de los errores. Mientras lo lees, el reloj está en pausa.
+2. Durante el nivel, los mensajes de arriba no te dicen qué cable poner: te dicen qué está pasando (por ejemplo, "La corriente se queda atorada en el LED").
+3. Arrastra las piezas desde el **almacén** (derecha) a la mesa. Solo la fuente empieza colocada.
+4. Haz clic en un pin y arrastra hasta otro para poner un cable. Los cables buscan solos el camino más corto, rodean las piezas y no se cruzan si pueden evitarlo.
+5. Arma el LED siempre igual: la corriente entra por su pata (+) y la **resistencia va en su pata (-)**.
+6. Cumple la misión del nivel antes de que se acabe el tiempo. Hay tiempo de sobra para equivocarte y volver a intentar: de 60 s en el nivel 1 a 180 s en los niveles del 555.
 
 | Tecla / ratón | Acción |
 | :--- | :--- |

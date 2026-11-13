@@ -4,7 +4,7 @@ import com.schematic.model.componentes.*;
 
 public class Nivel5 extends Nivel {
 
-    public static final float TIEMPO_LIMITE = 60.0f;
+    public static final float TIEMPO_LIMITE = 120.0f;
     public static final float TIEMPO_POR_LADO = 2.5f;
 
     private float tiempoIzquierda;
@@ -42,18 +42,7 @@ public class Nivel5 extends Nivel {
         this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 2));
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 2));
         this.inventario.add(new CasillaInventario("SWITCH_DIVISOR", "Palanca", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) a la palanca de direccionales.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{"1. Palanca", "2. Izquierda", "3. Derecha", "4. Úsalas"};
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        boolean usadas = tiempoIzquierda >= TIEMPO_POR_LADO && tiempoDerecha >= TIEMPO_POR_LADO;
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, usadas};
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: una palanca y dos direccionales.");
     }
 
     @Override
@@ -63,7 +52,7 @@ public class Nivel5 extends Nivel {
                 "Un circuito puede tener ramas en paralelo: cada LED tiene su propio camino y su propia resistencia, así se prenden por separado.",
                 "Las direccionales del carro: con una sola palanca prendes la luz de la izquierda o la de la derecha.",
                 TutorialNivel.Esquema.RAMAS,
-                new String[]{"Fuente (+) a la palanca", "Salida A al LED izquierdo", "Salida B al LED derecho", "Cada LED (-) a su 220 Ohm y a la Fuente (-)"},
+                new String[]{"Cada lado de la palanca manda la corriente por un camino distinto.", "Dos luces que trabajan por separado necesitan caminos separados.", "Cada LED necesita su propia protección.", "Todos los caminos terminan en el mismo lugar."},
                 "Usa cada direccional 2.5 segundos: primero una y luego la otra."
         ).conRamas(new String[]{"SW:A", "LED:IZQ", "R"}, new String[]{"SW:B", "LED:DER", "R"})
          .conIcono("LED_DOS")
@@ -95,13 +84,13 @@ public class Nivel5 extends Nivel {
             if (sw.isDoble()) palanca = sw;
         }
         if (palanca == null || buscarCablesConTerminal(positivo).isEmpty()) {
-            mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) a la palanca de direccionales.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: una palanca y dos direccionales.");
             return false;
         }
 
         Cable entrada = cableEntre(positivo, palanca.getTerminalEntrada());
         if (entrada == null) {
-            mensajeEstado = "Conecta la Fuente (+) al pin izquierdo de la palanca.";
+            mensajeEstado = "La palanca no recibe energía por su entrada.";
             return false;
         }
         paso1Listo = true;
@@ -140,7 +129,7 @@ public class Nivel5 extends Nivel {
         if (ganado) {
             mensajeEstado = "¡Nivel superado! Las dos direccionales funcionan.";
         } else if (!izquierdaPrendida && !derechaPrendida) {
-            mensajeEstado = "Mueve la palanca: arriba (A) = izquierda, abajo (B) = derecha.";
+            mensajeEstado = "Todo listo: prueba la palanca hacia los dos lados.";
         } else {
             mensajeEstado = String.format("Izquierda %.1f de %.1f s, derecha %.1f de %.1f s",
                     tiempoIzquierda, TIEMPO_POR_LADO, tiempoDerecha, TIEMPO_POR_LADO);

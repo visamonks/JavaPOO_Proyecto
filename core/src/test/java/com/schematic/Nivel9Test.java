@@ -64,7 +64,7 @@ public class Nivel9Test {
         chip.cambiarModo();
         boton.setCerrado(true);
         nivel.actualizar(0.5f);
-        assertTrue(nivel.getMensajeEstado().contains("MONOESTABLE"));
+        assertTrue(nivel.getMensajeEstado().contains("toque"));
         assertEquals(0, chip.getPulsos());
     }
 

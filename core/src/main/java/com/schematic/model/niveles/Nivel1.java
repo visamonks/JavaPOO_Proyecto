@@ -9,7 +9,7 @@ public class Nivel1 extends Nivel {
     private boolean paso3Listo;
 
     public Nivel1() {
-        super(1, "NIVEL 1: ENCIENDE EL LED", 30.0f);
+        super(1, "NIVEL 1: ENCIENDE EL LED", 60.0f);
         inicializar();
     }
 
@@ -22,7 +22,7 @@ public class Nivel1 extends Nivel {
         this.completado = false;
         this.ganado = false;
         this.tiempoCircuitoActivo = 0.0f;
-        this.tiempoLimite = 30.0f;
+        this.tiempoLimite = 60.0f;
         this.tiempoRestante = this.tiempoLimite;
         this.paso1Listo = false;
         this.paso2Listo = false;
@@ -31,20 +31,6 @@ public class Nivel1 extends Nivel {
         this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
         this.mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al LED y su pata (-) a la resistencia.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{
-            "1. Fuente",
-            "2. LED",
-            "3. 220 Ohm"
-        };
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo};
     }
 
     @Override

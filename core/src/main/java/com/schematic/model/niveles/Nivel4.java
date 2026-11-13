@@ -43,27 +43,12 @@ public class Nivel4 extends Nivel {
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
         this.inventario.add(new CasillaInventario("SWITCH", "Switch Divisor", 1));
         this.inventario.add(new CasillaInventario("OR", "Compuerta OR", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+) al Switch.");
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: que cualquiera de las palancas prenda la luz.");
     }
 
     @Override
     public boolean usaSwitchDivisor() {
         return true;
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{
-            "1. Entrada",
-            "2. Ramas A y B",
-            "3. LED + 220",
-            "4. A o B ON"
-        };
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, paso4Listo};
     }
 
     @Override
@@ -73,7 +58,7 @@ public class Nivel4 extends Nivel {
                 "La compuerta OR deja salir corriente si la entrada A O la entrada B está encendida. Con una basta.",
                 "El timbre de una casa con dos puertas: suena si tocan en la de enfrente O en la de atrás.",
                 TutorialNivel.Esquema.DIVISOR_OR,
-                new String[]{"Fuente (+) al Switch", "Salidas A y B a la OR", "OR al (+) del LED", "LED (-) a 220 Ohm y a la Fuente (-)"},
+                new String[]{"Cada palanca del switch abre su propio camino.", "A la OR le basta con que le llegue A o B.", "Lo que sale de la compuerta es lo que prende la luz.", "El LED nunca va sin su protección."},
                 "Enciende la palanca A o la B y mantén el LED prendido 5 segundos."
         ).conTablaVerdad(false, true, true, true)
          .conConsejo("Clic en la mitad de arriba del switch para A y en la de abajo para B.");
@@ -143,7 +128,7 @@ public class Nivel4 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = mensajeColocarPiezas("Conecta Fuente (+) al pin izquierdo del Switch.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: que cualquiera de las palancas prenda la luz.");
             this.ganado = false;
             this.completado = false;
             return false;
@@ -171,9 +156,9 @@ public class Nivel4 extends Nivel {
 
         if (cableFuenteASw == null) {
             if (conectadoDirectoACompuerta) {
-                mensajeEstado = "Conecta Fuente (+) primero al Switch.";
+                mensajeEstado = "El switch no recibe energía.";
             } else {
-                mensajeEstado = "Conecta Fuente (+) al pin izquierdo del Switch.";
+                mensajeEstado = "El switch no recibe energía por su entrada.";
             }
             return false;
         }
@@ -311,7 +296,7 @@ public class Nivel4 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = "Polaridad invertida: entra por el Ánodo (+) rojo del LED y sal por el Cátodo (-) azul.";
+            mensajeEstado = "Polaridad invertida: el LED está al revés y no deja pasar la corriente.";
             return false;
         }
 
@@ -328,45 +313,45 @@ public class Nivel4 extends Nivel {
                 mensajeEstado = "¡EL LED SE HA QUEMADO! Faltó la resistencia de 220 Ohm.";
                 return false;
             } else {
-                mensajeEstado = "Agrega la resistencia de 220 Ohm para proteger el LED.";
+                mensajeEstado = "Al LED le falta su protección.";
                 return false;
             }
         }
 
         if (!paso2Listo) {
             if (!inAConectada && !inBConectada) {
-                mensajeEstado = "Conecta las ramas A y B del Switch hacia OR.";
+                mensajeEstado = "La OR no recibe nada del switch.";
             } else if (!inAConectada) {
-                mensajeEstado = "Falta conectar la entrada IN A de OR.";
+                mensajeEstado = "A la OR le falta una entrada: IN A está vacía.";
             } else {
-                mensajeEstado = "Falta conectar la entrada IN B de OR.";
+                mensajeEstado = "A la OR le falta una entrada: IN B está vacía.";
             }
             return false;
         }
 
         if (!llegoATierra) {
             if (cablesSalida.isEmpty()) {
-                mensajeEstado = "Conecta la salida de la OR al (+) del LED.";
+                mensajeEstado = "La salida de la OR no lleva a ninguna luz.";
             } else if (ultimoComponenteSalida instanceof Resistencia) {
                 if (!pasoPorLed) {
-                    mensajeEstado = "Conecta la resistencia al polo (+) del LED.";
+                    mensajeEstado = "La corriente se queda atorada en la resistencia.";
                 } else {
-                    mensajeEstado = "Cierra hacia el polo (-) de la Fuente.";
+                    mensajeEstado = "El circuito está abierto: la corriente no regresa a la fuente.";
                 }
             } else if (ultimoComponenteSalida instanceof LED) {
                 if (pasoPorResistencia) {
-                    mensajeEstado = "Cierra desde LED (-) hacia Fuente (-).";
+                    mensajeEstado = "El circuito está abierto: la corriente no regresa a la fuente.";
                 } else {
-                    mensajeEstado = "Conecta LED (-) a 220 Ohm y luego a Fuente (-).";
+                    mensajeEstado = "La corriente se queda atorada en el LED.";
                 }
             } else {
-                mensajeEstado = "Conecta la salida al LED, luego a 220 Ohm y a la Fuente (-).";
+                mensajeEstado = "La salida de la OR no lleva a ninguna luz.";
             }
             return false;
         }
 
         if (!pasoPorLed) {
-            mensajeEstado = "Falta intercalar el LED en la salida.";
+            mensajeEstado = "La corriente pasa, pero no hay ninguna luz en su camino.";
             return false;
         }
 
@@ -389,7 +374,7 @@ public class Nivel4 extends Nivel {
                 c.setTieneEnergia(false);
             }
 
-            mensajeEstado = "Activa la palanca A o B en el Switch.";
+            mensajeEstado = "Todo conectado, pero la OR todavía no deja pasar nada.";
             return false;
         }
 

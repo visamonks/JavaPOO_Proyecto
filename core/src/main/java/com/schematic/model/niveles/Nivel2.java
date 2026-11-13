@@ -14,7 +14,7 @@ public class Nivel2 extends Nivel {
     private boolean paso4Listo;
 
     public Nivel2() {
-        super(2, "NIVEL 2: CIRCUITO CON INTERRUPTOR", 30.0f);
+        super(2, "NIVEL 2: CIRCUITO CON INTERRUPTOR", 75.0f);
         inicializar();
     }
 
@@ -27,7 +27,7 @@ public class Nivel2 extends Nivel {
         this.completado = false;
         this.ganado = false;
         this.tiempoCircuitoActivo = 0.0f;
-        this.tiempoLimite = 30.0f;
+        this.tiempoLimite = 75.0f;
         this.tiempoRestante = this.tiempoLimite;
         this.paso1Listo = false;
         this.paso2Listo = false;
@@ -37,22 +37,7 @@ public class Nivel2 extends Nivel {
         this.inventario.add(new CasillaInventario("LED", "LED (Diodo)", 1));
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
         this.inventario.add(new CasillaInventario("SWITCH", "Interruptor", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta en serie con el Switch y actívalo.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{
-            "1. Fuente",
-            "2. Switch",
-            "3. LED + 220",
-            "4. Switch ON"
-        };
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, paso4Listo};
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: que el switch controle la luz.");
     }
 
     @Override
@@ -62,7 +47,7 @@ public class Nivel2 extends Nivel {
                 "Un interruptor abre o cierra el camino. Si el camino está abierto, la corriente no puede pasar.",
                 "Es el apagador de tu cuarto: el foco siempre está conectado, pero solo prende cuando lo subes.",
                 TutorialNivel.Esquema.SERIE_CON_SWITCH,
-                new String[]{"Fuente (+) al Switch", "Switch al (+) del LED", "LED (-) a la resistencia", "Resistencia a la Fuente (-)"},
+                new String[]{"El switch es una puerta en el camino de la corriente.", "Si la puerta está abierta, todo el camino se corta.", "El LED tiene un lado por donde entra la corriente y otro por donde sale.", "Todo camino tiene que regresar a la fuente."},
                 "Arma el circuito y enciende el Switch (clic) por 5 segundos."
         ).conConsejo("Si lo apagas antes de tiempo, el contador vuelve a 0.");
     }
@@ -131,7 +116,7 @@ public class Nivel2 extends Nivel {
                 led.setQuemado(false);
                 led.setEstadoActual("NEUTRO");
             }
-            mensajeEstado = mensajeColocarPiezas("Objetivo: Conecta la fuente, el interruptor, el LED y su resistencia.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: que el switch controle la luz.");
             this.ganado = false;
             this.completado = false;
             return false;
@@ -193,7 +178,7 @@ public class Nivel2 extends Nivel {
                     l.setQuemado(false);
                     l.setEstadoActual("NEUTRO");
                     fuente.setEstadoActual("NEUTRO");
-                    mensajeEstado = "Polaridad invertida: La corriente debe entrar por el Ánodo (+) del LED.";
+                    mensajeEstado = "Polaridad invertida: el LED está al revés y no deja pasar la corriente.";
                     return false;
                 }
                 pasoPorLed = true;
@@ -223,7 +208,7 @@ public class Nivel2 extends Nivel {
                 if (interruptor != null) interruptor.setEstadoActual("NEUTRO");
                 if (res != null) res.setEstadoActual("NEUTRO");
                 if (led != null) led.setEstadoActual("NEUTRO");
-                mensajeEstado = "Falta intercalar el interruptor (Switch) en el circuito.";
+                mensajeEstado = "La luz no se puede controlar: el switch no está en el camino.";
                 return false;
             }
 
@@ -231,7 +216,7 @@ public class Nivel2 extends Nivel {
                 fuente.setEstadoActual("NEUTRO");
                 if (interruptor != null) interruptor.setEstadoActual("NEUTRO");
                 if (res != null) res.setEstadoActual("NEUTRO");
-                mensajeEstado = "Falta intercalar el LED en el circuito.";
+                mensajeEstado = "La corriente pasa, pero no hay ninguna luz en su camino.";
                 return false;
             }
 
@@ -250,7 +235,7 @@ public class Nivel2 extends Nivel {
                     for (Cable c : cables) {
                         c.setTieneEnergia(false);
                     }
-                    mensajeEstado = "Circuito conectado. Haz clic sobre el interruptor para cerrarlo y encender el LED.";
+                    mensajeEstado = "Todo conectado, pero el switch está abierto.";
                     return false;
                 } else {
                     fuente.setEstadoActual("EXITO");
@@ -301,13 +286,13 @@ public class Nivel2 extends Nivel {
 
         Componente ultimo = (terminalActual != null) ? terminalActual.getComponentePadre() : null;
         if (ultimo instanceof Switch) {
-            mensajeEstado = "Conecta la salida del Switch hacia el resto de componentes.";
+            mensajeEstado = "La corriente se queda atorada en el switch.";
         } else if (ultimo instanceof Resistencia) {
-            mensajeEstado = "Conecta la resistencia hacia el siguiente componente o a tierra (-).";
+            mensajeEstado = "La corriente se queda atorada en la resistencia.";
         } else if (ultimo instanceof LED) {
-            mensajeEstado = "Conecta el cátodo (-) del LED hacia el siguiente componente o a tierra (-).";
+            mensajeEstado = "La corriente se queda atorada en el LED.";
         } else {
-            mensajeEstado = "Conecta los componentes en serie y cierra el circuito al polo (-).";
+            mensajeEstado = "El circuito está abierto: la corriente no regresa a la fuente.";
         }
 
         return false;

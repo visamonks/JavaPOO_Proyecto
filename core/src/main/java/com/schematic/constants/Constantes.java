@@ -11,10 +11,10 @@ public class Constantes {
     public static final String RUTA_PROGRESO = "progreso.json";
 
     public static final float TIEMPO_VALIDACION_NIVEL_3 = 5.0f;
-    public static final float TIEMPO_LIMITE_NIVEL_3 = 50.0f;
+    public static final float TIEMPO_LIMITE_NIVEL_3 = 100.0f;
 
     public static final float TIEMPO_VALIDACION_NIVEL_4 = 5.0f;
-    public static final float TIEMPO_LIMITE_NIVEL_4 = 50.0f;
+    public static final float TIEMPO_LIMITE_NIVEL_4 = 100.0f;
 
     public static final String ID_NIVEL4_FUENTE = "FUENTE_PODER";
     public static final String ID_NIVEL4_SWITCH = "SW_1";

@@ -4,7 +4,7 @@ import com.schematic.model.componentes.*;
 
 public class Nivel10 extends Nivel {
 
-    public static final float TIEMPO_LIMITE = 80.0f;
+    public static final float TIEMPO_LIMITE = 150.0f;
     public static final int MINIMO = 40;
     public static final int MAXIMO = 60;
     public static final float TIEMPO_EN_RANGO = 3.0f;
@@ -39,17 +39,7 @@ public class Nivel10 extends Nivel {
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
         this.inventario.add(new CasillaInventario("SWITCH", "Interruptor", 1));
         this.inventario.add(new CasillaInventario("POTENCIOMETRO", "Potenciómetro", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al switch.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{"1. Switch", "2. Perilla", "3. LED + 220", "4. Luz media"};
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, enRango};
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: una luz que se pueda regular.");
     }
 
     @Override
@@ -59,7 +49,7 @@ public class Nivel10 extends Nivel {
                 "El potenciómetro es una resistencia que puedes ajustar girando su perilla: más resistencia, menos corriente y el LED brilla menos.",
                 "El regulador de luz de un cuarto o la perilla del volumen de una bocina: giras y cambia poco a poco.",
                 TutorialNivel.Esquema.RAMAS,
-                new String[]{"Fuente (+) al switch", "Switch al potenciómetro", "Potenciómetro al (+) del LED", "LED (-) a 220 Ohm y a la Fuente (-)"},
+                new String[]{"El potenciómetro decide cuánta corriente pasa.", "Para regular la luz, la perilla tiene que estar en su camino.", "El switch prende o apaga todo el circuito.", "Aunque regules la luz, el LED sigue necesitando su protección."},
                 "Deja la luz entre 40% y 60% (luz de cine) y mantenla así 3 segundos."
         ).conRamas(new String[]{"SW", "POT", "LED", "R"})
          .conIcono("POT")
@@ -88,13 +78,13 @@ public class Nivel10 extends Nivel {
         Switch sw = buscarSwitches().isEmpty() ? null : buscarSwitches().get(0);
         Potenciometro perilla = buscarPotenciometro();
         if (sw == null || perilla == null || buscarCablesConTerminal(positivo).isEmpty()) {
-            mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al switch.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: una luz que se pueda regular.");
             return false;
         }
 
         Cable entrada = cableEntre(positivo, sw.getTerminalEntrada());
         if (entrada == null) {
-            mensajeEstado = "Conecta la Fuente (+) al pin izquierdo del switch.";
+            mensajeEstado = "El switch no recibe energía por su entrada.";
             return false;
         }
         paso1Listo = true;
@@ -109,11 +99,11 @@ public class Nivel10 extends Nivel {
 
         if (!revisarSalidaCompleta(salida)) return false;
         if (!paso2Listo) {
-            mensajeEstado = "Pon el potenciómetro en el camino para poder regular la luz.";
+            mensajeEstado = "La luz prende, pero el potenciómetro no la está regulando.";
             return false;
         }
         if (!sw.isCerrado()) {
-            mensajeEstado = "Enciende el switch para prender la luz.";
+            mensajeEstado = "Todo conectado, pero el switch está abierto.";
             return false;
         }
 
@@ -125,9 +115,9 @@ public class Nivel10 extends Nivel {
         if (ganado) {
             mensajeEstado = "¡Nivel superado! Luz perfecta para ver una película.";
         } else if (intensidad > MAXIMO) {
-            mensajeEstado = "Intensidad " + intensidad + "%: bájala hasta " + MINIMO + "%-" + MAXIMO + "% (mitad izquierda de la perilla).";
+            mensajeEstado = "Intensidad " + intensidad + "%: bájala hasta " + MINIMO + "%-" + MAXIMO + "%.";
         } else if (intensidad < MINIMO) {
-            mensajeEstado = "Intensidad " + intensidad + "%: súbela hasta " + MINIMO + "%-" + MAXIMO + "% (mitad derecha de la perilla).";
+            mensajeEstado = "Intensidad " + intensidad + "%: súbela hasta " + MINIMO + "%-" + MAXIMO + "%.";
         } else {
             mensajeEstado = String.format("¡Luz de cine! %d%%   %.1f / %.0f s", intensidad, tiempoCircuitoActivo, TIEMPO_EN_RANGO);
         }

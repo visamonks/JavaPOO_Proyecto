@@ -4,7 +4,7 @@ import com.schematic.model.componentes.*;
 
 public class Nivel7 extends Nivel {
 
-    public static final float TIEMPO_LIMITE = 70.0f;
+    public static final float TIEMPO_LIMITE = 120.0f;
     public static final float TIEMPO_SOLO_CAPACITOR = 3.0f;
 
     private float tiempoSoloCapacitor;
@@ -39,17 +39,7 @@ public class Nivel7 extends Nivel {
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 1));
         this.inventario.add(new CasillaInventario("SWITCH", "Interruptor", 1));
         this.inventario.add(new CasillaInventario("CAPACITOR", "Capacitor", 1));
-        this.mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al switch.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{"1. Switch", "2. Capacitor", "3. LED + 220", "4. Sin fuente"};
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        return new boolean[]{paso1Listo, paso2Listo, paso3Listo, ganado};
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: que la luz siga prendida un rato sin la fuente.");
     }
 
     @Override
@@ -59,7 +49,7 @@ public class Nivel7 extends Nivel {
                 "Un capacitor guarda energía como un tanque pequeño. Cuando se corta la fuente, la suelta poco a poco.",
                 "Cuando desconectas el cargador de la laptop, la lucecita tarda un momento en apagarse: un capacitor la mantiene.",
                 TutorialNivel.Esquema.RAMAS,
-                new String[]{"Fuente (+) al switch", "Switch a la pata (+) del capacitor", "Switch al (+) del LED y su (-) a 220 Ohm", "Capacitor (-) y 220 Ohm a la Fuente (-)"},
+                new String[]{"El capacitor tiene un lado (+) y uno (-). Al revés, explota.", "Para guardar energía, la corriente tiene que llegarle.", "La luz y el capacitor pueden compartir la misma corriente.", "¿Qué le pasa a la luz cuando quitas la fuente?"},
                 "Carga el capacitor, APAGA el switch y deja que el capacitor mantenga el LED prendido 3 segundos."
         ).conRamas(new String[]{"SW", "", "LED", "R"}, new String[]{"", "|", "CAP"})
          .conIcono("CAP")
@@ -89,13 +79,13 @@ public class Nivel7 extends Nivel {
         Capacitor capacitor = buscarCapacitor();
         if (sw == null || capacitor == null || buscarCablesConTerminal(positivo).isEmpty()) {
             if (capacitor != null && !ganado) capacitor.descargar(deltaActual);
-            mensajeEstado = mensajeColocarPiezas("Conecta la Fuente (+) al switch.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: que la luz siga prendida un rato sin la fuente.");
             return false;
         }
 
         Cable entrada = cableEntre(positivo, sw.getTerminalEntrada());
         if (entrada == null) {
-            mensajeEstado = "Conecta la Fuente (+) al pin izquierdo del switch.";
+            mensajeEstado = "El switch no recibe energía por su entrada.";
             return false;
         }
         paso1Listo = true;
@@ -115,7 +105,7 @@ public class Nivel7 extends Nivel {
         paso3Listo = salida.llegoATierra && salida.pasoPorLed && salida.pasoPorResistencia;
 
         if (!paso2Listo) {
-            mensajeEstado = "Conecta la salida del switch a la pata (+) del capacitor y su pata (-) a la Fuente (-).";
+            mensajeEstado = "La energía no tiene dónde guardarse.";
             return false;
         }
         if (!revisarSalidaCompleta(salida)) return false;
@@ -128,7 +118,7 @@ public class Nivel7 extends Nivel {
             int porcentaje = Math.round(capacitor.getCarga() * 100f);
             mensajeEstado = (porcentaje < 100)
                     ? "Cargando el capacitor: " + porcentaje + "%"
-                    : "Capacitor lleno. Ahora APAGA el switch y mira el LED.";
+                    : "Capacitor lleno. ¿Qué pasará si cortas la corriente?";
             capacitor.evaluarEstado();
             return true;
         }
@@ -147,7 +137,7 @@ public class Nivel7 extends Nivel {
             return true;
         }
 
-        mensajeEstado = ganado ? "¡Nivel superado! El capacitor guardó la energía." : "Enciende el switch para cargar el capacitor.";
+        mensajeEstado = ganado ? "¡Nivel superado! El capacitor guardó la energía." : "El capacitor está vacío y no le llega corriente.";
         return false;
     }
 

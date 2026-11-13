@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class Nivel6 extends Nivel {
 
-    public static final float TIEMPO_LIMITE = 75.0f;
+    public static final float TIEMPO_LIMITE = 150.0f;
     public static final float TIEMPO_POR_LUZ = 1.5f;
     public static final String[] SECUENCIA = {"VERDE", "AMARILLO", "ROJO"};
 
@@ -45,17 +45,7 @@ public class Nivel6 extends Nivel {
         this.inventario.add(new CasillaInventario("LED_ROJO", "LED Rojo", 1));
         this.inventario.add(new CasillaInventario("RESISTENCIA_220", "220 Ohm", 3));
         this.inventario.add(new CasillaInventario("SWITCH", "Interruptor", 3));
-        this.mensajeEstado = mensajeColocarPiezas("Arma tres ramas: cada switch va al (+) de su LED y el (-) del LED a su 220 Ohm.");
-    }
-
-    @Override
-    public String[] obtenerPasosGuia() {
-        return new String[]{"1. 3 ramas", "2. Verde", "3. Amarillo", "4. Rojo"};
-    }
-
-    @Override
-    public boolean[] obtenerEstadoPasosGuia() {
-        return new boolean[]{ramasConectadas, pasoSecuencia >= 1, pasoSecuencia >= 2, pasoSecuencia >= 3};
+        this.mensajeEstado = mensajeColocarPiezas("Objetivo: tres luces que se prendan cada una por su lado.");
     }
 
     @Override
@@ -65,7 +55,7 @@ public class Nivel6 extends Nivel {
                 "Tres LEDs en paralelo, cada uno con su interruptor y su resistencia. Tú decides cuál se prende y en qué orden.",
                 "Un semáforo pasa de verde a amarillo y luego a rojo, y nunca prende dos luces al mismo tiempo.",
                 TutorialNivel.Esquema.RAMAS,
-                new String[]{"Fuente (+) a los 3 switches", "Cada switch al (+) de su LED", "Cada LED (-) a su 220 Ohm", "Las 3 resistencias a la Fuente (-)"},
+                new String[]{"Una luz que se controla sola necesita su propio switch.", "Tres luces, tres caminos.", "Cada LED necesita su propia protección.", "Un semáforo nunca prende dos luces a la vez."},
                 "Sé el controlador: VERDE, luego AMARILLO y luego ROJO. 1.5 s cada una y solo una luz a la vez."
         ).conRamas(new String[]{"SW", "LED_VERDE", "R"}, new String[]{"SW", "LED_AMARILLO", "R"}, new String[]{"SW", "LED_ROJO", "R"})
          .conIcono("SEMAFORO")
@@ -91,7 +81,7 @@ public class Nivel6 extends Nivel {
         if (hayCortoEnFuente(fuente)) return false;
 
         if (buscarCablesConTerminal(positivo).isEmpty()) {
-            mensajeEstado = mensajeColocarPiezas("Arma tres ramas: cada switch va al (+) de su LED y el (-) del LED a su 220 Ohm.");
+            mensajeEstado = mensajeColocarPiezas("Objetivo: tres luces que se prendan cada una por su lado.");
             return false;
         }
 
@@ -128,7 +118,7 @@ public class Nivel6 extends Nivel {
                 revisarSalidaCompleta(incompleta);
                 mensajeEstado = "Rama incompleta: " + mensajeEstado;
             } else {
-                mensajeEstado = mensajeColocarPiezas("Cada LED necesita su switch y su 220 Ohm (" + ramasListas + " / 3 ramas).");
+                mensajeEstado = mensajeColocarPiezas("Luces que ya se controlan solas: " + ramasListas + " / 3.");
             }
             return false;
         }
