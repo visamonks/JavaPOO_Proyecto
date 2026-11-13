@@ -58,6 +58,8 @@ public class VistaGuia extends ScreenAdapter {
     private Animation<TextureRegion> animCapacitorVacio;
     private Animation<TextureRegion> animCapacitorCargado;
     private Animation<TextureRegion> animCapacitorExplotado;
+    private Animation<TextureRegion> anim555Astable;
+    private Animation<TextureRegion> anim555Monoestable;
 
     private Color colorFondo = new Color(0.02f, 0.03f, 0.06f, 1f);
     private Color colorCaja = new Color(0.05f, 0.07f, 0.11f, 0.96f);
@@ -167,6 +169,8 @@ public class VistaGuia extends ScreenAdapter {
         animCapacitorVacio = cargarAnimacion("capacitor_vacio", 8, 0.14f);
         animCapacitorCargado = cargarAnimacion("capacitor_cargado", 8, 0.10f);
         animCapacitorExplotado = cargarAnimacion("capacitor_explotado", 8, 0.08f);
+        anim555Astable = cargarAnimacion("555_astable", 10, 0.07f);
+        anim555Monoestable = cargarAnimacion("555_monoestable", 10, 0.20f);
         animLedNormal = cargarAnimacion("led_normal", 10, 0.12f);
         animLedPrendiendo = cargarAnimacion("led_prendiendo", 8, 0.10f);
         animLedMuriendo = cargarAnimacion("led_muriendo", 10, 0.14f);
@@ -244,6 +248,23 @@ public class VistaGuia extends ScreenAdapter {
                 "La pata larga es (+) y va hacia la corriente. Si lo conectas al revés, explota.",
                 new String[]{"VACÍO", "CARGADO", "EXPLOTADO"}, 8));
 
+        ElementoGuia chip = new ElementoGuia(
+                "CHIP 555", "TEMPORIZADOR",
+                "", "", "",
+                new String[]{"LOS PINES", "ASTABLE", "MONOESTABLE"}, 9);
+        chip.textosPorEstado = new String[][]{
+            {"¿QUÉ ES?", "Un chip que mide el tiempo. VCC recibe la energía de la Fuente (+), GND la regresa a la Fuente (-) y OUT es la salida que prende el LED.",
+             "LOS OTROS PINES", "C va a la pata (+) del capacitor: es el reloj del chip. TRIG es el gatillo: un toque con corriente arranca el tiempo.",
+             "REGLA DE ORO", "VCC, GND, C y OUT van siempre. TRIG solo se usa en MONOESTABLE. Haz clic en el chip para cambiar de modo."},
+            {"¿QUÉ HACE?", "En ASTABLE la salida OUT se prende y se apaga sola, una y otra vez, sin que toques nada.",
+             "EN LA VIDA DIARIA", "Las luces de una ambulancia o la direccional del carro.",
+             "PINES QUE USAS", "VCC a la Fuente (+), GND a la Fuente (-), C al capacitor (+) y OUT al LED. TRIG se queda libre."},
+            {"¿QUÉ HACE?", "En MONOESTABLE espera un toque en TRIG; entonces prende OUT unos segundos y se apaga solo.",
+             "EN LA VIDA DIARIA", "La luz del pasillo que se apaga sola o el timbre que suena un rato.",
+             "PINES QUE USAS", "VCC, GND, C y OUT igual que en ASTABLE. TRIG va a un botón conectado a la Fuente (+)."}
+        };
+        elementos.add(chip);
+
         elementos.add(new ElementoGuia(
                 "CABLES", "CONEXIÓN",
                 "Unen las piezas y llevan la corriente de una a otra.",
@@ -266,6 +287,7 @@ public class VistaGuia extends ScreenAdapter {
         String vidaDiaria;
         String reglaDeOro;
         String[] nombresEstados;
+        String[][] textosPorEstado;
         int tipoVisual;
         int estadoSeleccionado = 0;
         float animHover = 0f;
@@ -818,9 +840,16 @@ public class VistaGuia extends ScreenAdapter {
         fontPequena.setColor(colorMetal);
         fontPequena.draw(batch, "Toca la pieza o un botón para ver sus estados", VISUAL_X, BOTON_ESTADO_Y - 14f);
 
-        dibujarBloqueTexto(getBloqueY(0), "¿QUÉ ES?", item.queEs, colorNeon);
-        dibujarBloqueTexto(getBloqueY(1), "EN LA VIDA DIARIA", item.vidaDiaria, colorVerde);
-        dibujarBloqueTexto(getBloqueY(2), "REGLA DE ORO", item.reglaDeOro, colorAmbar);
+        if (item.textosPorEstado != null) {
+            String[] textos = item.textosPorEstado[item.estadoSeleccionado];
+            dibujarBloqueTexto(getBloqueY(0), textos[0], textos[1], colorNeon);
+            dibujarBloqueTexto(getBloqueY(1), textos[2], textos[3], colorVerde);
+            dibujarBloqueTexto(getBloqueY(2), textos[4], textos[5], colorAmbar);
+        } else {
+            dibujarBloqueTexto(getBloqueY(0), "¿QUÉ ES?", item.queEs, colorNeon);
+            dibujarBloqueTexto(getBloqueY(1), "EN LA VIDA DIARIA", item.vidaDiaria, colorVerde);
+            dibujarBloqueTexto(getBloqueY(2), "REGLA DE ORO", item.reglaDeOro, colorAmbar);
+        }
     }
 
     private void dibujarBloqueTexto(float by, String etiqueta, String texto, Color color) {
@@ -828,6 +857,22 @@ public class VistaGuia extends ScreenAdapter {
         fontPequena.draw(batch, etiqueta, TEXTO_X + 30f, by + BLOQUE_ALTO - 18f);
         fontTexto.setColor(Color.WHITE);
         fontTexto.draw(batch, texto, TEXTO_X + 30f, by + BLOQUE_ALTO - 56f, TEXTO_ANCHO - 60f, Align.left, true);
+    }
+
+    private void dibujarPines555(float x, float y, float escala, int estado) {
+        String[] nombres = {"VCC", "TRIG", "GND", "OUT", "C"};
+        float[] pinY = {236f, 201f, 166f, 236f, 166f};
+        for (int i = 0; i < nombres.length; i++) {
+            Color color = colorNeon;
+            if (nombres[i].equals("TRIG")) {
+                if (estado == 1) color = colorMetal;
+                else if (estado == 2) color = colorAmbar;
+            }
+            fontTexto.setColor(color);
+            layout.setText(fontTexto, nombres[i]);
+            float px = (i < 3) ? x + 78f * escala - layout.width : x + 284f * escala;
+            fontTexto.draw(batch, nombres[i], px, y + pinY[i] * escala);
+        }
     }
 
     private void dibujarSpriteDePieza(ElementoGuia item) {
@@ -844,6 +889,10 @@ public class VistaGuia extends ScreenAdapter {
             batch.draw(animAnd.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
         } else if (item.tipoVisual == 5) {
             batch.draw(animOr.getKeyFrame(tiempo, true), vx + 30f, vy + 30f, 420f, 420f);
+        } else if (item.tipoVisual == 9) {
+            Animation<TextureRegion> anim = (item.estadoSeleccionado == 1) ? anim555Astable : anim555Monoestable;
+            batch.draw(anim.getKeyFrame(tiempo, true), vx + 10f, vy + 10f, 460f, 460f);
+            dibujarPines555(vx + 10f, vy + 10f, 460f / 360f, item.estadoSeleccionado);
         } else if (item.tipoVisual == 8) {
             Animation<TextureRegion> anim = animCapacitorVacio;
             if (item.estadoSeleccionado == 1) anim = animCapacitorCargado;

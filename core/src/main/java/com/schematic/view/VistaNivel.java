@@ -60,7 +60,7 @@ public class VistaNivel extends ScreenAdapter {
     private List<Texture> texturasCargadas;
     private Animation<TextureRegion> animLedNormal, animLedPrendiendo, animLedMuriendo;
     private Animation<TextureRegion> animResistenciaNormal, animResistenciaFallo, animAnd, animOr;
-    private Animation<TextureRegion> animCapacitorVacio, animCapacitorCargado, animCapacitorExplotado;
+    private Animation<TextureRegion> animCapacitorVacio, animCapacitorCargado, animCapacitorExplotado, anim555Astable, anim555Monoestable;
 
     private boolean mostrandoGuiaNivel;
     private int paginaTutorial;
@@ -157,6 +157,8 @@ public class VistaNivel extends ScreenAdapter {
         animCapacitorVacio = cargarAnimacion("capacitor_vacio", 8, 0.14f);
         animCapacitorCargado = cargarAnimacion("capacitor_cargado", 8, 0.10f);
         animCapacitorExplotado = cargarAnimacion("capacitor_explotado", 8, 0.08f);
+        anim555Astable = cargarAnimacion("555_astable", 10, 0.07f);
+        anim555Monoestable = cargarAnimacion("555_monoestable", 10, 0.20f);
     }
 
     private Animation<TextureRegion> cargarAnimacion(String carpeta, int cantidadFrames, float duracionFrame) {
@@ -800,6 +802,8 @@ public class VistaNivel extends ScreenAdapter {
                 frame = animOr.getKeyFrame(tiempoTotal, true); fw = 136f; fh = 136f;
             } else if ("CAPACITOR".equals(tipo)) {
                 frame = animCapacitorCargado.getKeyFrame(tiempoTotal, true); fw = 140f; fh = 140f;
+            } else if ("555".equals(tipo)) {
+                frame = anim555Monoestable.getKeyFrame(tiempoTotal, true); fw = 170f; fh = 170f;
             }
             Color tinte = tipo.startsWith("LED_") ? colorDeLed(tipo.substring(4)) : Color.WHITE;
             dibujarSlotInventario(casilla, y, alto, frame, fw * escala, fh * escala, tinte);
@@ -834,6 +838,7 @@ public class VistaNivel extends ScreenAdapter {
         else if ("AND".equals(tipo)) batch.draw(animAnd.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
         else if ("OR".equals(tipo)) batch.draw(animOr.getKeyFrame(tiempoTotal, true), pos.x - 140f, pos.y - 140f, 280f, 280f);
         else if ("CAPACITOR".equals(tipo)) batch.draw(animCapacitorVacio.getKeyFrame(tiempoTotal, true), pos.x - 120f, pos.y - 120f, 240f, 240f);
+        else if ("555".equals(tipo)) batch.draw(anim555Monoestable.getKeyFrame(tiempoTotal, true), pos.x - 180f, pos.y - 180f, 360f, 360f);
         else if (tipo != null && tipo.startsWith("SWITCH")) {
             boolean esDoble = (nivel != null && nivel.esSwitchDivisor(tipo));
             batch.end();
@@ -1180,6 +1185,23 @@ public class VistaNivel extends ScreenAdapter {
                 fontPequena.setColor(0.42f, 0.78f, 1f, 0.90f); fontPequena.draw(batch, "-", x + 174f, y + 88f);
                 fontPequena.setColor(COLOR_GRIS_CLARO); glyphLayout.setText(fontPequena, nombreDeLed(led.getColor()));
                 fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + h - 6f);
+            } else if (comp instanceof Temporizador555) {
+                Temporizador555 chip = (Temporizador555) comp;
+                Animation<TextureRegion> anim = chip.isAstable() ? anim555Astable : anim555Monoestable;
+                batch.draw(anim.getKeyFrame(tiempoTotal, true), x, y, w, h);
+                fontPequena.setColor(COLOR_GRIS_CLARO);
+                fontPequena.draw(batch, "VCC", x + 20f, y + 236f);
+                fontPequena.draw(batch, "TRIG", x + 14f, y + 201f);
+                fontPequena.draw(batch, "GND", x + 18f, y + 166f);
+                fontPequena.draw(batch, "OUT", x + w - 66f, y + 236f);
+                fontPequena.draw(batch, "C", x + w - 60f, y + 166f);
+                String modo = chip.isAstable() ? "555  ·  ASTABLE" : "555  ·  MONOESTABLE";
+                fontPequena.setColor(chip.isSalidaAlta() ? COLOR_CELESTE_BRILLANTE : COLOR_GRIS_CLARO);
+                glyphLayout.setText(fontPequena, modo);
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + 92f);
+                fontPequena.setColor(COLOR_GRIS_METAL);
+                glyphLayout.setText(fontPequena, "(clic para cambiar)");
+                fontPequena.draw(batch, glyphLayout, x + (w - glyphLayout.width) / 2f, y + 70f);
             } else if (comp instanceof Capacitor) {
                 Capacitor cap = (Capacitor) comp;
                 Animation<TextureRegion> anim = cap.tieneCarga() ? animCapacitorCargado : animCapacitorVacio;
@@ -1524,6 +1546,17 @@ public class VistaNivel extends ScreenAdapter {
             font.draw(batch, "DER", cx + 55f, cy - 80f);
             nombre = "DOS LEDs EN PARALELO";
         }
+        if (icono.equals("555A") || icono.equals("555M")) {
+            boolean astable = icono.equals("555A");
+            batch.draw((astable ? anim555Astable : anim555Monoestable).getKeyFrame(tiempoTotal, true), cx - 170f, cy - 150f, 340f, 340f);
+            if (astable) {
+                boolean prendido = (tiempoTotal % 1f) < 0.5f;
+                batch.setColor(colorDeLed("ROJO"));
+                batch.draw((prendido ? animLedPrendiendo : animLedNormal).getKeyFrame(tiempoTotal, true), cx - 60f, cy - 215f, 120f, 120f);
+                batch.setColor(Color.WHITE);
+            }
+            nombre = astable ? "555 ASTABLE: SE PRENDE Y APAGA SOLO" : "555 MONOESTABLE: UN TOQUE, UN PULSO";
+        }
         if (icono.equals("CAP")) {
             float ciclo = (tiempoTotal % 6f) / 6f;
             float carga = ciclo < 0.4f ? ciclo / 0.4f : Math.max(0f, 1f - (ciclo - 0.4f) / 0.6f);
@@ -1833,6 +1866,9 @@ public class VistaNivel extends ScreenAdapter {
     private void dibujarIconoToken(String tipo, float x, float y, float tam) {
         if (tipo.equals("R")) {
             batch.draw(animResistenciaNormal.getKeyFrame(tiempoTotal, true), x - tam * 0.7f, y - tam * 0.45f, tam * 1.4f, tam * 0.9f);
+        } else if (tipo.equals("555A") || tipo.equals("555M")) {
+            Animation<TextureRegion> anim = tipo.equals("555A") ? anim555Astable : anim555Monoestable;
+            batch.draw(anim.getKeyFrame(tiempoTotal, true), x - tam * 0.75f, y - tam * 0.75f, tam * 1.5f, tam * 1.5f);
         } else if (tipo.equals("CAP")) {
             batch.draw(animCapacitorCargado.getKeyFrame(tiempoTotal, true), x - tam * 0.55f, y - tam * 0.42f, tam * 1.1f, tam * 1.1f);
         } else if (tipo.startsWith("LED")) {

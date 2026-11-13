@@ -204,6 +204,8 @@ public abstract class Nivel {
             return new Switch(siguienteId("SW_"), x, y, false);
         } else if ("CAPACITOR".equals(tipo)) {
             return new Capacitor(siguienteId("C_"), x, y);
+        } else if ("555".equals(tipo)) {
+            return new Temporizador555(siguienteId("U_"), x, y, false);
         } else if ("AND".equals(tipo)) {
             return new CompuertaAND("AND_1", x, y, false, false);
         } else if ("OR".equals(tipo)) {
@@ -252,6 +254,9 @@ public abstract class Nivel {
             if (casilla != null) casilla.incrementar();
         } else if (comp instanceof Capacitor) {
             CasillaInventario casilla = buscarCasilla("CAPACITOR");
+            if (casilla != null) casilla.incrementar();
+        } else if (comp instanceof Temporizador555) {
+            CasillaInventario casilla = buscarCasilla("555");
             if (casilla != null) casilla.incrementar();
         } else if (comp instanceof CompuertaAND) {
             CasillaInventario casilla = buscarCasilla("AND");
@@ -347,6 +352,20 @@ public abstract class Nivel {
     protected FuenteAlimentacion buscarFuente() {
         for (Componente c : componentes) {
             if (c instanceof FuenteAlimentacion) return (FuenteAlimentacion) c;
+        }
+        return null;
+    }
+
+    protected Capacitor buscarCapacitor() {
+        for (Componente c : componentes) {
+            if (c instanceof Capacitor) return (Capacitor) c;
+        }
+        return null;
+    }
+
+    protected Temporizador555 buscar555() {
+        for (Componente c : componentes) {
+            if (c instanceof Temporizador555) return (Temporizador555) c;
         }
         return null;
     }

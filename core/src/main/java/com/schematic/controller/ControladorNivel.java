@@ -13,6 +13,7 @@ import com.schematic.model.componentes.Cable;
 import com.schematic.model.componentes.Componente;
 import com.schematic.model.componentes.FuenteAlimentacion;
 import com.schematic.model.componentes.Switch;
+import com.schematic.model.componentes.Temporizador555;
 import com.schematic.model.componentes.Terminal;
 import com.schematic.model.niveles.Nivel;
 import com.schematic.view.VistaNivel;
@@ -232,6 +233,8 @@ public class ControladorNivel extends InputAdapter {
                         w = 240f; h = 240f;
                     } else if ("RESISTENCIA_220".equals(tipoComponenteArrastrado)) {
                         w = 270f; h = 172f;
+                    } else if ("555".equals(tipoComponenteArrastrado)) {
+                        w = 360f; h = 360f;
                     } else if ("AND".equals(tipoComponenteArrastrado) || "OR".equals(tipoComponenteArrastrado)) {
                         w = 280f; h = 280f;
                     } else if (tipoComponenteArrastrado.startsWith("SWITCH")) {
@@ -267,7 +270,11 @@ public class ControladorNivel extends InputAdapter {
                     if (componenteSeleccionado.getPosicionX() > maxX) {
                         componenteSeleccionado.actualizarPosicion(maxX, componenteSeleccionado.getPosicionY());
                     }
-                    if (componenteSeleccionado instanceof Switch && distArrastre < 15f) {
+                    if (componenteSeleccionado instanceof Temporizador555 && distArrastre < 15f) {
+                        ((Temporizador555) componenteSeleccionado).cambiarModo();
+                        nivel.actualizar(0f);
+                        sonar(TipoEfecto.CONMUTAR_SWITCH);
+                    } else if (componenteSeleccionado instanceof Switch && distArrastre < 15f) {
                         Switch sw = (Switch) componenteSeleccionado;
                         sw.conmutarSegunPosicionY(my);
                         nivel.actualizar(0f);

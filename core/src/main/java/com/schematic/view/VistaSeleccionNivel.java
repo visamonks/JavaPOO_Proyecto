@@ -201,6 +201,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
         datosNiveles[6] = new InfoNivel(7, "CAPACITOR", "ENERGIA", "70s",
                 "Fuente - Interruptor - Capacitor - Resistencia - LED",
                 "Guarda energia y mantiene el LED prendido sin fuente.");
+        datosNiveles[7] = new InfoNivel(8, "AMBULANCIA", "555 ASTABLE", "75s",
+                "Fuente - Chip 555 - Capacitor - Resistencia - LED rojo",
+                "El 555 hace parpadear la luz solo, como una ambulancia.");
     }
 
     private void cargarProgresoJugador() {
@@ -668,6 +671,9 @@ public class VistaSeleccionNivel extends ScreenAdapter {
                 case 6:
                     dibujarIconoCapacitor(cx, cy, sel);
                     break;
+                case 7:
+                    dibujarIcono555(cx, cy, sel, true);
+                    break;
             }
         }
     }
@@ -775,6 +781,21 @@ public class VistaSeleccionNivel extends ScreenAdapter {
 
         shapeRenderer.rectLine(cx + 38f, cy, cx + 85f, cy, 3.5f);
         shapeRenderer.circle(cx + 85f, cy, 5f);
+    }
+
+    private void dibujarIcono555(float cx, float cy, boolean sel, boolean parpadea) {
+        shapeRenderer.setColor(0.18f, 0.18f, 0.24f, 1f);
+        shapeRenderer.rect(cx - 50f, cy - 32f, 100f, 64f);
+        shapeRenderer.setColor(0.75f, 0.78f, 0.84f, 1f);
+        for (int k = 0; k < 3; k++) {
+            shapeRenderer.rect(cx - 66f, cy - 22f + k * 20f, 16f, 6f);
+            shapeRenderer.rect(cx + 50f, cy - 22f + k * 20f, 16f, 6f);
+        }
+        shapeRenderer.setColor(sel ? COLOR_NEON_CYAN : COLOR_TEXTO_MUTED);
+        dibujarRectContorno(cx - 50f, cy - 32f, 100f, 64f, 2.5f);
+        boolean prendido = !parpadea || (tiempoTotal % 1f) < 0.5f;
+        shapeRenderer.setColor(prendido ? COLOR_ROJO : new Color(0.35f, 0.12f, 0.12f, 1f));
+        shapeRenderer.circle(cx, cy + 52f, 12f);
     }
 
     private void dibujarIconoCapacitor(float cx, float cy, boolean sel) {

@@ -166,11 +166,4 @@ public class Nivel7 extends Nivel {
             mensajeEstado = "¡Nivel superado! El capacitor guardó la energía.";
         }
     }
-
-    private Capacitor buscarCapacitor() {
-        for (Componente c : componentes) {
-            if (c instanceof Capacitor) return (Capacitor) c;
-        }
-        return null;
-    }
 }
