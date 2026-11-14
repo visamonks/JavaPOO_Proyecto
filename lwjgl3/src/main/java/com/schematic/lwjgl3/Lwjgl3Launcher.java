@@ -17,11 +17,11 @@ public class Lwjgl3Launcher {
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
-        configuration.setTitle("Short Circuit!");
+        configuration.setTitle("Short Circuit! v1.0");
         configuration.useVsync(true);
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
         configuration.setWindowedMode(Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA);
-        configuration.setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png");
+        configuration.setWindowIcon("icono128.png", "icono64.png", "icono32.png", "icono16.png");
         return configuration;
     }
 }

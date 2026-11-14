@@ -46,6 +46,18 @@ LED (amarillo, rojo o verde), resistencia de 220 Ohm, fuente de 5 V, interruptor
 
 ## Ejecutar
 
+**Versión 1.0 para Windows:** descomprime `ShortCircuit-v1.0-Windows.zip` y abre `ShortCircuit.exe`. No hace falta instalar Java porque el paquete trae el suyo.
+
+Para generar ese paquete desde el código:
+
+```powershell
+.\gradlew.bat lwjgl3:packageWinX64
+```
+
+El zip queda en `lwjgl3/build/construo/dist/`.
+
+Para jugar desde el código:
+
 ```powershell
 # Jugar (o doble clic en Jugar.bat)
 .\gradlew.bat lwjgl3:run
@@ -54,7 +66,7 @@ LED (amarillo, rojo o verde), resistencia de 220 Ohm, fuente de 5 V, interruptor
 .\gradlew.bat test lwjgl3:compileJava
 ```
 
-Requiere Java 17. Hecho con LibGDX 1.12.1.
+Requiere Java 17 o superior. Hecho con LibGDX 1.14.2.
 
 ## Estructura
 

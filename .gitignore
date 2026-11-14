@@ -169,3 +169,6 @@ Thumbs.db
 *.java.bak
 _respaldo*/
 
+
+## Ejecutable de Windows
+/dist/
